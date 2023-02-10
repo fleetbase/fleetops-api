@@ -1,5 +1,6 @@
 {
     "name": "fleetbase/fleetops-api",
+    "version": "1.0.0-dev",
     "description": "FleetOps TMS and Last-Mile Operations System",
     "keywords": ["fleetops", "last-mile", "tms", "delivery management"],
     "license": "MIT",
