@@ -22,9 +22,12 @@ class PayloadController extends FleetbaseController
      */
     public function updateRecord(Request $request, string $id)
     {
-        return $this->model::updateRecordFromRequest($request, function (&$request, &$payload, &$input) {
-            $payload->updateWaypoints($input['waypoints'] ?? []);
-            $payload->flushOrderCache();
-        });
+        return $this->model::updateRecordFromRequest(
+            $request,
+            function (&$request, &$payload, &$input) {
+                $payload->updateWaypoints($input['waypoints'] ?? []);
+                $payload->flushOrderCache();
+            }
+        );
     }
 }

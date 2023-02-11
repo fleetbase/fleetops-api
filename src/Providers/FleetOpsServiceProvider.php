@@ -4,7 +4,7 @@ namespace Fleetbase\Providers;
 
 use Exception;
 
-require __DIR__ . '/../../vendor/autoload.php';
+// require __DIR__ . '/../../vendor/autoload.php';
 
 if (!class_exists(CoreServiceProvider::class)) {
     throw new Exception('FleetOps cannot be loaded without `fleetbase/core-api` installed!');

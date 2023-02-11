@@ -2,6 +2,8 @@
 
 namespace Fleetbase\Support;
 
+use Fleetbase\Integrations\Lalamove\LalamoveServiceType;
+use Fleetbase\Integrations\Lalamove\LalamoveMarket;
 use Fleetbase\Models\IntegratedVendor;
 use Illuminate\Support\Str;
 

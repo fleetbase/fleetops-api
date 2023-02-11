@@ -17,12 +17,12 @@ use Illuminate\Support\Facades\Route;
 Route::prefix(InternalConfig::get('api.routing.prefix', 'flb'))->namespace('Fleetbase\Http\Controllers')->group(
     function ($router) {
         /*
-    |--------------------------------------------------------------------------
-    | Internal FleetOps API Routes
-    |--------------------------------------------------------------------------
-    |
-    | Primary internal routes for console.
-    */
+        |--------------------------------------------------------------------------
+        | Internal FleetOps API Routes
+        |--------------------------------------------------------------------------
+        |
+        | Primary internal routes for console.
+        */
         $router->prefix(InternalConfig::get('api.routing.internal_prefix', 'int'))->namespace('Internal')->group(
             function ($router) {
                 $router->group(

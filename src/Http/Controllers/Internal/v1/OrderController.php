@@ -20,13 +20,13 @@ use Fleetbase\Models\Place;
 use Fleetbase\Models\Waypoint;
 use Fleetbase\Models\ServiceQuote;
 use Fleetbase\Notifications\StorefrontOrderEnroute;
+use Fleetbase\Exceptions\FleetbaseRequestValidationException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Database\QueryException;
 use Maatwebsite\Excel\Facades\Excel;
 use Exception;
-use Fleetbase\Exceptions\FleetbaseRequestValidationException;
-use Illuminate\Database\QueryException;
 
 class OrderController extends FleetbaseController
 {
