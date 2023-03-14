@@ -24,7 +24,7 @@ class Order extends FleetbaseResource
             'customer' => Resolve::resourceForMorph($this->customer_type, $this->customer_uuid),
             'customer_type' => Utils::toEmberResourceType($this->customer_type),
             'payload' => new Payload($this->payload),
-            'facilitator' =>  Resolve::resourceForMorph($this->facilitator_type, $this->facilitator_uuid),
+            'facilitator' =>  Resolve::resourceForMorph($this->facilitator_type, $this->facilitator_uuid, IntegratedVendorFacilitator::class),
             'facilitator_type' => Utils::toEmberResourceType($this->facilitator_type),
             'driver_assigned' => new Driver($this->driverAssigned),
             'tracking_number' => new TrackingNumber($this->trackingNumber),

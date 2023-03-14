@@ -3,7 +3,6 @@
 namespace Fleetbase\Http\Resources\v1;
 
 use Fleetbase\Models\Waypoint;
-use Fleetbase\Support\Utils;
 use Fleetbase\Http\Resources\FleetbaseResource;
 
 class Payload extends FleetbaseResource
