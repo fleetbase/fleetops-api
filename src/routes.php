@@ -78,6 +78,7 @@ Route::prefix(InternalConfig::get('api.routing.prefix', 'fleet-ops'))->namespace
                             'vehicles',
                             function ($router, $controller) {
                                 $router->get('statuses', $controller('statuses'));
+                                $router->get('avatars', $controller('avatars'));
                             }
                         );
                         $router->fleetbaseRoutes('vendors');

@@ -100,7 +100,7 @@ class VehicleController extends FleetbaseController
      *
      * @return \Illuminate\Http\Response
      */
-    public function getAvatarOptions()
+    public function avatars()
     {
         $options = Vehicle::getAvatarOptions();
 
