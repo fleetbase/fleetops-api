@@ -79,6 +79,7 @@ Route::prefix(InternalConfig::get('api.routing.prefix', 'fleet-ops'))->namespace
                             function ($router, $controller) {
                                 $router->get('statuses', $controller('statuses'));
                                 $router->get('avatars', $controller('avatars'));
+                                $router->delete('bulk-delete', $controller('bulkDelete'));
                             }
                         );
                         $router->fleetbaseRoutes('vendors');

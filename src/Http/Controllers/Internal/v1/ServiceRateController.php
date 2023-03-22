@@ -3,7 +3,7 @@
 namespace Fleetbase\Http\Controllers\Internal\v1;
 
 use Fleetbase\Http\Controllers\FleetbaseController;
-use Fleetbase\Http\Requests\BulkActionRequest;
+use Fleetbase\Http\Requests\Internal\BulkDeleteRequest;
 use Fleetbase\Models\ServiceRate;
 use Illuminate\Http\Request;
 use Brick\Geo\Point;
@@ -95,10 +95,10 @@ class ServiceRateController extends FleetbaseController
     /**
      * Updates a order to canceled and updates order activity.
      *
-     * @param  \Illuminate\Http\BulkActionRequest  $request
+     * @param  \Fleetbase\Http\Requests\Internal\BulkDeleteRequest $request
      * @return \Illuminate\Http\Response
      */
-    public function bulkDelete(BulkActionRequest $request)
+    public function bulkDelete(BulkDeleteRequest $request)
     {
         $count = ServiceRate::whereIn('uuid', $request->input('ids'))->count();
         $deleted = ServiceRate::whereIn('uuid', $request->input('ids'))->delete();

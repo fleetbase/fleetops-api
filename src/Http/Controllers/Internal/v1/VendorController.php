@@ -4,7 +4,7 @@ namespace Fleetbase\Http\Controllers\Internal\v1;
 
 use Fleetbase\Exports\VendorExport;
 use Fleetbase\Http\Controllers\FleetbaseController;
-use Fleetbase\Http\Requests\BulkActionRequest;
+use Fleetbase\Http\Requests\Internal\BulkDeleteRequest;
 use Fleetbase\Http\Requests\ExportRequest;
 use Fleetbase\Models\Vendor;
 use Fleetbase\Support\Resp;
@@ -73,10 +73,10 @@ class VendorController extends FleetbaseController
     /**
      * Bulk delete resources.
      *
-     * @param  Fleetbase\Http\Requests\BulkActionRequest  $request
+     * @param  \Fleetbase\Http\Requests\Internal\BulkDeleteRequest $request
      * @return \Illuminate\Http\Response
      */
-    public function bulkDelete(BulkActionRequest $request)
+    public function bulkDelete(BulkDeleteRequest $request)
     {
         $ids = $request->input('ids', []);
 

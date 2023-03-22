@@ -3,7 +3,7 @@
 namespace Fleetbase\Http\Controllers\Internal\v1;
 
 use Fleetbase\Http\Controllers\FleetbaseController;
-use Fleetbase\Http\Requests\BulkActionRequest;
+use Fleetbase\Http\Requests\Internal\BulkDeleteRequest;
 use Fleetbase\Http\Requests\CancelOrderRequest;
 use Fleetbase\Imports\OrdersImport;
 use Fleetbase\Models\File;
@@ -194,10 +194,10 @@ class OrderController extends FleetbaseController
     /**
      * Updates a order to canceled and updates order activity.
      *
-     * @param  \Fleetbase\Http\Requests\BulkActionRequest  $request
+     * @param  \Fleetbase\Http\Requests\Internal\BulkDeleteRequest  $request
      * @return \Illuminate\Http\Response
      */
-    public function bulkDelete(BulkActionRequest $request)
+    public function bulkDelete(BulkDeleteRequest $request)
     {
         $ids = $request->input('ids', []);
 
@@ -225,10 +225,10 @@ class OrderController extends FleetbaseController
     /**
      * Updates a order to canceled and updates order activity.
      *
-     * @param  \Fleetbase\Http\Requests\BulkActionRequest  $request
+     * @param  \Fleetbase\Http\Requests\Internal\BulkDeleteRequest  $request
      * @return \Illuminate\Http\Response
      */
-    public function bulkCancel(BulkActionRequest $request)
+    public function bulkCancel(BulkDeleteRequest $request)
     {
         /** @var \Fleetbase\Models\Order */
         $orders = Order::whereIn('uuid', $request->input('ids'))->get();
