@@ -37,14 +37,6 @@ class Place extends Model
      */
     protected $table = 'places';
 
-    // /**
-    //  * Overwrite table to include databse name
-    //  */
-    // public function __construct()
-    // {
-    //     $this->table = DB::connection($this->conntaction)->getDatabaseName() . '.' . $this->getTable();
-    // }
-
     /**
      * The type of public Id to generate
      *
