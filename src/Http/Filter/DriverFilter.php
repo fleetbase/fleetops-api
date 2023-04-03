@@ -19,19 +19,19 @@ class DriverFilter extends Filter
         );
     }
 
-    public function query(string $searchQuery)
+    public function query(?string $searchQuery)
     {
         $this->builder->where(function ($query) use ($searchQuery) {
             $query->orWhereHas(
                 'user',
-                function ($userQuery) use ($searchQuery) {
-                    $userQuery->searchWhere(['name', 'email', 'phone'], $searchQuery);
+                function ($query) use ($searchQuery) {
+                    $query->searchWhere(['name', 'email', 'phone'], $searchQuery);
                 }
             );
 
             $query->orWhere(
-                function ($driverQuery) use ($searchQuery) {
-                    $driverQuery->searchWhere(['drivers_license_number'], $searchQuery);
+                function ($query) use ($searchQuery) {
+                    $query->searchWhere(['drivers_license_number'], $searchQuery);
                 }
             );
         });

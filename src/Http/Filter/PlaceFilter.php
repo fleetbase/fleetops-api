@@ -9,7 +9,7 @@ class PlaceFilter extends Filter
         $this->builder->where('company_uuid', $this->session->get('company'));
     }
 
-    public function query(string $searchQuery)
+    public function query(?string $searchQuery)
     {
         $this->builder->search($searchQuery);
     }
