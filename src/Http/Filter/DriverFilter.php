@@ -37,9 +37,59 @@ class DriverFilter extends Filter
         });
     }
 
+    public function internalId(?string $internalId)
+    {
+        $this->builder->searchWhere('internal_id', $internalId);
+    }
+
+    public function publicId(?string $publicId)
+    {
+        $this->builder->searchWhere('public_id', $publicId);
+    }
+
     public function facilitator(string $facilitator)
     {
         $this->builder->where('vendor_uuid', $facilitator);
+    }
+
+    public function vehicle(string $vehicle)
+    {
+        $this->builder->whereHas(
+            'vehicle', 
+            function ($query) use ($vehicle) {
+                $query->search($vehicle);
+            }
+        );
+    }
+
+    public function fleet(string $fleet)
+    {
+        $this->builder->where('fleets', $fleet);
+    }
+
+    public function driversLicenseNumber(?string $driversLicenseNumber)
+    {
+        $this->builder->searchWhere('drivers_license_number', $driversLicenseNumber);
+    }
+
+    public function phone(string $phone)
+    {
+        $this->builder->whereHas(
+            'phone', 
+            function ($query) use ($phone) {
+                $query->search($phone);
+            }
+        );
+    }
+
+    public function country(?string $country)
+    {
+        $this->builder->searchWhere('country', $country);
+    }
+
+    public function status(?string $status)
+    {
+        $this->builder->searchWhere('status', $status);
     }
 
     public function vendor(string $vendor)
