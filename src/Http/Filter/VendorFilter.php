@@ -26,14 +26,9 @@ class VendorFilter extends Filter
         $this->builder->searchWhere('public_id', $publicId);
     }
 
-    public function publicIdType(string $publicIdType)
+    public function type(?string $type)
     {
-        $this->builder->whereHas(
-            'publicIdType', 
-            function ($query) use ($publicIdType) {
-                $query->search($publicIdType);
-            }
-        );
+        $this->builder->searchWhere('type', $type);
     }
 
     public function country(?string $country)
