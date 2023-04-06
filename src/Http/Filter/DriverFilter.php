@@ -42,6 +42,16 @@ class DriverFilter extends Filter
         $this->builder->searchWhere('internal_id', $internalId);
     }
 
+    public function name(?string $name)
+    {
+        $this->builder->whereHas(
+            'user',
+            function ($query) use ($name) {
+                $query->searchWhere('name', $name);
+            }
+        );
+    }
+
     public function publicId(?string $publicId)
     {
         $this->builder->searchWhere('public_id', $publicId);
@@ -55,16 +65,11 @@ class DriverFilter extends Filter
     public function vehicle(string $vehicle)
     {
         $this->builder->whereHas(
-            'vehicle', 
+            'vehicle',
             function ($query) use ($vehicle) {
                 $query->search($vehicle);
             }
         );
-    }
-
-    public function fleet(string $fleet)
-    {
-        $this->builder->where('fleets', $fleet);
     }
 
     public function driversLicenseNumber(?string $driversLicenseNumber)
@@ -75,7 +80,7 @@ class DriverFilter extends Filter
     public function phone(string $phone)
     {
         $this->builder->whereHas(
-            'phone', 
+            'phone',
             function ($query) use ($phone) {
                 $query->search($phone);
             }

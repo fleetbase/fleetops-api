@@ -26,6 +26,8 @@ class Driver extends DriverResource
             $driver['current_job'] = new CurrentJob($this->currentJob);
         }
 
+        $driver['fleets'] = $this->fleets->mapInto(Fleet::class);
+
         return $driver;
     }
 }

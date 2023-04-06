@@ -227,11 +227,6 @@ class Contact extends Model
         return static::attributeFromCache($this, 'photo.s3url', 'https://s3.ap-southeast-1.amazonaws.com/flb-assets/static/no-avatar.png');
     }
 
-    public function getTypeAttribute()
-    {
-        return 'customer';
-    }
-
     public static function findFromCustomerId($publicId)
     {
         if (Str::startsWith($publicId, 'customer')) {
