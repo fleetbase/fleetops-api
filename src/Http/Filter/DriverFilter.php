@@ -2,6 +2,9 @@
 
 namespace Fleetbase\Http\Filter;
 
+use Illuminate\Support\Str;
+use Fleetbase\Support\Utils;
+
 class DriverFilter extends Filter
 {
     public function queryForInternal()
@@ -64,12 +67,16 @@ class DriverFilter extends Filter
 
     public function vehicle(string $vehicle)
     {
-        $this->builder->whereHas(
-            'vehicle',
-            function ($query) use ($vehicle) {
-                $query->search($vehicle);
-            }
-        );
+        if (Utils::isUuid($vehicle)) {
+            $this->builder->where('vehicle_uuid', $vehicle);
+        } else {
+            $this->builder->whereHas(
+                'vehicle',
+                function ($query) use ($vehicle) {
+                    $query->search($vehicle);
+                }
+            );
+        }
     }
 
     public function driversLicenseNumber(?string $driversLicenseNumber)
@@ -89,7 +96,11 @@ class DriverFilter extends Filter
 
     public function country(?string $country)
     {
-        $this->builder->searchWhere('country', $country);
+        if (Str::contains($country, ',')) {
+            $this->builder->whereIn('country', explode(',', $country));
+        } else {
+            $this->builder->searchWhere('country', $country);
+        }
     }
 
     public function status(?string $status)
@@ -110,5 +121,27 @@ class DriverFilter extends Filter
                 $q->where('fleet_uuid', $fleet);
             }
         );
+    }
+
+    public function createdAt($createdAt) 
+    {
+        $createdAt = Utils::dateRange($createdAt);
+
+        if (is_array($createdAt)) {
+            $this->builder->whereBetween('created_at', $createdAt);
+        } else {
+            $this->builder->whereDate('created_at', $createdAt);
+        }
+    }
+
+    public function updatedAt($updatedAt) 
+    {
+        $updatedAt = Utils::dateRange($updatedAt);
+
+        if (is_array($updatedAt)) {
+            $this->builder->whereBetween('updated_at', $updatedAt);
+        } else {
+            $this->builder->whereDate('updated_at', $updatedAt);
+        }
     }
 }

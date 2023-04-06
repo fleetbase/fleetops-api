@@ -26,8 +26,9 @@ class DriverController extends FleetbaseController
       ->where('company_uuid', session('company'))
       ->distinct()
       ->get()
+      ->pluck('status')
       ->filter()
-      ->pluck('status');
+      ->values();
 
     return response()->json($statuses);
   }

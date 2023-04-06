@@ -90,7 +90,8 @@ class VehicleController extends FleetbaseController
             ->distinct()
             ->get()
             ->pluck('status')
-            ->filter();
+            ->filter()
+            ->values();
 
         return response()->json($statuses);
     }
