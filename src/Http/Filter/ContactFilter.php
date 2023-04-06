@@ -6,7 +6,44 @@ class ContactFilter extends Filter
 {
     public function queryForInternal()
     {
-        $this->builder->where('company_uuid', $this->session->get('company'));
+        $this->builder->where(
+            function ($query) {
+                $query->where('company_uuid', $this->session->get('company'));
+                $query->orWhereHas(
+                    'user',
+                    function ($query) {
+                        $query->where('company_uuid', $this->session->get('company'));
+                    }
+                );
+            }
+        );
+    }
+
+    public function query(?string $searchQuery)
+    {
+        $this->builder->where(function ($query) use ($searchQuery) {
+            $query->orWhereHas(
+                'user',
+                function ($query) use ($searchQuery) {
+                    $query->searchWhere(['name', 'email', 'phone'], $searchQuery);
+                }
+            );
+        });
+    }
+
+    public function internalId(?string $internalId)
+    {
+        $this->builder->searchWhere('internal_id', $internalId);
+    }
+
+    public function publicId(?string $publicId)
+    {
+        $this->builder->searchWhere('public_id', $publicId);
+    }
+
+    public function type(?string $type)
+    {
+        $this->builder->searchWhere('type', $type);
     }
 
     /**
