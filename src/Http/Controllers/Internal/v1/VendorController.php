@@ -7,7 +7,7 @@ use Fleetbase\Http\Controllers\FleetbaseController;
 use Fleetbase\Http\Requests\Internal\BulkDeleteRequest;
 use Fleetbase\Http\Requests\ExportRequest;
 use Fleetbase\Models\Vendor;
-use Fleetbase\Support\Resp;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Maatwebsite\Excel\Facades\Excel;
 
@@ -99,5 +99,24 @@ class VendorController extends FleetbaseController
             ],
             200
         );
+    }
+
+    /**
+     * Get all status options for an vehicle
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function statuses()
+    {
+        $statuses = DB::table('vendors')
+            ->select('status')
+            ->where('company_uuid', session('company'))
+            ->distinct()
+            ->get()
+            ->pluck('status')
+            ->filter()
+            ->values();
+
+        return response()->json($statuses);
     }
 }

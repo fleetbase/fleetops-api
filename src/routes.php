@@ -82,7 +82,12 @@ Route::prefix(InternalConfig::get('api.routing.prefix', 'fleet-ops'))->namespace
                                 $router->delete('bulk-delete', $controller('bulkDelete'));
                             }
                         );
-                        $router->fleetbaseRoutes('vendors');
+                        $router->fleetbaseRoutes(
+                            'vendors',
+                            function ($router, $controller) {
+                                $router->get('statuses', $controller('statuses'));
+                            }
+                        );
                         $router->group(
                             ['prefix' => 'fleet-ops'],
                             function ($router) {
