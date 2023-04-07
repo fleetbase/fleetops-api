@@ -1,7 +1,8 @@
 <?php
 
-namespace Fleetbase\Models;
+namespace Fleetbase\FleetOps\Models;
 
+use Fleetbase\Models\Model;
 use Fleetbase\Casts\Json;
 use Fleetbase\Traits\Expirable;
 use Fleetbase\Traits\HasMetaAttributes;
@@ -9,9 +10,10 @@ use Fleetbase\Traits\HasUuid;
 use Fleetbase\Traits\HasPublicId;
 use Fleetbase\Traits\SendsWebhooks;
 use Fleetbase\Traits\TracksApiCredential;
-use Fleetbase\Support\Lalamove;
-use Fleetbase\Support\Utils;
+use Fleetbase\FleetOps\Integrations\Lalamove\Lalamove;
+use Fleetbase\Support\Utils as FleetbaseUtils;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class ServiceQuote extends Model
 {
@@ -98,7 +100,7 @@ class ServiceQuote extends Model
      */
     public function company()
     {
-        return $this->belongsTo(Company::class);
+        return $this->belongsTo(\Fleetbase\Models\Company::class);
     }
 
     /**
@@ -132,7 +134,7 @@ class ServiceQuote extends Model
      */
     public function getServiceRateNameAttribute()
     {
-        return static::attributeFromCache($this->serviceRate(), 'service_name');
+        return $this->fromCache('serviceRate.service_name');
     }
 
     public function fromIntegratedVendor()
@@ -157,11 +159,11 @@ class ServiceQuote extends Model
             return null;
         }
 
-        if (Utils::isUuid($serviceQuote)) {
+        if (Str::isUuid($serviceQuote)) {
             $serviceQuote = static::where('uuid', $serviceQuote)->first();
         }
 
-        if (Utils::isPublicId($serviceQuote)) {
+        if (FleetbaseUtils::isPublicId($serviceQuote)) {
             $serviceQuote = static::where('public_id', $serviceQuote)->first();
         }
 

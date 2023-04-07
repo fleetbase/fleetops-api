@@ -1,24 +1,24 @@
 <?php
 
-namespace Fleetbase\Http\Controllers\Internal\v1;
+namespace Fleetbase\FleetOps\Http\Controllers\Internal\v1;
 
-use Fleetbase\Http\Controllers\FleetbaseController;
+use Fleetbase\FleetOps\Http\Controllers\FleetOpsController;
 use Fleetbase\Http\Requests\Internal\BulkDeleteRequest;
 use Fleetbase\Http\Requests\CancelOrderRequest;
 use Fleetbase\Imports\OrdersImport;
 use Fleetbase\Models\File;
-use Fleetbase\Models\Order;
-use Fleetbase\Models\TrackingStatus;
+use Fleetbase\FleetOps\Models\Order;
+use Fleetbase\FleetOps\Models\TrackingStatus;
 use Fleetbase\Models\Type;
 use Fleetbase\Support\Api;
 use Fleetbase\Support\Utils;
-use Fleetbase\Events\OrderDispatchFailed;
-use Fleetbase\Models\Driver;
-use Fleetbase\Models\Entity;
-use Fleetbase\Models\Payload;
-use Fleetbase\Models\Place;
-use Fleetbase\Models\Waypoint;
-use Fleetbase\Models\ServiceQuote;
+use Fleetbase\FleetOps\Events\OrderDispatchFailed;
+use Fleetbase\FleetOps\Models\Driver;
+use Fleetbase\FleetOps\Models\Entity;
+use Fleetbase\FleetOps\Models\Payload;
+use Fleetbase\FleetOps\Models\Place;
+use Fleetbase\FleetOps\Models\Waypoint;
+use Fleetbase\FleetOps\Models\ServiceQuote;
 use Fleetbase\Notifications\StorefrontOrderEnroute;
 use Fleetbase\Exceptions\FleetbaseRequestValidationException;
 use Illuminate\Http\Request;
@@ -28,7 +28,7 @@ use Illuminate\Database\QueryException;
 use Maatwebsite\Excel\Facades\Excel;
 use Exception;
 
-class OrderController extends FleetbaseController
+class OrderController extends FleetOpsController
 {
     /**
      * The resource to query

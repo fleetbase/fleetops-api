@@ -1,15 +1,17 @@
 <?php
 
-namespace Fleetbase\Http\Controllers\Internal\v1;
+namespace Fleetbase\FleetOps\Http\Controllers\Internal\v1;
+
+use Fleetbase\FleetOps\Http\Controllers\FleetOpsController;
 
 use Fleetbase\Http\Controllers\FleetbaseController;
-use Fleetbase\Models\Entity;
-use Fleetbase\Models\Payload;
-use Fleetbase\Models\Place;
-use Fleetbase\Models\ServiceQuote;
-use Fleetbase\Models\ServiceQuoteItem;
-use Fleetbase\Models\ServiceRate;
-use Fleetbase\Models\IntegratedVendor;
+use Fleetbase\FleetOps\Models\Entity;
+use Fleetbase\FleetOps\Models\Payload;
+use Fleetbase\FleetOps\Models\Place;
+use Fleetbase\FleetOps\Models\ServiceQuote;
+use Fleetbase\FleetOps\Models\ServiceQuoteItem;
+use Fleetbase\FleetOps\Models\ServiceRate;
+use Fleetbase\FleetOps\Models\IntegratedVendor;
 use Fleetbase\Support\Resp;
 use Fleetbase\Support\Utils;
 use Illuminate\Http\Request;
@@ -17,7 +19,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Exception;
 
-class ServiceQuoteController extends FleetbaseController
+class ServiceQuoteController extends FleetOpsController
 {
     /**
      * The resource to query

@@ -1,17 +1,19 @@
 <?php
 
-namespace Fleetbase\Http\Controllers\Internal\v1;
+namespace Fleetbase\FleetOps\Http\Controllers\Internal\v1;
+
+use Fleetbase\FleetOps\Http\Controllers\FleetOpsController;
 
 use Fleetbase\Exports\VendorExport;
 use Fleetbase\Http\Controllers\FleetbaseController;
 use Fleetbase\Http\Requests\Internal\BulkDeleteRequest;
 use Fleetbase\Http\Requests\ExportRequest;
-use Fleetbase\Models\Vendor;
+use Fleetbase\FleetOps\Models\Vendor;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Maatwebsite\Excel\Facades\Excel;
 
-class VendorController extends FleetbaseController
+class VendorController extends FleetOpsController
 {
     /**
      * The resource to query

@@ -1,10 +1,11 @@
 <?php
 
-namespace Fleetbase\Support;
+namespace Fleetbase\FleetOps\Support;
 
-use Fleetbase\Integrations\Lalamove\LalamoveServiceType;
-use Fleetbase\Integrations\Lalamove\LalamoveMarket;
-use Fleetbase\Models\IntegratedVendor;
+use Fleetbase\FleetOps\Integrations\Lalamove\LalamoveServiceType;
+use Fleetbase\FleetOps\Integrations\Lalamove\LalamoveMarket;
+use Fleetbase\FleetOps\Models\IntegratedVendor;
+use Fleetbase\Support\Utils as FleetbaseUtils;
 use Illuminate\Support\Str;
 
 class ResolvedIntegratedVendor
@@ -53,7 +54,7 @@ class ResolvedIntegratedVendor
 
     public static function logo(string $code): string
     {
-        return Utils::assetFromS3('integrated-vendors/' . $code . '.png');
+        return FleetbaseUtils::assetFromS3('integrated-vendors/' . $code . '.png');
     }
 
     public function setIntegratedVendor(IntegratedVendor $vendor)
@@ -81,16 +82,16 @@ class ResolvedIntegratedVendor
         $resolvedParams = [];
 
         foreach ($params as $key => $path) {
-            if (!$this->vendor || !Utils::isset($this->vendor, $path)) {
+            if (!$this->vendor || !FleetbaseUtils::isset($this->vendor, $path)) {
                 continue;
             }
 
             if ($key === 'sandbox') {
-                $resolvedParams[$key] = Utils::castBoolean(Utils::get($this->vendor, $path));
+                $resolvedParams[$key] = FleetbaseUtils::castBoolean(data_get($this->vendor, $path));
                 continue;
             }
 
-            $resolvedParams[$key] = Utils::get($this->vendor, $path);
+            $resolvedParams[$key] = data_get($this->vendor, $path);
         }
 
         return $resolvedParams;
@@ -173,7 +174,7 @@ class ResolvedIntegratedVendor
             return;
         }
 
-        $callbacks = Utils::get($this->callbacks, $callback, []);
+        $callbacks = data_get($this->callbacks, $callback, []);
         $api = $this->getBridgeInstance();
 
         if (is_array($callbacks)) {

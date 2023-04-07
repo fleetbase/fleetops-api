@@ -1,6 +1,6 @@
 <?php
 
-namespace Fleetbase\Http\Controllers\Api\v1;
+namespace Fleetbase\FleetOps\Http\Controllers\Api\v1;
 
 use Fleetbase\Http\Controllers\Controller;
 // use Illuminate\Http\Request;

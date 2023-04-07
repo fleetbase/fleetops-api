@@ -1,6 +1,6 @@
 <?php
 
-namespace Fleetbase\Http\Controllers\Api\v1;
+namespace Fleetbase\FleetOps\Http\Controllers\Api\v1;
 
 use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -9,7 +9,7 @@ use Fleetbase\Http\Requests\CreateVendorRequest;
 use Fleetbase\Http\Requests\UpdateVendorRequest;
 use Fleetbase\Http\Resources\v1\DeletedResource;
 use Fleetbase\Http\Resources\v1\Vendor as VendorResource;
-use Fleetbase\Models\Vendor;
+use Fleetbase\FleetOps\Models\Vendor;
 use Fleetbase\Support\Utils;
 
 class VendorController extends Controller

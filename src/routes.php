@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::prefix(InternalConfig::get('api.routing.prefix', 'fleet-ops'))->namespace('Fleetbase\Http\Controllers')->group(
+Route::prefix(InternalConfig::get('api.routing.prefix', 'fleet-ops'))->namespace('Fleetbase\FleetOps\Http\Controllers')->group(
     function ($router) {
         /*
         |--------------------------------------------------------------------------

@@ -1,6 +1,6 @@
 <?php
 
-namespace Fleetbase\Http\Controllers\Api\v1;
+namespace Fleetbase\FleetOps\Http\Controllers\Api\v1;
 
 use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -9,8 +9,8 @@ use Fleetbase\Http\Requests\CreateServiceRateRequest;
 use Fleetbase\Http\Requests\UpdateServiceRateRequest;
 use Fleetbase\Http\Resources\v1\DeletedResource;
 use Fleetbase\Http\Resources\v1\ServiceRate as ServiceRateResource;
-use Fleetbase\Models\ServiceRate;
-use Fleetbase\Models\ServiceRateFee;
+use Fleetbase\FleetOps\Models\ServiceRate;
+use Fleetbase\FleetOps\Models\ServiceRateFee;
 use Fleetbase\Support\Utils;
 
 class ServiceRateController extends Controller

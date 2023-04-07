@@ -1,6 +1,6 @@
 <?php
 
-namespace Fleetbase\Http\Controllers\Api\v1;
+namespace Fleetbase\FleetOps\Http\Controllers\Api\v1;
 
 use Fleetbase\Events\OrderDispatchFailed;
 use Illuminate\Http\Request;
@@ -11,14 +11,14 @@ use Fleetbase\Http\Requests\UpdateOrderRequest;
 use Fleetbase\Http\Resources\v1\DeletedResource;
 use Fleetbase\Http\Resources\v1\Order as OrderResource;
 use Fleetbase\Http\Resources\v1\Proof as V1Proof;
-use Fleetbase\Models\Driver;
-use Fleetbase\Models\Entity;
+use Fleetbase\FleetOps\Models\Driver;
+use Fleetbase\FleetOps\Models\Entity;
 use Fleetbase\Models\File;
-use Fleetbase\Models\Order;
-use Fleetbase\Models\Payload;
-use Fleetbase\Models\Proof;
-use Fleetbase\Models\Waypoint;
-use Fleetbase\Models\ServiceQuote;
+use Fleetbase\FleetOps\Models\Order;
+use Fleetbase\FleetOps\Models\Payload;
+use Fleetbase\FleetOps\Models\Proof;
+use Fleetbase\FleetOps\Models\Waypoint;
+use Fleetbase\FleetOps\Models\ServiceQuote;
 use Fleetbase\Notifications\StorefrontOrderEnroute;
 use Fleetbase\Support\Api;
 use Fleetbase\Support\Resp;
@@ -27,7 +27,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
 use Fleetbase\Models\Company;
-use Fleetbase\Models\Place;
+use Fleetbase\FleetOps\Models\Place;
 use Exception;
 
 class OrderController extends Controller

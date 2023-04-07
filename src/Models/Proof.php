@@ -1,7 +1,8 @@
 <?php
 
-namespace Fleetbase\Models;
+namespace Fleetbase\FleetOps\Models;
 
+use Fleetbase\Models\Model;
 use Fleetbase\Casts\Json;
 use Fleetbase\Traits\HasApiModelBehavior;
 use Fleetbase\Traits\HasUuid;
@@ -61,7 +62,7 @@ class Proof extends Model
      */
     public function file()
     {
-        return $this->belongsTo(File::class);
+        return $this->belongsTo(\Fleetbase\Models\File::class);
     }
 
     /**

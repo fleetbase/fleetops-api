@@ -1,8 +1,8 @@
 <?php
 
-namespace Fleetbase\Http\Resources\v1;
+namespace Fleetbase\FleetOps\Http\Resources\v1;
 
-use Fleetbase\Models\Waypoint;
+use Fleetbase\FleetOps\Models\Waypoint;
 use Fleetbase\Http\Resources\FleetbaseResource;
 
 class Payload extends FleetbaseResource

@@ -1,7 +1,8 @@
 <?php
 
-namespace Fleetbase\Models;
+namespace Fleetbase\FleetOps\Models;
 
+use Fleetbase\Models\Model;
 use Fleetbase\Traits\HasUuid;
 use Fleetbase\Traits\TracksApiCredential;
 use Fleetbase\Traits\HasPublicId;
@@ -113,7 +114,7 @@ class Issue extends Model
      */
     public function reportedBy()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(\Fleetbase\Models\User::class);
     }
 
     /**
@@ -123,7 +124,7 @@ class Issue extends Model
      */
     public function assignedTo()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(\Fleetbase\Models\User::class);
     }
 
     /**

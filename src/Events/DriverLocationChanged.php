@@ -1,8 +1,8 @@
 <?php
 
-namespace Fleetbase\Events;
+namespace Fleetbase\FleetOps\Events;
 
-use Fleetbase\Models\Driver;
+use Fleetbase\FleetOps\Models\Driver;
 use Fleetbase\Support\Utils;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;

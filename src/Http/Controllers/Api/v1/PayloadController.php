@@ -1,6 +1,6 @@
 <?php
 
-namespace Fleetbase\Http\Controllers\Api\v1;
+namespace Fleetbase\FleetOps\Http\Controllers\Api\v1;
 
 use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -9,9 +9,9 @@ use Fleetbase\Http\Requests\CreatePayloadRequest;
 use Fleetbase\Http\Requests\UpdatePayloadRequest;
 use Fleetbase\Http\Resources\v1\DeletedResource;
 use Fleetbase\Http\Resources\v1\Payload as PayloadResource;
-use Fleetbase\Models\Payload;
-use Fleetbase\Models\Place;
-use Fleetbase\Models\Waypoint;
+use Fleetbase\FleetOps\Models\Payload;
+use Fleetbase\FleetOps\Models\Place;
+use Fleetbase\FleetOps\Models\Waypoint;
 // use Fleetbase\Support\Utils;
 
 class PayloadController extends Controller

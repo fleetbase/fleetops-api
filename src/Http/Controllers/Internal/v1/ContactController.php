@@ -1,16 +1,16 @@
 <?php
 
-namespace Fleetbase\Http\Controllers\Internal\v1;
+namespace Fleetbase\FleetOps\Http\Controllers\Internal\v1;
 
+use Fleetbase\FleetOps\Http\Controllers\FleetOpsController;
 use Fleetbase\Exports\ContactExport;
 use Fleetbase\Http\Controllers\FleetbaseController;
 use Fleetbase\Http\Requests\ExportRequest;
-use Fleetbase\Models\Contact;
-use Fleetbase\Support\Resp;
+use Fleetbase\FleetOps\Models\Contact;
 use Illuminate\Support\Str;
 use Maatwebsite\Excel\Facades\Excel;
 
-class ContactController extends FleetbaseController
+class ContactController extends FleetOpsController
 {
     /**
      * The resource to query

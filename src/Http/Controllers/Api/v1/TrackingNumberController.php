@@ -1,6 +1,6 @@
 <?php
 
-namespace Fleetbase\Http\Controllers\Api\v1;
+namespace Fleetbase\FleetOps\Http\Controllers\Api\v1;
 
 use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -10,7 +10,7 @@ use Fleetbase\Http\Requests\DecodeTrackingNumberQR;
 use Fleetbase\Http\Requests\UpdateTrackingNumberRequest;
 use Fleetbase\Http\Resources\v1\DeletedResource;
 use Fleetbase\Http\Resources\v1\TrackingNumber as TrackingNumberResource;
-use Fleetbase\Models\TrackingNumber;
+use Fleetbase\FleetOps\Models\TrackingNumber;
 use Fleetbase\Support\Utils;
 
 class TrackingNumberController extends Controller

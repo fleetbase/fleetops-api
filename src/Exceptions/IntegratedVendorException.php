@@ -1,8 +1,8 @@
 <?php
 
-namespace Fleetbase\Exceptions;
+namespace Fleetbase\FleetOps\Exceptions;
 
-use Fleetbase\Models\IntegratedVendor;
+use Fleetbase\FleetOps\Models\IntegratedVendor;
 use Exception;
 use Throwable;
 

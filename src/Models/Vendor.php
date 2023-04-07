@@ -1,7 +1,8 @@
 <?php
 
-namespace Fleetbase\Models;
+namespace Fleetbase\FleetOps\Models;
 
+use Fleetbase\Models\Model;
 use Illuminate\Notifications\Notifiable;
 use Fleetbase\Scopes\VendorScope;
 use Fleetbase\Casts\Json;
@@ -159,7 +160,7 @@ class Vendor extends Model
      */
     public function connectCompany()
     {
-        return $this->belongsTo(Company::class);
+        return $this->belongsTo(\Fleetbase\Models\Company::class);
     }
 
     /**
@@ -167,7 +168,7 @@ class Vendor extends Model
      */
     public function company()
     {
-        return $this->belongsTo(Company::class);
+        return $this->belongsTo(\Fleetbase\Models\Company::class);
     }
 
     /**
@@ -175,7 +176,7 @@ class Vendor extends Model
      */
     public function logo()
     {
-        return $this->belongsTo(File::class);
+        return $this->belongsTo(\Fleetbase\Models\File::class);
     }
 
     /**

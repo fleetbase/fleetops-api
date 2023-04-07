@@ -1,11 +1,11 @@
 <?php
 
-namespace Fleetbase\Http\Controllers\Api\v1;
+namespace Fleetbase\FleetOps\Http\Controllers\Api\v1;
 
 use Fleetbase\Http\Controllers\Controller;
 use Fleetbase\Models\External\Entity;
 use Fleetbase\Models\External\Waypoint;
-use Fleetbase\Models\Order;
+use Fleetbase\FleetOps\Models\Order;
 use Fleetbase\Support\Resp;
 use Illuminate\Http\Request;
 

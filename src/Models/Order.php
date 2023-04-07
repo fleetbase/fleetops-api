@@ -1,8 +1,9 @@
 <?php
 
-namespace Fleetbase\Models;
+namespace Fleetbase\FleetOps\Models;
 
 use Illuminate\Support\Carbon;
+use Fleetbase\Models\Model;
 use Fleetbase\Scopes\OrderScope;
 use Fleetbase\Traits\HasUuid;
 use Fleetbase\Traits\TracksApiCredential;
@@ -64,7 +65,7 @@ class Order extends Model
      *
      * @var string
      */
-    public $httpResource = \Fleetbase\Http\Resources\Internal\v1\Order::class;
+    public $httpResource = \Fleetbase\FleetOps\Http\Resources\Internal\v1\Order::class;
 
     /**
      * The attributes that can be queried
@@ -274,7 +275,7 @@ class Order extends Model
      */
     public function transaction()
     {
-        return $this->belongsTo(Transaction::class);
+        return $this->belongsTo(\Fleetbase\Models\Transaction::class);
     }
 
     /**
@@ -298,7 +299,7 @@ class Order extends Model
      */
     public function company()
     {
-        return $this->belongsTo(Company::class);
+        return $this->belongsTo(\Fleetbase\Models\Company::class);
     }
 
     /**
@@ -306,7 +307,7 @@ class Order extends Model
      */
     public function createdBy()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(\Fleetbase\Models\User::class);
     }
 
     /**
@@ -314,7 +315,7 @@ class Order extends Model
      */
     public function updatedBy()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(\Fleetbase\Models\User::class);
     }
 
     /**

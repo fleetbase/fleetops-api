@@ -1,14 +1,16 @@
 <?php
 
-namespace Fleetbase\Http\Controllers\Internal\v1;
+namespace Fleetbase\FleetOps\Http\Controllers\Internal\v1;
+
+use Fleetbase\FleetOps\Http\Controllers\FleetOpsController;
 
 use Fleetbase\Http\Controllers\FleetbaseController;
 use Fleetbase\Http\Requests\Internal\BulkDeleteRequest;
-use Fleetbase\Models\ServiceRate;
+use Fleetbase\FleetOps\Models\ServiceRate;
 use Illuminate\Http\Request;
 use Brick\Geo\Point;
 
-class ServiceRateController extends FleetbaseController
+class ServiceRateController extends FleetOpsController
 {
     /**
      * The resource to query

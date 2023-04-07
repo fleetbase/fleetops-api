@@ -1,18 +1,16 @@
 <?php
 
-namespace Fleetbase\FleetOps;
+namespace Fleetbase\FleetOps\Support;
 
 use Fleetbase\Models\Company;
 use Fleetbase\Models\Transaction;
-use Fleetbase\Models\FuelReport;
-use Fleetbase\Models\Contact;
-use Fleetbase\Models\Driver;
-use Fleetbase\Models\Order;
-use Fleetbase\Models\Issue;
-use Fleetbase\Support\Utils;
+use Fleetbase\FleetOps\Models\FuelReport;
+use Fleetbase\FleetOps\Models\Contact;
+use Fleetbase\FleetOps\Models\Driver;
+use Fleetbase\FleetOps\Models\Order;
+use Fleetbase\FleetOps\Models\Issue;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
-use DateTime;
 
 /**
  * Metrics service to pull analyitcs and metrics from FleetOps.
@@ -22,12 +20,12 @@ use DateTime;
  */
 class Metrics
 {
-    protected DateTime $start;
-    protected DateTime $end;
+    protected \DateTime $start;
+    protected \DateTime $end;
     protected Company $company;
     protected array $metrics = [];
 
-    public static function new(Company $company, ?DateTime $start = null, ?DateTime $end = null): Metrics
+    public static function new(Company $company, ?\DateTime $start = null, ?\DateTime $end = null): Metrics
     {
         $start = $start === null ? Carbon::create(1900)->toDateTime() : $start;
         $end = $end === null ? Carbon::tomorrow()->toDateTime() : $end;
@@ -35,26 +33,26 @@ class Metrics
         return (new static())->setCompany($company)->between($start, $end);
     }
 
-    public static function forCompany(Company $company, ?DateTime $start = null, ?DateTime $end = null): Metrics
+    public static function forCompany(Company $company, ?\DateTime $start = null, ?\DateTime $end = null): Metrics
     {
         return static::new($company, $start, $end);
     }
 
-    public function start(DateTime $start): Metrics
+    public function start(\DateTime $start): Metrics
     {
         $this->start = $start;
 
         return $this;
     }
 
-    public function end(DateTime $end): Metrics
+    public function end(\DateTime $end): Metrics
     {
         $this->end = $end;
 
         return $this;
     }
 
-    public function between(DateTime $start, DateTime $end): Metrics
+    public function between(\DateTime $start, \DateTime $end): Metrics
     {
         return $this->start($start)->end($end);
     }
@@ -76,7 +74,7 @@ class Metrics
             return $this;
         }
 
-        $this->metrics = Utils::set($this->metrics, $key, $value);
+        $this->metrics = data_set($this->metrics, $key, $value);
 
         return $this;
     }
@@ -136,7 +134,12 @@ class Metrics
 
     public function totalDistanceTraveled(?callable $callback = null): Metrics
     {
-        $query = Order::where(['company_uuid' => $this->company->uuid, 'status' => 'completed'])
+        $query = Order::where(
+            [
+                'company_uuid' => $this->company->uuid,
+                'status' => 'completed'
+            ]
+        )
             ->whereBetween('created_at', [$this->start, $this->end]);
 
         if (is_callable($callback)) {
@@ -150,7 +153,12 @@ class Metrics
 
     public function totalTimeTraveled(?callable $callback = null): Metrics
     {
-        $query = Order::where(['company_uuid' => $this->company->uuid, 'status' => 'completed'])
+        $query = Order::where(
+            [
+                'company_uuid' => $this->company->uuid,
+                'status' => 'completed'
+            ]
+        )
             ->whereBetween('created_at', [$this->start, $this->end]);
 
         if (is_callable($callback)) {

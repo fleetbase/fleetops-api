@@ -1,6 +1,6 @@
 <?php
 
-namespace Fleetbase\Events;
+namespace Fleetbase\FleetOps\Events;
 
 class OrderDispatched extends ResourceLifecycleEvent
 {

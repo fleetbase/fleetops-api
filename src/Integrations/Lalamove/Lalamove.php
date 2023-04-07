@@ -1,16 +1,16 @@
 <?php
 
-namespace Fleetbase\Integrations\Lalamove;
+namespace Fleetbase\FleetOps\Integrations\Lalamove;
 
-use Fleetbase\Models\Place;
-use Fleetbase\Models\Order;
-use Fleetbase\Models\Payload;
-use Fleetbase\Models\ServiceQuote;
-use Fleetbase\Models\ServiceQuoteItem;
-use Fleetbase\Models\IntegratedVendor;
-use Fleetbase\Models\Contact;
+use Fleetbase\FleetOps\Models\Place;
+use Fleetbase\FleetOps\Models\Order;
+use Fleetbase\FleetOps\Models\Payload;
+use Fleetbase\FleetOps\Models\ServiceQuote;
+use Fleetbase\FleetOps\Models\ServiceQuoteItem;
+use Fleetbase\FleetOps\Models\IntegratedVendor;
+use Fleetbase\FleetOps\Models\Contact;
 use Fleetbase\Support\Authy;
-use Fleetbase\Exceptions\IntegratedVendorException;
+use Fleetbase\FleetOps\Exceptions\IntegratedVendorException;
 use Illuminate\Support\Str;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;

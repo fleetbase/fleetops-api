@@ -1,6 +1,6 @@
 <?php
 
-namespace Fleetbase\Http\Controllers\Api\v1;
+namespace Fleetbase\FleetOps\Http\Controllers\Api\v1;
 
 use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -11,7 +11,7 @@ use Fleetbase\Http\Requests\CreatePlaceRequest;
 use Fleetbase\Http\Requests\UpdatePlaceRequest;
 use Fleetbase\Http\Resources\v1\DeletedResource;
 use Fleetbase\Http\Resources\v1\Place as PlaceResource;
-use Fleetbase\Models\Place;
+use Fleetbase\FleetOps\Models\Place;
 use Fleetbase\Support\Utils;
 use Fleetbase\Support\Resp;
 use Grimzy\LaravelMysqlSpatial\Types\Point;

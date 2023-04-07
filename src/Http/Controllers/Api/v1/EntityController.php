@@ -1,6 +1,6 @@
 <?php
 
-namespace Fleetbase\Http\Controllers\Api\v1;
+namespace Fleetbase\FleetOps\Http\Controllers\Api\v1;
 
 use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -9,7 +9,7 @@ use Fleetbase\Http\Requests\CreateEntityRequest;
 use Fleetbase\Http\Requests\UpdateEntityRequest;
 use Fleetbase\Http\Resources\v1\DeletedResource;
 use Fleetbase\Http\Resources\v1\Entity as EntityResource;
-use Fleetbase\Models\Entity;
+use Fleetbase\FleetOps\Models\Entity;
 use Fleetbase\Support\Utils;
 
 class EntityController extends Controller

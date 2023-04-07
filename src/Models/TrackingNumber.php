@@ -1,7 +1,8 @@
 <?php
 
-namespace Fleetbase\Models;
+namespace Fleetbase\FleetOps\Models;
 
+use Fleetbase\Models\Model;
 use Illuminate\Support\Carbon;
 use Fleetbase\Casts\Point;
 use Fleetbase\Support\Utils;

@@ -1,11 +1,13 @@
 <?php
 
-namespace Fleetbase\Http\Controllers\Internal\v1;
+namespace Fleetbase\FleetOps\Http\Controllers\Internal\v1;
+
+use Fleetbase\FleetOps\Http\Controllers\FleetOpsController;
 
 use Fleetbase\Http\Controllers\FleetbaseController;
 use Illuminate\Http\Request;
 
-class PayloadController extends FleetbaseController
+class PayloadController extends FleetOpsController
 {
     /**
      * The resource to query

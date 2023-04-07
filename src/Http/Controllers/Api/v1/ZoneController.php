@@ -1,6 +1,6 @@
 <?php
 
-namespace Fleetbase\Http\Controllers\Api\v1;
+namespace Fleetbase\FleetOps\Http\Controllers\Api\v1;
 
 use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -9,7 +9,7 @@ use Fleetbase\Http\Requests\CreateZoneRequest;
 use Fleetbase\Http\Requests\UpdateZoneRequest;
 use Fleetbase\Http\Resources\v1\DeletedResource;
 use Fleetbase\Http\Resources\v1\Zone as ZoneResource;
-use Fleetbase\Models\Zone;
+use Fleetbase\FleetOps\Models\Zone;
 use Fleetbase\Support\Utils;
 
 class ZoneController extends Controller

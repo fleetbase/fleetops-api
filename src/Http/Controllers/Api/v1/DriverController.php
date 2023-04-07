@@ -1,6 +1,6 @@
 <?php
 
-namespace Fleetbase\Http\Controllers\Api\v1;
+namespace Fleetbase\FleetOps\Http\Controllers\Api\v1;
 
 
 use Exception;
@@ -18,8 +18,8 @@ use Fleetbase\Http\Resources\v1\Organization;
 use Fleetbase\Models\Company;
 use Fleetbase\Models\CompanyUser;
 use Fleetbase\Support\Utils;
-use Fleetbase\Models\Driver;
-// use Fleetbase\Models\Position;
+use Fleetbase\FleetOps\Models\Driver;
+// use Fleetbase\FleetOps\Models\Position;
 use Fleetbase\Models\User;
 use Fleetbase\Models\UserDevice;
 use Fleetbase\Models\VerificationCode;

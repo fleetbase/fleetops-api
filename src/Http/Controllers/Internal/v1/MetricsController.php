@@ -1,8 +1,10 @@
 <?php
 
-namespace Fleetbase\Http\Controllers\Internal\v1;
+namespace Fleetbase\FleetOps\Http\Controllers\Internal\v1;
 
-use Fleetbase\FleetOps\Metrics;
+use Fleetbase\FleetOps\Http\Controllers\FleetOpsController;
+
+use Fleetbase\FleetOps\Support\Metrics;
 use Fleetbase\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Exception;

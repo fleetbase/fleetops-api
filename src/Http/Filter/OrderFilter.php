@@ -1,7 +1,8 @@
 <?php
 
-namespace Fleetbase\Http\Filter;
+namespace Fleetbase\FleetOps\Http\Filter;
 
+use Fleetbase\Http\Filter\Filter;
 use Fleetbase\Support\Http;
 
 class OrderFilter extends Filter

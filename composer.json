@@ -27,7 +27,7 @@
     },
     "autoload": {
         "psr-4": {
-            "Fleetbase\\": "src/"
+            "Fleetbase\\FleetOps\\": "src/"
         }
     },
     "autoload-dev": {
@@ -46,7 +46,7 @@
     "extra": {
         "laravel": {
             "providers": [
-                "Fleetbase\\Providers\\FleetOpsServiceProvider"
+                "Fleetbase\\FleetOps\\Providers\\FleetOpsServiceProvider"
             ]
         }
     },

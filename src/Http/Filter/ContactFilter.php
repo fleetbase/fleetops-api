@@ -1,6 +1,8 @@
 <?php
 
-namespace Fleetbase\Http\Filter;
+namespace Fleetbase\FleetOps\Http\Filter;
+
+use Fleetbase\Http\Filter\Filter;
 
 class ContactFilter extends Filter
 {

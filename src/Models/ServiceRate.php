@@ -1,7 +1,8 @@
 <?php
 
-namespace Fleetbase\Models;
+namespace Fleetbase\FleetOps\Models;
 
+use Fleetbase\Models\Model;
 use Brick\Geo\IO\GeoJSONReader;
 use Fleetbase\Support\Utils;
 // use Fleetbase\Support\TimezoneMapService;

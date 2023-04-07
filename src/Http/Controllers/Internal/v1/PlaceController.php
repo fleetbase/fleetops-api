@@ -1,12 +1,14 @@
 <?php
 
-namespace Fleetbase\Http\Controllers\Internal\v1;
+namespace Fleetbase\FleetOps\Http\Controllers\Internal\v1;
+
+use Fleetbase\FleetOps\Http\Controllers\FleetOpsController;
 
 use Fleetbase\Http\Controllers\FleetbaseController;
 use Fleetbase\Http\Requests\Internal\BulkDeleteRequest;
 use Fleetbase\Http\Requests\ExportRequest;
 use Fleetbase\Exports\PlaceExport;
-use Fleetbase\Models\Place;
+use Fleetbase\FleetOps\Models\Place;
 use Fleetbase\Support\Utils;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -17,7 +19,7 @@ use Geocoder\Query\GeocodeQuery;
 use Http\Adapter\Guzzle7\Client;
 use Maatwebsite\Excel\Facades\Excel;
 
-class PlaceController extends FleetbaseController
+class PlaceController extends FleetOpsController
 {
     /**
      * The resource to query

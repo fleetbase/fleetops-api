@@ -1,7 +1,8 @@
 <?php
 
-namespace Fleetbase\Models;
+namespace Fleetbase\FleetOps\Models;
 
+use Fleetbase\Models\Model;
 use Fleetbase\Traits\HasApiModelBehavior;
 use Illuminate\Support\Carbon;
 use Fleetbase\Traits\HasInternalId;
@@ -158,7 +159,7 @@ class Entity extends Model
      */
     public function photo()
     {
-        return $this->belongsTo(File::class);
+        return $this->belongsTo(\Fleetbase\Models\File::class);
     }
 
     /**
@@ -216,7 +217,7 @@ class Entity extends Model
      */
     public function company()
     {
-        return $this->belongsTo(Company::class);
+        return $this->belongsTo(\Fleetbase\Models\Company::class);
     }
 
     /**

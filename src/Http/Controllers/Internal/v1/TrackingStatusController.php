@@ -1,10 +1,12 @@
 <?php
 
-namespace Fleetbase\Http\Controllers\Internal\v1;
+namespace Fleetbase\FleetOps\Http\Controllers\Internal\v1;
+
+use Fleetbase\FleetOps\Http\Controllers\FleetOpsController;
 
 use Fleetbase\Http\Controllers\FleetbaseController;
 
-class TrackingStatusController extends FleetbaseController
+class TrackingStatusController extends FleetOpsController
 {
     /**
      * The resource to query

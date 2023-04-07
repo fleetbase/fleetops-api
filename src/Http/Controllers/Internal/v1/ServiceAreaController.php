@@ -1,12 +1,14 @@
 <?php
 
-namespace Fleetbase\Http\Controllers\Internal\v1;
+namespace Fleetbase\FleetOps\Http\Controllers\Internal\v1;
+
+use Fleetbase\FleetOps\Http\Controllers\FleetOpsController;
 
 use Fleetbase\Http\Controllers\FleetbaseController;
 use Fleetbase\Support\Geo;
 use Illuminate\Http\Request;
 
-class ServiceAreaController extends FleetbaseController
+class ServiceAreaController extends FleetOpsController
 {
     /**
      * The resource to query

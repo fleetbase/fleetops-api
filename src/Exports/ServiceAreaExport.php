@@ -1,9 +1,9 @@
 <?php
 
-namespace Fleetbase\Exports;
+namespace Fleetbase\FleetOps\Exports;
 
 use Aws\Api\Service;
-use Fleetbase\Models\ServiceArea;
+use Fleetbase\FleetOps\Models\ServiceArea;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;

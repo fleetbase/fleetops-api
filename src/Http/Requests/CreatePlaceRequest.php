@@ -1,6 +1,6 @@
 <?php
 
-namespace Fleetbase\Http\Requests;
+namespace Fleetbase\FleetOps\Http\Requests;
 
 use Fleetbase\Rules\ExistsInAny;
 use Fleetbase\Support\Utils;

@@ -1,7 +1,8 @@
 <?php
 
-namespace Fleetbase\Models;
+namespace Fleetbase\FleetOps\Models;
 
+use Fleetbase\Models\Model;
 use Fleetbase\Casts\Money;
 use Fleetbase\Support\Utils;
 use Fleetbase\Traits\HasUuid;

@@ -1,8 +1,8 @@
 <?php
 
-namespace Fleetbase\Http\Resources\Internal\v1;
+namespace Fleetbase\FleetOps\Http\Resources\Internal\v1;
 
-use Fleetbase\Http\Resources\v1\PurchaseRate as PurchaseRateResource;
+use Fleetbase\FleetOps\Http\Resources\v1\PurchaseRate as PurchaseRateResource;
 use Illuminate\Support\Arr;
 
 class PurchaseRate extends PurchaseRateResource

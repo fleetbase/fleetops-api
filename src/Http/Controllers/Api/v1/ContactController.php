@@ -1,6 +1,6 @@
 <?php
 
-namespace Fleetbase\Http\Controllers\Api\v1;
+namespace Fleetbase\FleetOps\Http\Controllers\Api\v1;
 
 use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -9,7 +9,7 @@ use Fleetbase\Http\Requests\CreateContactRequest;
 use Fleetbase\Http\Requests\UpdateContactRequest;
 use Fleetbase\Http\Resources\v1\Contact as ContactResource;
 use Fleetbase\Http\Resources\v1\DeletedResource;
-use Fleetbase\Models\Contact;
+use Fleetbase\FleetOps\Models\Contact;
 
 class ContactController extends Controller
 {

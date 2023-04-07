@@ -1,9 +1,9 @@
 <?php
 
-namespace Fleetbase\Integrations\Lalamove;
+namespace Fleetbase\FleetOps\Integrations\Lalamove;
 
 use Illuminate\Support\Str;
-use Fleetbase\Models\Place;
+use Fleetbase\FleetOps\Models\Place;
 use Grimzy\LaravelMysqlSpatial\Eloquent\SpatialExpression;
 use Grimzy\LaravelMysqlSpatial\Types\Point;
 

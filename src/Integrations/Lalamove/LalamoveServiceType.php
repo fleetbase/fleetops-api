@@ -1,6 +1,6 @@
 <?php
 
-namespace Fleetbase\Integrations\Lalamove;
+namespace Fleetbase\FleetOps\Integrations\Lalamove;
 
 class LalamoveServiceType
 {

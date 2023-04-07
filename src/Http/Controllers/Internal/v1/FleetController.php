@@ -1,18 +1,20 @@
 <?php
 
-namespace Fleetbase\Http\Controllers\Internal\v1;
+namespace Fleetbase\FleetOps\Http\Controllers\Internal\v1;
+
+use Fleetbase\FleetOps\Http\Controllers\FleetOpsController;
 
 use Fleetbase\Exports\FleetExport;
 use Fleetbase\Http\Controllers\FleetbaseController;
 use Fleetbase\Http\Requests\ExportRequest;
 use Fleetbase\Http\Requests\Internal\FleetActionRequest;
-use Fleetbase\Models\Driver;
-use Fleetbase\Models\Fleet;
-use Fleetbase\Models\FleetDriver;
+use Fleetbase\FleetOps\Models\Driver;
+use Fleetbase\FleetOps\Models\Fleet;
+use Fleetbase\FleetOps\Models\FleetDriver;
 use Maatwebsite\Excel\Facades\Excel;
 use Psy\Util\Str;
 
-class FleetController extends FleetbaseController
+class FleetController extends FleetOpsController
 {
     /**
      * The resource to query

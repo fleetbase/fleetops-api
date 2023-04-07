@@ -1,8 +1,8 @@
 <?php
 
-namespace Fleetbase\Exports;
+namespace Fleetbase\FleetOps\Exports;
 
-use Fleetbase\Models\Contact;
+use Fleetbase\FleetOps\Models\Contact;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;

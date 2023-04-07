@@ -1,13 +1,15 @@
 <?php
 
-namespace Fleetbase\Http\Controllers\Internal\v1;
+namespace Fleetbase\FleetOps\Http\Controllers\Internal\v1;
+
+use Fleetbase\FleetOps\Http\Controllers\FleetOpsController;
 
 use Fleetbase\Http\Controllers\Controller;
 use Fleetbase\Models\Extension;
 use Fleetbase\Models\ExtensionInstall;
 use Fleetbase\Models\Category;
 use Fleetbase\Models\Type;
-use Fleetbase\Models\Order;
+use Fleetbase\FleetOps\Models\Order;
 use Fleetbase\Support\Flow;
 use Fleetbase\Support\Utils;
 use Illuminate\Http\Request;

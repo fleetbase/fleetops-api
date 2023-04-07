@@ -1,6 +1,6 @@
 <?php
 
-namespace Fleetbase\Http\Controllers\Api\v1;
+namespace Fleetbase\FleetOps\Http\Controllers\Api\v1;
 
 use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -8,8 +8,8 @@ use Fleetbase\Http\Controllers\Controller;
 use Fleetbase\Http\Requests\CreateVehicleRequest;
 use Fleetbase\Http\Requests\UpdateVehicleRequest;
 use Fleetbase\Http\Resources\v1\Vehicle as VehicleResource;
-use Fleetbase\Models\Vehicle;
-use Fleetbase\Models\Driver;
+use Fleetbase\FleetOps\Models\Vehicle;
+use Fleetbase\FleetOps\Models\Driver;
 use Fleetbase\Support\Utils;
 use Exception;
 use Fleetbase\Http\Resources\v1\DeletedResource;

@@ -1,6 +1,6 @@
 <?php
 
-namespace Fleetbase\Http\Controllers\Api\v1;
+namespace Fleetbase\FleetOps\Http\Controllers\Api\v1;
 
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\DB;
@@ -8,12 +8,12 @@ use Illuminate\Support\Str;
 use Fleetbase\Http\Controllers\Controller;
 use Fleetbase\Http\Requests\QueryServiceQuotesRequest;
 use Fleetbase\Http\Resources\v1\ServiceQuote as ServiceQuoteResource;
-use Fleetbase\Models\ServiceQuote;
-use Fleetbase\Models\ServiceQuoteItem;
-use Fleetbase\Models\ServiceRate;
-use Fleetbase\Models\Payload;
-use Fleetbase\Models\Place;
-use Fleetbase\Models\IntegratedVendor;
+use Fleetbase\FleetOps\Models\ServiceQuote;
+use Fleetbase\FleetOps\Models\ServiceQuoteItem;
+use Fleetbase\FleetOps\Models\ServiceRate;
+use Fleetbase\FleetOps\Models\Payload;
+use Fleetbase\FleetOps\Models\Place;
+use Fleetbase\FleetOps\Models\IntegratedVendor;
 use Fleetbase\Support\Utils;
 use Exception;
 

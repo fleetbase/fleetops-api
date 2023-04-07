@@ -1,6 +1,6 @@
 <?php
 
-namespace Fleetbase\Events;
+namespace Fleetbase\FleetOps\Events;
 
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PrivateChannel;

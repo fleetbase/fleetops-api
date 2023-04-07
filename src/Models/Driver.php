@@ -1,7 +1,8 @@
 <?php
 
-namespace Fleetbase\Models;
+namespace Fleetbase\FleetOps\Models;
 
+use Fleetbase\Models\Model;
 use Fleetbase\Traits\HasApiModelBehavior;
 use Fleetbase\Scopes\DriverScope;
 use Fleetbase\Traits\HasUuid;
@@ -10,6 +11,7 @@ use Fleetbase\Traits\HasInternalId;
 use Fleetbase\Traits\HasPublicId;
 use Fleetbase\Traits\SendsWebhooks;
 use Fleetbase\Casts\Json;
+use Fleetbase\FleetOps\Casts\Point;
 use Fleetbase\Support\Utils;
 use Illuminate\Notifications\Notifiable;
 use Grimzy\LaravelMysqlSpatial\Eloquent\SpatialTrait;
@@ -57,7 +59,6 @@ class Driver extends Model
         'company_uuid',
         'vehicle_uuid',
         'vendor_uuid',
-        // 'vendor_type', ? customers can be vendors?
         'current_job_uuid',
         'auth_token',
         'signup_token_used',
@@ -89,8 +90,8 @@ class Driver extends Model
      */
     protected $casts = [
         'meta' => Json::class,
+        'location' => Point::class,
         'online' => 'boolean',
-        // 'location' => SpatialPointCast::class,
     ];
 
     /**
@@ -180,7 +181,7 @@ class Driver extends Model
      */
     public function user()
     {
-        return $this->belongsTo(User::class)->select(['uuid', 'avatar_uuid', 'name', 'phone', 'email'])->without(['driver']);
+        return $this->belongsTo(\Fleetbase\Models\User::class)->select(['uuid', 'avatar_uuid', 'name', 'phone', 'email'])->without(['driver']);
     }
 
     /**
@@ -188,7 +189,7 @@ class Driver extends Model
      */
     public function company()
     {
-        return $this->belongsTo(Company::class);
+        return $this->belongsTo(\Fleetbase\Models\Company::class);
     }
 
     /**

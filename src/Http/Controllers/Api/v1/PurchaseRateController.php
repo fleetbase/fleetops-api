@@ -1,6 +1,6 @@
 <?php
 
-namespace Fleetbase\Http\Controllers\Api\v1;
+namespace Fleetbase\FleetOps\Http\Controllers\Api\v1;
 
 use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -8,11 +8,11 @@ use Fleetbase\Http\Controllers\Controller;
 use Fleetbase\Http\Requests\CreatePurchaseRateRequest;
 // use Fleetbase\Http\Requests\UpdatePurchaseRateRequest;
 use Fleetbase\Http\Resources\v1\PurchaseRate as PurchaseRateResource;
-use Fleetbase\Models\PurchaseRate;
-use Fleetbase\Models\ServiceQuote;
-use Fleetbase\Models\ServiceRate;
-use Fleetbase\Models\Order;
-use Fleetbase\Models\Payload;
+use Fleetbase\FleetOps\Models\PurchaseRate;
+use Fleetbase\FleetOps\Models\ServiceQuote;
+use Fleetbase\FleetOps\Models\ServiceRate;
+use Fleetbase\FleetOps\Models\Order;
+use Fleetbase\FleetOps\Models\Payload;
 use Fleetbase\Support\Utils;
 use Fleetbase\Support\Resp;
 use Exception;

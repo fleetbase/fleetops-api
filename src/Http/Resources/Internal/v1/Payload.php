@@ -1,8 +1,8 @@
 <?php
 
-namespace Fleetbase\Http\Resources\Internal\v1;
+namespace Fleetbase\FleetOps\Http\Resources\Internal\v1;
 
-use Fleetbase\Http\Resources\v1\Payload as PayloadResource;
+use Fleetbase\FleetOps\Http\Resources\v1\Payload as PayloadResource;
 
 class Payload extends PayloadResource
 {

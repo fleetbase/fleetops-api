@@ -1,8 +1,8 @@
 <?php
 
-namespace Fleetbase\Http\Filter;
+namespace Fleetbase\FleetOps\Http\Filter;
 
-use Illuminate\Support\Str;
+use Fleetbase\Http\Filter\Filter;
 use Fleetbase\Support\Utils;
 
 class DriverFilter extends Filter
@@ -96,7 +96,7 @@ class DriverFilter extends Filter
 
     public function country(?string $country)
     {
-        if (Str::contains($country, ',')) {
+        if (strpos($country, ',') !== false) {
             $this->builder->whereIn('country', explode(',', $country));
         } else {
             $this->builder->searchWhere('country', $country);

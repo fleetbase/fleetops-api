@@ -1,17 +1,17 @@
 <?php
 
-namespace Fleetbase\Providers;
+namespace Fleetbase\FleetOps\Providers;
 
-use Exception;
-
-// require __DIR__ . '/../../vendor/autoload.php';
+use Fleetbase\Providers\CoreServiceProvider;
 
 if (!class_exists(CoreServiceProvider::class)) {
-    throw new Exception('FleetOps cannot be loaded without `fleetbase/core-api` installed!');
+    throw new \Exception('FleetOps cannot be loaded without `fleetbase/core-api` installed!');
 }
 
 /**
- * CoreServiceProvider
+ * FleetOps service provider.
+ *
+ * @package \Fleetbase\FleetOps\Providers
  */
 class FleetOpsServiceProvider extends CoreServiceProvider
 {
@@ -19,6 +19,8 @@ class FleetOpsServiceProvider extends CoreServiceProvider
      * Bootstrap any package services.
      *
      * @return void
+     *
+     * @throws \Exception If the `fleetbase/core-api` package is not installed.
      */
     public function boot()
     {

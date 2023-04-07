@@ -1,13 +1,13 @@
 <?php
 
-namespace Fleetbase\Support;
+namespace Fleetbase\FleetOps\Support;
 
 use Fleetbase\Models\Company;
-use Fleetbase\Models\Driver;
-use Fleetbase\Models\Order;
+use Fleetbase\FleetOps\Models\Driver;
+use Fleetbase\FleetOps\Models\Order;
 use Fleetbase\Models\Extension;
 use Fleetbase\Models\ExtensionInstall;
-use Fleetbase\Models\Waypoint;
+use Fleetbase\FleetOps\Models\Waypoint;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;

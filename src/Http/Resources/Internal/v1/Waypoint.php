@@ -1,6 +1,6 @@
 <?php
 
-namespace Fleetbase\Http\Resources\Internal\v1;
+namespace Fleetbase\FleetOps\Http\Resources\Internal\v1;
 
 use Illuminate\Http\Resources\Json\JsonResource;
 

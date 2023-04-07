@@ -1,8 +1,8 @@
 <?php
 
-namespace Fleetbase\Http\Resources\Internal\v1;
+namespace Fleetbase\FleetOps\Http\Resources\Internal\v1;
 
-use Fleetbase\Http\Resources\v1\Fleet as FleetResource;
+use Fleetbase\FleetOps\Http\Resources\v1\Fleet as FleetResource;
 
 class Fleet extends FleetResource
 {

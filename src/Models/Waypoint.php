@@ -1,7 +1,8 @@
 <?php
 
-namespace Fleetbase\Models;
+namespace Fleetbase\FleetOps\Models;
 
+use Fleetbase\Models\Model;
 use Illuminate\Support\Carbon;
 use Fleetbase\Support\Utils;
 use Fleetbase\Traits\HasTrackingNumber;
@@ -139,7 +140,7 @@ class Waypoint extends Model
      */
     public function company()
     {
-        return $this->belongsTo(Company::class);
+        return $this->belongsTo(\Fleetbase\Models\Company::class);
     }
 
     /**
