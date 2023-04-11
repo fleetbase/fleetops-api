@@ -2,7 +2,7 @@
 
 namespace Fleetbase\FleetOps\Http\Requests;
 
-
+use Fleetbase\Http\Requests\FleetbaseRequest;
 
 class UpdateServiceQuoteRequest extends FleetbaseRequest
 {

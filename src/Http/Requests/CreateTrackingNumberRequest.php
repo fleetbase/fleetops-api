@@ -2,7 +2,7 @@
 
 namespace Fleetbase\FleetOps\Http\Requests;
 
-
+use Fleetbase\Http\Requests\FleetbaseRequest;
 use Fleetbase\Rules\ExistsInAny;
 
 class CreateTrackingNumberRequest extends FleetbaseRequest

@@ -145,6 +145,10 @@ class Place extends Model
         return $this->fromCache(
             'country_data',
             function () {
+                if (empty($this->country)) {
+                    return [];
+                }
+                
                 return FleetbaseUtils::getCountryData($this->country);
             }
         );

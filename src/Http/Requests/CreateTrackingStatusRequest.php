@@ -2,8 +2,8 @@
 
 namespace Fleetbase\FleetOps\Http\Requests;
 
+use Fleetbase\Http\Requests\FleetbaseRequest;
 use Illuminate\Validation\Rule;
-
 
 class CreateTrackingStatusRequest extends FleetbaseRequest
 {

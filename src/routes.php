@@ -1,6 +1,5 @@
 <?php
 
-use Fleetbase\Support\InternalConfig;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -14,7 +13,7 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::prefix(InternalConfig::get('api.routing.prefix', 'fleet-ops'))->namespace('Fleetbase\FleetOps\Http\Controllers')->group(
+Route::prefix(config('fleetops.api.routing.prefix', null))->namespace('Fleetbase\FleetOps\Http\Controllers')->group(
     function ($router) {
         /*
         |--------------------------------------------------------------------------
@@ -23,7 +22,7 @@ Route::prefix(InternalConfig::get('api.routing.prefix', 'fleet-ops'))->namespace
         |
         | Primary internal routes for console.
         */
-        $router->prefix(InternalConfig::get('api.routing.internal_prefix', 'int'))->namespace('Internal')->group(
+        $router->prefix(config('fleetops.api.routing.internal_prefix', 'int'))->namespace('Internal')->group(
             function ($router) {
                 $router->group(
                     ['prefix' => 'v1', 'namespace' => 'v1', 'middleware' => ['fleetbase.protected']],
