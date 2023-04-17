@@ -136,7 +136,7 @@ class Fleet extends Model
      */
     public function getPhotoUrlAttribute()
     {
-        return static::attributeFromCache($this, 'photo.s3url', 'https://s3.ap-northeast-2.amazonaws.com/fleetbase/public/default-fleet.png');
+        return $this->fromCache('photo.s3url', 'https://s3.ap-northeast-2.amazonaws.com/fleetbase/public/default-fleet.png');
     }
 
     /**

@@ -158,7 +158,7 @@ class Waypoint extends Model
      */
     public function getTrackingAttribute()
     {
-        return static::attributeFromCache($this, 'trackingNumber.tracking_number');
+        return $this->fromCache('trackingNumber.tracking_number');
     }
 
     /**
@@ -166,7 +166,7 @@ class Waypoint extends Model
      */
     public function getStatusAttribute()
     {
-        return static::attributeFromCache($this, 'trackingNumber.last_status');
+        return $this->fromCache('trackingNumber.last_status');
     }
 
     /**
@@ -174,7 +174,7 @@ class Waypoint extends Model
      */
     public function getStatusCodeAttribute()
     {
-        return static::attributeFromCache($this, 'trackingNumber.last_status_code');
+        return $this->fromCache('trackingNumber.last_status_code');
     }
 
     public static function insertGetUuid($values = [], ?Payload $payload = null)

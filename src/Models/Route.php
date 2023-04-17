@@ -72,7 +72,7 @@ class Route extends Model
      */
     public function getPayloadAttribute()
     {
-        return static::attributeFromCache($this, 'order.payload');
+        return $this->fromCache('order.payload');
     }
 
     /**
@@ -82,7 +82,7 @@ class Route extends Model
      */
     public function getDriverAttribute()
     {
-        return static::attributeFromCache($this, 'order.driverAssigned');
+        return $this->fromCache('order.driverAssigned');
     }
 
     /**
@@ -92,7 +92,7 @@ class Route extends Model
      */
     public function getOrderStatusAttribute()
     {
-        return static::attributeFromCache($this, 'order.status');
+        return $this->fromCache('order.status');
     }
 
     /**
@@ -102,7 +102,7 @@ class Route extends Model
      */
     public function getOrderPublicIdAttribute()
     {
-        return static::attributeFromCache($this, 'order.public_id');
+        return $this->fromCache('order.public_id');
     }
 
     /**
@@ -112,7 +112,7 @@ class Route extends Model
      */
     public function getOrderInternalIdAttribute()
     {
-        return static::attributeFromCache($this, 'order.internal_id');
+        return $this->fromCache('order.internal_id');
     }
 
     /**
@@ -122,6 +122,6 @@ class Route extends Model
      */
     public function getOrderDispatchedAtAttribute()
     {
-        return static::attributeFromCache($this, 'order.dispatched_at');
+        return $this->fromCache('order.dispatched_at');
     }
 }

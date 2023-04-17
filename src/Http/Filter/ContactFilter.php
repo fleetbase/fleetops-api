@@ -3,6 +3,7 @@
 namespace Fleetbase\FleetOps\Http\Filter;
 
 use Fleetbase\Http\Filter\Filter;
+use Fleetbase\Support\Utils;
 
 class ContactFilter extends Filter
 {
@@ -23,14 +24,7 @@ class ContactFilter extends Filter
 
     public function query(?string $searchQuery)
     {
-        $this->builder->where(function ($query) use ($searchQuery) {
-            $query->orWhereHas(
-                'user',
-                function ($query) use ($searchQuery) {
-                    $query->searchWhere(['name', 'email', 'phone'], $searchQuery);
-                }
-            );
-        });
+        $this->builder->search($searchQuery);
     }
 
     public function internalId(?string $internalId)
@@ -48,19 +42,45 @@ class ContactFilter extends Filter
         $this->builder->searchWhere('type', $type);
     }
 
-    /**
-     * @todo Migrate to Storefrony API package
-     *
-     * @param string $storefront
-     * @return void
-     */
-    public function storefront(string $storefront)
+    public function email(?string $email)
+    {
+        $this->builder->searchWhere('email', $email);
+    }
+
+    public function phone(?string $phone)
+    {
+        $this->builder->searchWhere('phone', $phone);
+    }
+
+    public function address(?string $address)
     {
         $this->builder->whereHas(
-            'customerOrders',
-            function ($query) use ($storefront) {
-                $query->where('meta->storefront_id', $storefront);
+            'addresses',
+            function ($query) use ($address) {
+                $query->search($address);
             }
         );
+    }
+
+    public function createdAt($createdAt) 
+    {
+        $createdAt = Utils::dateRange($createdAt);
+
+        if (is_array($createdAt)) {
+            $this->builder->whereBetween('created_at', $createdAt);
+        } else {
+            $this->builder->whereDate('created_at', $createdAt);
+        }
+    }
+
+    public function updatedAt($updatedAt) 
+    {
+        $updatedAt = Utils::dateRange($updatedAt);
+
+        if (is_array($updatedAt)) {
+            $this->builder->whereBetween('updated_at', $updatedAt);
+        } else {
+            $this->builder->whereDate('updated_at', $updatedAt);
+        }
     }
 }

@@ -4,6 +4,7 @@ namespace Fleetbase\FleetOps\Http\Filter;
 
 use Fleetbase\Http\Filter\Filter;
 use Fleetbase\Support\Utils;
+use Illuminate\Support\Str;
 
 class DriverFilter extends Filter
 {
@@ -67,7 +68,7 @@ class DriverFilter extends Filter
 
     public function vehicle(string $vehicle)
     {
-        if (Utils::isUuid($vehicle)) {
+        if (Str::isUuid($vehicle)) {
             $this->builder->where('vehicle_uuid', $vehicle);
         } else {
             $this->builder->whereHas(

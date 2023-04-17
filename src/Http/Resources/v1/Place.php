@@ -4,7 +4,6 @@ namespace Fleetbase\FleetOps\Http\Resources\v1;
 
 use Fleetbase\Http\Resources\FleetbaseResource;
 use Fleetbase\Support\Resolve;
-use Illuminate\Support\Arr;
 use Grimzy\LaravelMysqlSpatial\Types\Point;
 
 class Place extends FleetbaseResource
@@ -17,7 +16,7 @@ class Place extends FleetbaseResource
      */
     public function toArray($request)
     {
-        $place = [
+        return [
             'id' => $this->public_id ?? null,
             'name' => $this->name,
             'location' => $this->location ?? new Point(0, 0),
@@ -34,17 +33,12 @@ class Place extends FleetbaseResource
             'country' => $this->country ?? null,
             'phone' => $this->phone ?? null,
             'owner' => Resolve::resourceForMorph($this->owner_type, $this->owner_uuid),
+            'tracking_number' => $this->whenLoaded('trackingNumber', $this->trackingNumber),
             'type' => $this->type ?? null,
             'meta' => $this->meta ?? [],
             'updated_at' => $this->updated_at,
             'created_at' => $this->created_at
         ];
-
-        if ($this->trackingNumber) {
-            $place = Arr::insertAfterKey($place, ['tracking_number' => $this->tracking_number], 'owner');
-        }
-
-        return $place;
     }
 
     /**

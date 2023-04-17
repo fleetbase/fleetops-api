@@ -407,7 +407,7 @@ class Order extends Model
      */
     public function getDriverNameAttribute()
     {
-        return static::attributeFromCache($this, 'driverAssigned.name');
+        return $this->fromCache('driverAssigned.name');
     }
 
     /**
@@ -417,7 +417,7 @@ class Order extends Model
      */
     public function getTrackingAttribute()
     {
-        return static::attributeFromCache($this, 'trackingNumber.tracking_number');
+        return $this->fromCache('trackingNumber.tracking_number');
     }
 
     /**
@@ -427,7 +427,7 @@ class Order extends Model
      */
     public function getTotalEntitiesAttribute()
     {
-        return (int) static::attributeFromCache($this, 'payload.total_entities');
+        return (int) $this->fromCache('payload.total_entities');
     }
 
     /**
@@ -437,7 +437,7 @@ class Order extends Model
      */
     public function getTransactionAmountAttribute()
     {
-        return static::attributeFromCache($this, 'transaction.amount');
+        return $this->fromCache('transaction.amount');
     }
 
     /**
@@ -447,7 +447,7 @@ class Order extends Model
      */
     public function getCustomerNameAttribute()
     {
-        return static::attributeFromCache($this, 'customer.name');
+        return $this->fromCache('customer.name');
     }
 
     /**
@@ -457,7 +457,7 @@ class Order extends Model
      */
     public function getCustomerPhoneAttribute()
     {
-        return static::attributeFromCache($this, 'customer.phone');
+        return $this->fromCache('customer.phone');
     }
 
     /**
@@ -467,7 +467,7 @@ class Order extends Model
      */
     public function getFacilitatorNameAttribute()
     {
-        return static::attributeFromCache($this, 'facilitator.name');
+        return $this->fromCache('facilitator.name');
     }
 
     /**
@@ -542,7 +542,7 @@ class Order extends Model
      */
     public function getPurchaseRateIdAttribute()
     {
-        return static::attributeFromCache($this, 'purchaseRate.public_id');
+        return $this->fromCache('purchaseRate.public_id');
     }
 
     /**
@@ -550,7 +550,7 @@ class Order extends Model
      */
     public function getPayloadIdAttribute()
     {
-        return static::attributeFromCache($this, 'payload.public_id');
+        return $this->fromCache('payload.public_id');
     }
 
     /**
@@ -560,7 +560,7 @@ class Order extends Model
      */
     public function getQrCodeAttribute()
     {
-        return static::attributeFromCache($this, 'trackingNumber.qr_code');
+        return $this->fromCache('trackingNumber.qr_code');
     }
 
     /**
@@ -570,7 +570,7 @@ class Order extends Model
      */
     public function getCreatedByNameAttribute()
     {
-        return static::attributeFromCache($this, 'createdBy.name');
+        return $this->fromCache('createdBy.name');
     }
 
     /**
@@ -580,7 +580,7 @@ class Order extends Model
      */
     public function getUpdatedByNameAttribute()
     {
-        return static::attributeFromCache($this, 'updatedBy.name');
+        return $this->fromCache('updatedBy.name');
     }
 
     /**

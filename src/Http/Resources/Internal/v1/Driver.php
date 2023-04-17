@@ -17,16 +17,9 @@ class Driver extends DriverResource
     {
         $driver = parent::toArray($request);
         $driver = Arr::insertAfterKey($driver, ['uuid' => $this->uuid, 'public_id' => $this->public_id], 'id');
-
-        if ($this->vehicle) {
-            $driver['vehicle'] = new Vehicle($this->vehicle);
-        }
-
-        if ($this->currentJob) {
-            $driver['current_job'] = new CurrentJob($this->currentJob);
-        }
-
-        $driver['fleets'] = $this->fleets->mapInto(Fleet::class);
+        $driver['vehicle'] = new Vehicle($this->whenLoaded('vehicle'));
+        $driver['current_job'] = new CurrentJob($this->whenLoaded('currentJob'));
+        $driver['fleets'] = Fleet::collection($this->whenLoaded('fleets'));
 
         return $driver;
     }

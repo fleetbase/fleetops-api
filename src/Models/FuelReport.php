@@ -128,7 +128,7 @@ class FuelReport extends Model
      */
     public function getDriverNameAttribute()
     {
-        return static::attributeFromCache($this, 'driver.name');
+        return $this->fromCache('driver.name');
     }
 
     /**
@@ -138,6 +138,6 @@ class FuelReport extends Model
      */
     public function getVehicleNameAttribute()
     {
-        return static::attributeFromCache($this, 'vehicle.name');
+        return $this->fromCache('vehicle.name');
     }
 }

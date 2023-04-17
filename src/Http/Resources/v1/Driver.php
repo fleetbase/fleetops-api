@@ -2,6 +2,7 @@
 
 namespace Fleetbase\FleetOps\Http\Resources\v1;
 
+use Fleetbase\FleetOps\Http\Resources\Internal\v1\CurrentJob;
 use Fleetbase\Http\Resources\FleetbaseResource;
 use Grimzy\LaravelMysqlSpatial\Types\Point;
 
@@ -23,9 +24,9 @@ class Driver extends FleetbaseResource
             'phone' => $this->phone ?? null,
             'drivers_license_number' => $this->drivers_license_number ?? null,
             'photo_url' => $this->photo_url ?? null,
-            'vehicle' => new VehicleWithoutDriver($this->vehicle),
-            'current_job' => $this->currentJob->public_id ?? null,
-            'vendor' => new Vendor($this->vendor) ?? null,
+            'vehicle' => new VehicleWithoutDriver($this->whenLoaded('driver')),
+            'current_job' => new CurrentJob($this->whenLoaded('currentJob')),
+            'vendor' => new Vendor($this->whenLoaded('vendor')),
             'location' => $this->location ?? new Point(0, 0),
             'heading' => $this->heading ?? null,
             'altitude' => $this->altitude ?? null,

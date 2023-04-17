@@ -68,17 +68,6 @@ class OrderFilter extends Filter
         }
     }
 
-    /**
-     * @todo Migrate to Storefront package via Expansion
-     *
-     * @param string $storefront
-     * @return void
-     */
-    public function storefront(string $storefront)
-    {
-        $this->builder->where('meta->storefront_id', $storefront);
-    }
-
     public function customer(string $customer)
     {
         $this->builder->where('customer_uuid', $customer);

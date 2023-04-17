@@ -245,7 +245,7 @@ class Entity extends Model
      */
     public function getPhotoUrlAttribute()
     {
-        return static::attributeFromCache($this, 'photo.s3url', 'https://s3.ap-southeast-1.amazonaws.com/flb-assets/static/parcels/medium.png');
+        return $this->fromCache('photo.s3url', 'https://s3.ap-southeast-1.amazonaws.com/flb-assets/static/parcels/medium.png');
     }
 
     /**
@@ -337,7 +337,7 @@ class Entity extends Model
      */
     public function getTrackingAttribute()
     {
-        return static::attributeFromCache($this, 'trackingNumber.tracking_number');
+        return $this->fromCache('trackingNumber.tracking_number');
     }
 
     /**
@@ -345,7 +345,7 @@ class Entity extends Model
      */
     public function getStatusAttribute()
     {
-        return static::attributeFromCache($this, 'trackingNumber.last_status');
+        return $this->fromCache('trackingNumber.last_status');
     }
 
     public static function insertGetUuid($values = [], ?Payload $payload = null)

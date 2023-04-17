@@ -186,7 +186,7 @@ class Vendor extends Model
      */
     public function getLogoUrlAttribute()
     {
-        return static::attributeFromCache($this, 'logo.s3url', 'https://s3.ap-southeast-1.amazonaws.com/flb-assets/static/no-avatar.png');
+        return $this->fromCache('logo.s3url', 'https://s3.ap-southeast-1.amazonaws.com/flb-assets/static/no-avatar.png');
     }
 
     /**
@@ -196,7 +196,7 @@ class Vendor extends Model
      */
     public function getAddressAttribute()
     {
-        return static::attributeFromCache($this, 'place.address_html');
+        return $this->fromCache('place.address_html');
     }
 
     /**
@@ -206,7 +206,7 @@ class Vendor extends Model
      */
     public function getAddressStreetAttribute()
     {
-        return static::attributeFromCache($this, 'place.street1');
+        return $this->fromCache('place.street1');
     }
 
     /**

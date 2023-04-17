@@ -228,7 +228,7 @@ class Vehicle extends Model
      */
     public function getPhotoUrlAttribute()
     {
-        return static::attributeFromCache($this, 'photo.s3url', 'https://s3.ap-southeast-1.amazonaws.com/flb-assets/static/vehicle-placeholder.png');
+        return $this->fromCache('photo.s3url', 'https://s3.ap-southeast-1.amazonaws.com/flb-assets/static/vehicle-placeholder.png');
     }
 
     /**
@@ -264,7 +264,7 @@ class Vehicle extends Model
      */
     public function getDriverNameAttribute()
     {
-        return static::attributeFromCache($this, 'driver.name');
+        return $this->fromCache('driver.name');
     }
 
     /**
@@ -272,7 +272,7 @@ class Vehicle extends Model
      */
     public function getDriverIdAttribute()
     {
-        return static::attributeFromCache($this, 'driver.public_id');
+        return $this->fromCache('driver.public_id');
     }
 
     /**
@@ -280,7 +280,7 @@ class Vehicle extends Model
      */
     public function getDriverUuidAttribute()
     {
-        return static::attributeFromCache($this, 'driver.uuid');
+        return $this->fromCache('driver.uuid');
     }
 
     /**
@@ -288,7 +288,7 @@ class Vehicle extends Model
      */
     public function getVendorIdAttribute()
     {
-        return static::attributeFromCache($this, 'vendor.public_id');
+        return $this->fromCache('vendor.public_id');
     }
 
     /**
@@ -296,7 +296,7 @@ class Vehicle extends Model
      */
     public function getVendorNameAttribute()
     {
-        return static::attributeFromCache($this, 'vendor.name');
+        return $this->fromCache('vendor.name');
     }
 
     /**

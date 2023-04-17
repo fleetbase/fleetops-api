@@ -9,12 +9,10 @@ use Fleetbase\Traits\HasUuid;
 use Fleetbase\Traits\TracksApiCredential;
 use Fleetbase\Traits\HasPublicId;
 use Fleetbase\Traits\SendsWebhooks;
-// use Fleetbase\Traits\Searchable;
 use Fleetbase\Traits\HasMetaAttributes;
+use Fleetbase\Traits\Searchable;
 use Fleetbase\Casts\Json;
-use Fleetbase\Models\Storefront\Review;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Support\Str;
 use Spatie\Activitylog\Traits\CausesActivity;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Sluggable\SlugOptions;
@@ -28,6 +26,7 @@ class Contact extends Model
         HasMetaAttributes,
         HasInternalId,
         TracksApiCredential,
+        Searchable,
         SendsWebhooks,
         HasSlug,
         LogsActivity,
@@ -62,13 +61,6 @@ class Contact extends Model
      */
     protected $fillable = ['_key', 'internal_id', 'company_uuid', 'user_uuid', 'photo_uuid', 'name', 'title', 'email', 'phone', 'type', 'meta', 'slug'];
 
-    /**
-     * Attributes that is filterable on this model
-     *
-     * @var array
-     */
-    protected $filterParams = ['storefront'];
-
 
     /**
      * The attributes that should be cast to native types.
@@ -84,7 +76,7 @@ class Contact extends Model
      *
      * @var array
      */
-    protected $appends = ['photo_url', 'type'];
+    protected $appends = ['photo_url'];
 
     /**
      * The attributes excluded from the model's JSON form.
@@ -157,43 +149,19 @@ class Contact extends Model
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
-    public function reviews()
+    public function address()
     {
-        return $this->hasMany(Review::class, 'customer_uuid');
+        return $this->hasOne(Place::class, 'owner_uuid');
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
-    public function productReviews()
+    public function addresses()
     {
-        return $this->hasMany(Review::class, 'customer_uuid')->where('subject_type', 'Fleetbase\Models\Storefront\Product');
-    }
-
-    /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
-     */
-    public function storeReviews()
-    {
-        return $this->hasMany(Review::class, 'customer_uuid')->where('subject_type', 'Fleetbase\Models\Storefront\Store');
-    }
-
-    /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
-     */
-    public function reviewUploads()
-    {
-        return $this->hasMany(File::class, 'uploader_uuid')->where('type', 'storefront_review_upload');
-    }
-
-    /**
-     * @return integer
-     */
-    public function getReviewsCountAttribute()
-    {
-        return $this->reviews()->count();
+        return $this->hasMany(Place::class, 'owner_uuid');
     }
 
     /**
@@ -203,9 +171,13 @@ class Contact extends Model
      */
     public function routeNotificationForFcm()
     {
-        return $this->devices->where('platform', 'android')->map(function ($userDevice) {
-            return $userDevice->token;
-        })->toArray();
+        return $this->devices
+            ->where('platform', 'android')
+            ->map(
+                function ($userDevice) {
+                    return $userDevice->token;
+                }
+            )->toArray();
     }
 
     /**
@@ -215,9 +187,13 @@ class Contact extends Model
      */
     public function routeNotificationForApn()
     {
-        return $this->devices->where('platform', 'ios')->map(function ($userDevice) {
-            return $userDevice->token;
-        })->toArray();
+        return $this->devices
+            ->where('platform', 'ios')
+            ->map(
+                function ($userDevice) {
+                    return $userDevice->token;
+                }
+            )->toArray();
     }
 
     /**
@@ -225,16 +201,7 @@ class Contact extends Model
      */
     public function getPhotoUrlAttribute()
     {
-        return static::attributeFromCache($this, 'photo.s3url', 'https://s3.ap-southeast-1.amazonaws.com/flb-assets/static/no-avatar.png');
-    }
-
-    public static function findFromCustomerId($publicId)
-    {
-        if (Str::startsWith($publicId, 'customer')) {
-            $publicId = Str::replaceFirst('customer', 'contact', $publicId);
-        }
-
-        return static::where('public_id', $publicId)->first();
+        return data_get($this, 'photo.url',  'https://s3.ap-southeast-1.amazonaws.com/flb-assets/static/no-avatar.png');
     }
 
     /**
@@ -267,16 +234,12 @@ class Contact extends Model
         return $this->customerOrders()->count();
     }
 
-    public function countStorefrontOrdersFrom($id)
-    {
-        return Order::where([
-            'customer_uuid' => $this->uuid,
-            'type' => 'storefront',
-            'meta->storefront_id' => $id
-        ])->count();
-    }
-
-    public function routeNotificationForTwilio()
+    /**
+     * The attribute to route notifications to.
+     *
+     * @return string|null
+     */
+    public function routeNotificationForTwilio(): ?string
     {
         return $this->phone;
     }

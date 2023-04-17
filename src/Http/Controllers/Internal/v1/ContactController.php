@@ -4,9 +4,9 @@ namespace Fleetbase\FleetOps\Http\Controllers\Internal\v1;
 
 use Fleetbase\FleetOps\Http\Controllers\FleetOpsController;
 use Fleetbase\Exports\ContactExport;
-use Fleetbase\Http\Controllers\FleetbaseController;
 use Fleetbase\Http\Requests\ExportRequest;
 use Fleetbase\FleetOps\Models\Contact;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Maatwebsite\Excel\Facades\Excel;
 
@@ -18,7 +18,7 @@ class ContactController extends FleetOpsController
      * @var string
      */
     public $resource = 'contact';
-    
+
     /**
      * Returns the contact as a `facilitator-contact`
      *

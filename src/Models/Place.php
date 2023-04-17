@@ -16,11 +16,12 @@ use Fleetbase\Traits\HasMetaAttributes;
 use Fleetbase\Traits\SendsWebhooks;
 use Fleetbase\Casts\Json;
 use Fleetbase\FleetOps\Casts\Point;
+use Fleetbase\Traits\Searchable;
 use Grimzy\LaravelMysqlSpatial\Eloquent\SpatialTrait;
 
 class Place extends Model
 {
-    use HasUuid, HasPublicId, HasApiModelBehavior, SendsWebhooks, TracksApiCredential, SpatialTrait, HasMetaAttributes;
+    use HasUuid, HasPublicId, HasApiModelBehavior, Searchable, SendsWebhooks, TracksApiCredential, SpatialTrait, HasMetaAttributes;
 
     /**
      * The database table used by the model.
@@ -41,7 +42,7 @@ class Place extends Model
      *
      * @var array
      */
-    protected $searchableColumns = ['name', 'country', 'city', 'postal_code'];
+    protected $searchableColumns = ['name', 'street1', 'street2', 'country', 'province', 'district', 'city', 'postal_code'];
 
     /**
      * The attributes that are spatial columns.
