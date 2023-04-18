@@ -2,14 +2,12 @@
 
 namespace Fleetbase\FleetOps\Http\Controllers\Internal\v1;
 
-use Fleetbase\FleetOps\Http\Controllers\FleetOpsController;
-
 use Fleetbase\FleetOps\Support\Metrics;
 use Fleetbase\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Exception;
 
-class MetricsController extends Controller {
+class MetricsController extends Controller
+{
     public function all(Request $request)
     {
         $start = $request->date('start');
@@ -18,7 +16,7 @@ class MetricsController extends Controller {
 
         try {
             $data = Metrics::forCompany($request->user()->company, $start, $end)->with($discover)->get();
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             return response()->error($e->getMessage());
         }
 

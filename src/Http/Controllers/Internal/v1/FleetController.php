@@ -3,9 +3,7 @@
 namespace Fleetbase\FleetOps\Http\Controllers\Internal\v1;
 
 use Fleetbase\FleetOps\Http\Controllers\FleetOpsController;
-
 use Fleetbase\Exports\FleetExport;
-use Fleetbase\Http\Controllers\FleetbaseController;
 use Fleetbase\Http\Requests\ExportRequest;
 use Fleetbase\Http\Requests\Internal\FleetActionRequest;
 use Fleetbase\FleetOps\Models\Driver;

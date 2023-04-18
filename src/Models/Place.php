@@ -162,7 +162,7 @@ class Place extends Model
      */
     public function getCountryNameAttribute(): ?string
     {
-        return $this->fromCache('country_data.name.common');
+        return data_get($this, 'country_data.name.common');
     }
 
     /**

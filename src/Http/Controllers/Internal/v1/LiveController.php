@@ -2,8 +2,6 @@
 
 namespace Fleetbase\FleetOps\Http\Controllers\Internal\v1;
 
-use Fleetbase\FleetOps\Http\Controllers\FleetOpsController;
-
 use Fleetbase\Http\Controllers\Controller;
 use Fleetbase\Http\Resources\Internal\v1\Order as OrderResource;
 use Fleetbase\FleetOps\Models\Order;

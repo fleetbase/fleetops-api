@@ -3,8 +3,6 @@
 namespace Fleetbase\FleetOps\Http\Controllers\Internal\v1;
 
 use Fleetbase\FleetOps\Http\Controllers\FleetOpsController;
-
-use Fleetbase\Http\Controllers\FleetbaseController;
 use Fleetbase\FleetOps\Models\IntegratedVendor;
 use Fleetbase\Support\IntegratedVendors;
 use Fleetbase\Http\Requests\Internal\BulkDeleteRequest;

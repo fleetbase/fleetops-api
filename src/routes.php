@@ -88,6 +88,13 @@ Route::prefix(config('fleetops.api.routing.prefix', null))->namespace('Fleetbase
                             }
                         );
                         $router->group(
+                            ['prefix' => 'geocoder'],
+                            function ($router) {
+                                $router->get('reverse', 'GeocoderController@reverse');
+                                $router->get('query', 'GeocoderController@geocode');
+                            }
+                        );
+                        $router->group(
                             ['prefix' => 'fleet-ops'],
                             function ($router) {
                                 $router->group(

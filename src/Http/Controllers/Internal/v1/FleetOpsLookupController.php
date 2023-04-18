@@ -2,8 +2,6 @@
 
 namespace Fleetbase\FleetOps\Http\Controllers\Internal\v1;
 
-use Fleetbase\FleetOps\Http\Controllers\FleetOpsController;
-
 use Fleetbase\Http\Controllers\Controller;
 use Fleetbase\FleetOps\Models\Contact;
 use Fleetbase\FleetOps\Models\IntegratedVendor;
@@ -15,6 +13,12 @@ use Illuminate\Support\Arr;
 
 class FleetOpsLookupController extends Controller
 {
+    /**
+     * Returns a collection of polymorphic resources as JSON.
+     *
+     * @param \Illuminate\Http\Request $request The HTTP request object.
+     * @return \Illuminate\Http\Response The JSON response with the polymorphic resources.
+     */
     public function polymorphs(Request $request)
     {
         $query = $request->or(['query', 'q']);

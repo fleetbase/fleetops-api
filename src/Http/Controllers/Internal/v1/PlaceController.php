@@ -3,12 +3,11 @@
 namespace Fleetbase\FleetOps\Http\Controllers\Internal\v1;
 
 use Fleetbase\FleetOps\Http\Controllers\FleetOpsController;
-
-use Fleetbase\Http\Controllers\FleetbaseController;
 use Fleetbase\Http\Requests\Internal\BulkDeleteRequest;
 use Fleetbase\Http\Requests\ExportRequest;
 use Fleetbase\Exports\PlaceExport;
 use Fleetbase\FleetOps\Models\Place;
+use Fleetbase\FleetOps\Support\Utils as FleetOpsUtils;
 use Fleetbase\Support\Utils;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -63,7 +62,7 @@ class PlaceController extends FleetOpsController
             ->map(
                 function ($place) {
                     $place = (array) $place;
-                    $place['location'] = Utils::mysqlPointAsGeometry($place['location']);
+                    $place['location'] = FleetOpsUtils::mysqlPointAsGeometry($place['location']);
                     $place = new Place($place);
                     $place->address = $place->toAddressString();
 
