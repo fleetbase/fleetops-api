@@ -3,6 +3,7 @@
 namespace Fleetbase\FleetOps\Http\Resources\v1;
 
 use Fleetbase\Http\Resources\FleetbaseResource;
+use Fleetbase\Support\Http;
 
 class Proof extends FleetbaseResource
 {
@@ -15,7 +16,9 @@ class Proof extends FleetbaseResource
     public function toArray($request)
     {
         return [
-            'id' => $this->public_id,
+            'id' => $this->when(Http::isInternalRequest(), $this->id, $this->public_id),
+            'uuid' => $this->when(Http::isInternalRequest(), $this->uuid),
+            'public_id' => $this->when(Http::isInternalRequest(), $this->public_id),
             'subject_id' => $this->subject ? $this->subject->public_id : null,
             'order_id' => $this->order ? $this->order->public_id : null,
             'url' => $this->file_url,

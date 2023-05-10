@@ -3,10 +3,9 @@
 namespace Fleetbase\FleetOps\Http\Controllers\Internal\v1;
 
 use Fleetbase\FleetOps\Http\Controllers\FleetOpsController;
-use Fleetbase\Exports\ContactExport;
+use Fleetbase\FleetOps\Exports\ContactExport;
 use Fleetbase\Http\Requests\ExportRequest;
 use Fleetbase\FleetOps\Models\Contact;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Maatwebsite\Excel\Facades\Excel;
 

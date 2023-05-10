@@ -3,6 +3,7 @@
 namespace Fleetbase\FleetOps\Http\Resources\v1;
 
 use Fleetbase\Support\Utils;
+use Fleetbase\Support\Http;
 use Fleetbase\Http\Resources\FleetbaseResource;
 
 class TrackingNumber extends FleetbaseResource
@@ -16,7 +17,9 @@ class TrackingNumber extends FleetbaseResource
     public function toArray($request)
     {
         return [
-            'id' => $this->public_id,
+            'id' => $this->when(Http::isInternalRequest(), $this->id, $this->public_id),
+            'uuid' => $this->when(Http::isInternalRequest(), $this->uuid),
+            'public_id' => $this->when(Http::isInternalRequest(), $this->public_id),
             'tracking_number' => $this->tracking_number,
             'subject' => Utils::get($this->owner, 'public_id'),
             'region' => $this->region,

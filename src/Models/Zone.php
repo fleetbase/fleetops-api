@@ -3,12 +3,12 @@
 namespace Fleetbase\FleetOps\Models;
 
 use Fleetbase\Models\Model;
-use Fleetbase\Casts\Polygon;
 use Fleetbase\Traits\HasApiModelBehavior;
 use Fleetbase\Traits\HasUuid;
 use Fleetbase\Traits\HasPublicId;
 use Fleetbase\Traits\SendsWebhooks;
 use Fleetbase\Traits\TracksApiCredential;
+use Fleetbase\FleetOps\Casts\Polygon;
 use Grimzy\LaravelMysqlSpatial\Eloquent\SpatialTrait;
 
 class Zone extends Model

@@ -61,13 +61,6 @@ class Order extends Model
     protected $publicIdType = 'order';
 
     /**
-     * The HTTP Resource Namespace
-     *
-     * @var string
-     */
-    public $httpResource = \Fleetbase\FleetOps\Http\Resources\Internal\v1\Order::class;
-
-    /**
      * The attributes that can be queried
      *
      * @var array

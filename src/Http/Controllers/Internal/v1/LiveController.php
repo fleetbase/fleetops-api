@@ -3,7 +3,7 @@
 namespace Fleetbase\FleetOps\Http\Controllers\Internal\v1;
 
 use Fleetbase\Http\Controllers\Controller;
-use Fleetbase\Http\Resources\Internal\v1\Order as OrderResource;
+use Fleetbase\FleetOps\Http\Resources\v1\Order as OrderResource;
 use Fleetbase\FleetOps\Models\Order;
 use Fleetbase\FleetOps\Models\Driver;
 use Fleetbase\FleetOps\Models\Route;

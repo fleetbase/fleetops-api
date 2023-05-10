@@ -3,6 +3,7 @@
 namespace Fleetbase\FleetOps\Http\Resources\v1;
 
 use Fleetbase\Http\Resources\FleetbaseResource;
+use Fleetbase\Support\Http;
 
 class VehicleWithoutDriver extends FleetbaseResource
 {
@@ -15,7 +16,9 @@ class VehicleWithoutDriver extends FleetbaseResource
     public function toArray($request)
     {
         return [
-            'id' => $this->public_id,
+            'id' => $this->when(Http::isInternalRequest(), $this->id, $this->public_id),
+            'uuid' => $this->when(Http::isInternalRequest(), $this->uuid),
+            'public_id' => $this->when(Http::isInternalRequest(), $this->public_id),
             'internal_id' => $this->internal_id,
             'name' => $this->name,
             'vin' => $this->vin ?? null,

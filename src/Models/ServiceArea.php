@@ -3,15 +3,14 @@
 namespace Fleetbase\FleetOps\Models;
 
 use Fleetbase\Models\Model;
-use Fleetbase\Casts\MultiPolygon;
 use Fleetbase\Traits\HasUuid;
 use Fleetbase\Traits\TracksApiCredential;
 use Fleetbase\Traits\HasPublicId;
 use Fleetbase\Traits\SendsWebhooks;
 use Fleetbase\Traits\HasApiModelBehavior;
+use Fleetbase\FleetOps\Casts\MultiPolygon;
+use Fleetbase\FleetOps\Support\Utils;
 use Grimzy\LaravelMysqlSpatial\Eloquent\SpatialTrait;
-use League\Geotools\Coordinate\Coordinate;
-use League\Geotools\Polygon\Polygon;
 
 class ServiceArea extends Model
 {
@@ -90,24 +89,36 @@ class ServiceArea extends Model
         return $this->hasMany(Zone::class)->without(['serviceArea']);
     }
 
+    /**
+     * Sets the status attribute for the model.
+     *
+     * @param string|null $status The status value, defaults to 'active' if not provided.
+     * @return void
+     */
     public function setStatusAttribute(?string $status = 'active')
     {
         $this->attributes['status'] = $status;
     }
 
+    /**
+     * Sets the type attribute for the model.
+     *
+     * @param string|null $type The type value, defaults to 'country' if not provided.
+     * @return void
+     */
     public function setTypeAttribute(?string $type = 'country')
     {
         $this->attributes['type'] = $type;
     }
 
     /**
-     * Creates a 100km polygon from the coorddinates
+     * Creates a 100m polygon from the coorddinates
      *
      * @var Polygon
      */
-    public function polygon()
+    public function polygon($meters = 100)
     {
-        return new Polygon(\Fleetbase\Helpers\Geo_Helper::coordsToCircle($this->latitude, $this->longitude, 100));
+        return new \League\Geotools\Polygon\Polygon(Utils::coordsToCircle($this->latitude, $this->longitude, $meters));
     }
 
     /**
@@ -119,7 +130,7 @@ class ServiceArea extends Model
      */
     public function inZone($latitude, $longitude)
     {
-        return $this->polygon()->pointInPolygon(new Coordinate([$latitude, $longitude]));
+        return $this->polygon()->pointInPolygon(new \League\Geotools\Coordinate\Coordinate([$latitude, $longitude]));
     }
 
     /**
@@ -131,7 +142,7 @@ class ServiceArea extends Model
     public function pointsInZone($coords)
     {
         foreach ($coords as $coord) {
-            if (!$this->polygon()->pointInPolygon(new Coordinate([$coord[0], $coord[1]]))) {
+            if (!$this->polygon()->pointInPolygon(new \League\Geotools\Coordinate\Coordinate([$coord[0], $coord[1]]))) {
                 return false;
             }
         }

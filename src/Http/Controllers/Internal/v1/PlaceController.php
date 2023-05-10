@@ -5,7 +5,7 @@ namespace Fleetbase\FleetOps\Http\Controllers\Internal\v1;
 use Fleetbase\FleetOps\Http\Controllers\FleetOpsController;
 use Fleetbase\Http\Requests\Internal\BulkDeleteRequest;
 use Fleetbase\Http\Requests\ExportRequest;
-use Fleetbase\Exports\PlaceExport;
+use Fleetbase\FleetOps\Exports\PlaceExport;
 use Fleetbase\FleetOps\Models\Place;
 use Fleetbase\FleetOps\Support\Utils as FleetOpsUtils;
 use Fleetbase\Support\Utils;

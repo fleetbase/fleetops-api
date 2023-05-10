@@ -36,7 +36,6 @@ class MultiPolygon implements CastsAttributes
      */
     public function set($model, $key, $value, $attributes)
     {
-        // dd($key, $value);
         if ($value instanceof GeometryInterface) {
             $model->geometries[$key] = $value;
 
@@ -47,16 +46,20 @@ class MultiPolygon implements CastsAttributes
             $json = json_encode($value);
             $geo = Geometry::fromJson($json);
 
-            return $this->set($model, $key, $geo, $attributes);
+            return new SpatialExpression($geo);
         }
 
         if (is_array($value) && isset($value['type'])) {
             $json = json_encode($value);
             $geo = Geometry::fromJson($json);
 
-            return $this->set($model, $key, $geo, $attributes);
+            return new SpatialExpression($geo);
         }
 
-        return new SpatialExpression(new MultiPolygonType([]));
+        if ($value instanceof SpatialExpression) {
+            return $value;
+        }
+
+        return null;
     }
 }

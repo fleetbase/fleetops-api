@@ -2,6 +2,8 @@
 
 namespace Fleetbase\FleetOps\Events;
 
+use Fleetbase\Events\ResourceLifecycleEvent;
+
 class OrderDispatched extends ResourceLifecycleEvent
 {
     /**

@@ -3,6 +3,7 @@
 namespace Fleetbase\FleetOps\Events;
 
 use Fleetbase\FleetOps\Models\Order;
+use Fleetbase\Events\ResourceLifecycleEvent;
 
 class OrderDispatchFailed extends ResourceLifecycleEvent
 {

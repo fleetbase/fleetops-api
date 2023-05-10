@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use PhpParser\Node\Expr\FuncCall;
 
 /*
 |--------------------------------------------------------------------------
@@ -27,16 +28,28 @@ Route::prefix(config('fleetops.api.routing.prefix', null))->namespace('Fleetbase
                 $router->group(
                     ['prefix' => 'v1', 'namespace' => 'v1', 'middleware' => ['fleetbase.protected']],
                     function ($router) {
-                        $router->fleetbaseRoutes('contacts');
+                        $router->fleetbaseRoutes(
+                            'contacts',
+                            function ($router, $controller) {
+                                $router->get('export', $controller('export'));
+                            }
+                        );
                         $router->fleetbaseRoutes(
                             'drivers',
                             function ($router, $controller) {
                                 $router->get('statuses', $controller('statuses'));
+                                $router->get('export', $controller('export'));
                             }
                         );
                         $router->fleetbaseRoutes('entities');
-                        $router->fleetbaseRoutes('fleets');
+                        $router->fleetbaseRoutes(
+                            'fleets',
+                            function ($router, $controller) {
+                                $router->get('export', $controller('export'));
+                            }
+                        );
                         $router->fleetbaseRoutes('fuel-reports');
+                        $router->fleetbaseRoutes('issues');
                         $router->fleetbaseRoutes('integrated-vendors');
                         $router->fleetbaseRoutes(
                             'orders',
@@ -68,7 +81,12 @@ Route::prefix(config('fleetops.api.routing.prefix', null))->namespace('Fleetbase
                         $router->fleetbaseRoutes('proofs');
                         $router->fleetbaseRoutes('purchase-rates');
                         $router->fleetbaseRoutes('routes');
-                        $router->fleetbaseRoutes('service-areas');
+                        $router->fleetbaseRoutes('service-areas',
+                        function ($router, $controller) {
+                            $router->get('export', $controller('export'));
+                        }
+                    );
+                        $router->fleetbaseRoutes('zones');
                         $router->fleetbaseRoutes('service-quotes');
                         $router->fleetbaseRoutes('service-rates');
                         $router->fleetbaseRoutes('tracking-numbers');
@@ -78,6 +96,7 @@ Route::prefix(config('fleetops.api.routing.prefix', null))->namespace('Fleetbase
                             function ($router, $controller) {
                                 $router->get('statuses', $controller('statuses'));
                                 $router->get('avatars', $controller('avatars'));
+                                $router->get('export', $controller('export'));
                                 $router->delete('bulk-delete', $controller('bulkDelete'));
                             }
                         );
@@ -85,6 +104,7 @@ Route::prefix(config('fleetops.api.routing.prefix', null))->namespace('Fleetbase
                             'vendors',
                             function ($router, $controller) {
                                 $router->get('statuses', $controller('statuses'));
+                                $router->get('export', $controller('export'));
                             }
                         );
                         $router->group(

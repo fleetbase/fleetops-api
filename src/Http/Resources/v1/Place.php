@@ -4,6 +4,7 @@ namespace Fleetbase\FleetOps\Http\Resources\v1;
 
 use Fleetbase\Http\Resources\FleetbaseResource;
 use Fleetbase\Support\Resolve;
+use Fleetbase\Support\Http;
 use Grimzy\LaravelMysqlSpatial\Types\Point;
 
 class Place extends FleetbaseResource
@@ -17,10 +18,13 @@ class Place extends FleetbaseResource
     public function toArray($request)
     {
         return [
-            'id' => $this->public_id ?? null,
+            'id' => $this->when(Http::isInternalRequest(), $this->id, $this->public_id),
+            'uuid' => $this->when(Http::isInternalRequest(), $this->uuid),
+            'public_id' => $this->when(Http::isInternalRequest(), $this->public_id),
             'name' => $this->name,
             'location' => $this->location ?? new Point(0, 0),
             'address' => $this->address,
+            'address_html' => $this->when(Http::isInternalRequest(), $this->address_html),
             'street1' => $this->street1 ?? null,
             'street2' => $this->street2 ?? null,
             'city' => $this->city ?? null,
@@ -32,7 +36,7 @@ class Place extends FleetbaseResource
             'security_access_code' => $this->security_access_code ?? null,
             'country' => $this->country ?? null,
             'phone' => $this->phone ?? null,
-            'owner' => Resolve::resourceForMorph($this->owner_type, $this->owner_uuid),
+            'owner' => $this->when(!Http::isInternalRequest(), Resolve::resourceForMorph($this->owner_type, $this->owner_uuid)),
             'tracking_number' => $this->whenLoaded('trackingNumber', $this->trackingNumber),
             'type' => $this->type ?? null,
             'meta' => $this->meta ?? [],

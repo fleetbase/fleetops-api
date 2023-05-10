@@ -3,12 +3,10 @@
 namespace Fleetbase\FleetOps\Http\Controllers\Internal\v1;
 
 use Fleetbase\FleetOps\Http\Controllers\FleetOpsController;
-
-use Fleetbase\Exports\VendorExport;
-use Fleetbase\Http\Controllers\FleetbaseController;
+use Fleetbase\FleetOps\Exports\VendorExport;
+use Fleetbase\FleetOps\Models\Vendor;
 use Fleetbase\Http\Requests\Internal\BulkDeleteRequest;
 use Fleetbase\Http\Requests\ExportRequest;
-use Fleetbase\FleetOps\Models\Vendor;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Maatwebsite\Excel\Facades\Excel;

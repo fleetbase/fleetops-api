@@ -10,6 +10,7 @@ class OrderFilter extends Filter
     public function queryForInternal()
     {
         $this->builder
+            ->where('company_uuid', $this->request->session()->get('company'))
             ->whereHas(
                 'payload',
                 function ($q) {

@@ -3,12 +3,10 @@
 namespace Fleetbase\FleetOps\Http\Controllers\Internal\v1;
 
 use Fleetbase\FleetOps\Http\Controllers\FleetOpsController;
-
-use Fleetbase\Exports\VehicleExport;
-use Fleetbase\Http\Controllers\FleetbaseController;
-use Fleetbase\Http\Requests\ExportRequest;
+use Fleetbase\FleetOps\Exports\VehicleExport;
 use Fleetbase\FleetOps\Models\Driver;
 use Fleetbase\FleetOps\Models\Vehicle;
+use Fleetbase\Http\Requests\ExportRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;

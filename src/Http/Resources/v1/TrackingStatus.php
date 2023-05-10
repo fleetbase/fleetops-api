@@ -3,8 +3,9 @@
 namespace Fleetbase\FleetOps\Http\Resources\v1;
 
 use Fleetbase\Http\Resources\FleetbaseResource;
-use Grimzy\LaravelMysqlSpatial\Types\Point;
+use Fleetbase\Support\Http;
 use Fleetbase\Support\Utils;
+use Grimzy\LaravelMysqlSpatial\Types\Point;
 
 class TrackingStatus extends FleetbaseResource
 {
@@ -17,7 +18,9 @@ class TrackingStatus extends FleetbaseResource
     public function toArray($request)
     {
         return [
-            'id' => $this->public_id,
+            'id' => $this->when(Http::isInternalRequest(), $this->id, $this->public_id),
+            'uuid' => $this->when(Http::isInternalRequest(), $this->uuid),
+            'public_id' => $this->when(Http::isInternalRequest(), $this->public_id),
             'status' => $this->status,
             'details' => $this->details,
             'code' => $this->code,

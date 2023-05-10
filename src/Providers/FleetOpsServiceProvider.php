@@ -16,6 +16,22 @@ if (!class_exists(CoreServiceProvider::class)) {
 class FleetOpsServiceProvider extends CoreServiceProvider
 {
     /**
+     * The observers registered with the service provider.
+     *
+     * @var array
+     */
+    public $observers = [
+        \Fleetbase\FleetOps\Models\Order::class => \Fleetbase\FleetOps\Observers\OrderObserver::class,
+        \Fleetbase\FleetOps\Models\Payload::class => \Fleetbase\FleetOps\Observers\PayloadObserver::class,
+        \Fleetbase\FleetOps\Models\Place::class => \Fleetbase\FleetOps\Observers\PlaceObserver::class,
+        \Fleetbase\FleetOps\Models\PurchaseRate::class => \Fleetbase\FleetOps\Observers\PurchaseRateObserver::class,
+        \Fleetbase\FleetOps\Models\ServiceArea::class => \Fleetbase\FleetOps\Observers\ServiceAreaObserver::class,
+        \Fleetbase\FleetOps\Models\TrackingNumber::class => \Fleetbase\FleetOps\Observers\TrackingNumberObserver::class,
+        \Fleetbase\FleetOps\Models\Driver::class => \Fleetbase\FleetOps\Observers\DriverObserver::class,
+        \Fleetbase\Models\User::class => \Fleetbase\FleetOps\Observers\UserObserver::class,
+    ];
+
+    /**
      * Bootstrap any package services.
      *
      * @return void
@@ -24,8 +40,12 @@ class FleetOpsServiceProvider extends CoreServiceProvider
      */
     public function boot()
     {
+        $this->registerObservers();
         $this->registerExpansionsFrom(__DIR__ . '/../Expansions');
         $this->loadRoutesFrom(__DIR__ . '/../routes.php');
+        $this->loadMigrationsFrom(__DIR__ . '/../../migrations');
         $this->mergeConfigFrom(__DIR__ . '/../../config/fleetops.php', 'fleetops');
+        $this->mergeConfigFrom(__DIR__ . '/../../config/api.php', 'api');
+        $this->mergeConfigFrom(__DIR__ . '/../../config/geocoder.php', 'geocoder');
     }
 }

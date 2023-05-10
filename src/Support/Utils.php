@@ -3,6 +3,7 @@
 namespace Fleetbase\FleetOps\Support;
 
 use Fleetbase\Support\Utils as FleetbaseUtils;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Redis;
@@ -684,5 +685,95 @@ class Utils
             ->toArray();
 
         return in_array($id, $providerIds);
+    }
+
+    /**
+     * Gets data from a JSON file containing globe data and decodes it into a PHP object.
+     *
+     * @return object The decoded JSON object containing globe data.
+     */
+    public static function getGlobeData()
+    {
+        ini_set('memory_limit', '-1');
+
+        $data = file_get_contents(resource_path('data/globe.json'));
+        $geoJson = json_decode($data);
+
+        return $geoJson;
+    }
+
+    /**
+     * Creates a MultiPolygon object from the provided country's ISO code.
+     *
+     * @param string $country The ISO_A3 or ISO_A2 code of the country.
+     * @return \Grimzy\LaravelMysqlSpatial\Types\MultiPolygon|null The MultiPolygon object or null if not found.
+     */
+    public static function createPolygonFromCountry(string $country): ?\Grimzy\LaravelMysqlSpatial\Types\MultiPolygon
+    {
+        $globe = static::getGlobeData();
+        $country = strtolower($country);
+
+        $feature = collect($globe->features)->first(
+            function ($feature) use ($country) {
+                if (!isset($feature->properties->ISO_A3) || !isset($feature->properties->ISO_A2)) {
+                    return false;
+                }
+
+                return strtolower($feature->properties->ISO_A3) === $country || strtolower($feature->properties->ISO_A2) === $country;
+            }
+        );
+
+        if ($feature) {
+            return \Grimzy\LaravelMysqlSpatial\Types\MultiPolygon::fromJson(json_encode($feature->geometry));
+        }
+
+        return null;
+    }
+
+    /**
+     * Converts latitude, longitude, and radius to an array of circle coordinates.
+     *
+     * @param float $latitude The latitude in degrees.
+     * @param float $longitude The longitude in degrees.
+     * @param float $meters The radius in meters.
+     * @return array An array of circle coordinates.
+     */
+    public static function coordsToCircle($latitude, $longitude, $meters)
+    {
+        $latitude = deg2rad($latitude);
+        $longitude = deg2rad($longitude);
+        // convert meters to km
+        $radius = ($meters * 1000) / 6378137;
+        // create circle coordinates
+        $coords = collect();
+        // loop through the array and write path linestrings
+        for ($i = 0; $i <= 360; $i += 3) {
+            $radial = deg2rad($i);
+            $lat_rad = asin(sin($latitude) * cos($radius) + cos($latitude) * sin($radius) * cos($radial));
+            $dlon_rad = atan2(sin($radial) * sin($radius) * cos($latitude), cos($radius) - sin($latitude) * sin($lat_rad));
+            $lon_rad = fmod(($longitude + $dlon_rad + M_PI), 2 * M_PI) - M_PI;
+            $coords->push([rad2deg($lat_rad), rad2deg($lon_rad)]);
+        }
+        return $coords->toArray();
+    }
+
+    /**
+     * Calculates the centroid (geometric center) of the provided coordinates.
+     *
+     * @param array $coord An array of coordinates.
+     * @return array The centroid of the coordinates as an array [latitude, longitude].
+     */
+    public static function getCentroid($coord)
+    {
+        $centroid = array_reduce($coord, function ($x, $y) use ($coord) {
+            $len = count($coord);
+            return [$x[0] + $y[0] / $len, $x[1] + $y[1] / $len];
+        }, array(0, 0));
+        return $centroid;
+    }
+
+    public static function getCoordinatesFromPolygon(?\Grimzy\LaravelMysqlSpatial\Types\Polygon $polygon): array
+    {
+        return Arr::first($polygon->jsonSerialize()->getCoordinates());
     }
 }

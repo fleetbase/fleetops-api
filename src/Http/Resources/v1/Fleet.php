@@ -4,7 +4,6 @@ namespace Fleetbase\FleetOps\Http\Resources\v1;
 
 use Fleetbase\Http\Resources\FleetbaseResource;
 use Fleetbase\Support\Http;
-use Illuminate\Support\Arr;
 
 class Fleet extends FleetbaseResource
 {
@@ -16,21 +15,20 @@ class Fleet extends FleetbaseResource
      */
     public function toArray($request)
     {
-        $fleet = [
-            'id' => $this->public_id,
+        return [
+            'id' => $this->when(Http::isInternalRequest(), $this->id, $this->public_id),
+            'uuid' => $this->when(Http::isInternalRequest(), $this->uuid),
+            'public_id' => $this->when(Http::isInternalRequest(), $this->public_id),
             'name' => $this->name,
             'task' => $this->task ?? null,
             'status' => $this->status ?? null,
-            'service_area' => new ServiceArea($this->serviceArea),
+            'drivers_count' => $this->when(Http::isInternalRequest(), $this->drivers_count),
+            'drivers_online_count' => $this->when(Http::isInternalRequest(), $this->drivers_online_count),
+            'service_area' => $this->whenLoaded('serviceArea', new ServiceArea($this->serviceArea)),
+            'drivers' => $this->whenLoaded('drivers', Driver::collection($this->drivers()->without(['driverAssigned'])->with(Http::isInternalRequest() ? ['jobs'] : [])->get())),
             'updated_at' => $this->updated_at,
             'created_at' => $this->created_at,
         ];
-
-        if (Http::isInternalRequest()) {
-            $fleet = Arr::insertAfterKey($fleet,['uuid' => $this->uuid, 'public_id' => $this->public_id], 'id');
-        }
-
-        return $fleet;
     }
 
     /**

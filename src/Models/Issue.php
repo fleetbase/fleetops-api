@@ -108,9 +108,7 @@ class Issue extends Model
     }
 
     /**
-     * User who reported issue
-     *
-     * @var Model
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function reportedBy()
     {
@@ -118,9 +116,7 @@ class Issue extends Model
     }
 
     /**
-     * User assigned to issue
-     *
-     * @var Model
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function assignedTo()
     {
@@ -128,9 +124,7 @@ class Issue extends Model
     }
 
     /**
-     * Vehicle reported from or for
-     *
-     * @var Model
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function vehicle()
     {
