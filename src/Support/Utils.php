@@ -812,6 +812,11 @@ class Utils extends FleetbaseUtils
         return null;
     }
 
+    public static function isPoint($point): bool
+    {
+        return $point instanceof \Grimzy\LaravelMysqlSpatial\Types\Point;
+    }
+
     /**
      * Converts latitude, longitude, and radius to an array of circle coordinates.
      *

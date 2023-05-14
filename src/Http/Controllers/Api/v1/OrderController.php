@@ -729,7 +729,7 @@ class OrderController extends Controller
         $skipDispatch = $request->or(['skip_dispatch', 'skipDispatch'], false);
         $proof = $request->input('proof', null);
 
-        /** @var \Fleetbase\Models\Order $order */
+        /** @var \Fleetbase\FleetOps\Models\Order $order */
         $order = ($order instanceof Order) ? $order : Order::withoutGlobalScopes()
             ->where('public_id', $order)
             ->whereNull('deleted_at')
