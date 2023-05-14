@@ -11,7 +11,7 @@ use Fleetbase\Http\Requests\UpdateTrackingNumberRequest;
 use Fleetbase\Http\Resources\v1\DeletedResource;
 use Fleetbase\Http\Resources\v1\TrackingNumber as TrackingNumberResource;
 use Fleetbase\FleetOps\Models\TrackingNumber;
-use Fleetbase\Support\Utils;
+use Fleetbase\FleetOps\Support\Utils;
 
 class TrackingNumberController extends Controller
 {

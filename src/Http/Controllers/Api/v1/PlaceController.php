@@ -12,7 +12,7 @@ use Fleetbase\Http\Requests\UpdatePlaceRequest;
 use Fleetbase\Http\Resources\v1\DeletedResource;
 use Fleetbase\Http\Resources\v1\Place as PlaceResource;
 use Fleetbase\FleetOps\Models\Place;
-use Fleetbase\Support\Utils;
+use Fleetbase\FleetOps\Support\Utils;
 use Fleetbase\Support\Resp;
 use Grimzy\LaravelMysqlSpatial\Types\Point;
 use Geocoder\Laravel\Facades\Geocoder;

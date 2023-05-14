@@ -4,7 +4,7 @@ namespace Fleetbase\FleetOps\Http\Controllers\Internal\v1;
 
 use Fleetbase\FleetOps\Http\Controllers\FleetOpsController;
 use Fleetbase\FleetOps\Models\IntegratedVendor;
-use Fleetbase\Support\IntegratedVendors;
+use Fleetbase\FleetOps\Support\IntegratedVendors;
 use Fleetbase\Http\Requests\Internal\BulkDeleteRequest;
 use Illuminate\Http\Request;
 

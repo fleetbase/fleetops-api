@@ -25,6 +25,7 @@ class Fleet extends FleetbaseResource
             'drivers_count' => $this->when(Http::isInternalRequest(), $this->drivers_count),
             'drivers_online_count' => $this->when(Http::isInternalRequest(), $this->drivers_online_count),
             'service_area' => $this->whenLoaded('serviceArea', new ServiceArea($this->serviceArea)),
+            'zone' => $this->whenLoaded('zone', new Zone($this->zone)),
             'drivers' => $this->whenLoaded('drivers', Driver::collection($this->drivers()->without(['driverAssigned'])->with(Http::isInternalRequest() ? ['jobs'] : [])->get())),
             'updated_at' => $this->updated_at,
             'created_at' => $this->created_at,
@@ -43,7 +44,8 @@ class Fleet extends FleetbaseResource
             'name' => $this->name,
             'task' => $this->task ?? null,
             'status' => $this->status ?? null,
-            'service_area' => new ServiceArea($this->serviceArea),
+            'service_area' => $this->when($this->serviceArea, data_get($this, 'serviceArea.public_id')),
+            'zone' => $this->when($this->zone, data_get($this, 'zone.public_id')),
             'updated_at' => $this->updated_at,
             'created_at' => $this->created_at,
         ];

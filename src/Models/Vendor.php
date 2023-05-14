@@ -4,7 +4,6 @@ namespace Fleetbase\FleetOps\Models;
 
 use Fleetbase\Models\Model;
 use Illuminate\Notifications\Notifiable;
-use Fleetbase\Scopes\VendorScope;
 use Fleetbase\Casts\Json;
 use Fleetbase\Traits\HasUuid;
 use Fleetbase\Traits\HasPublicId;
@@ -130,17 +129,6 @@ class Vendor extends Model
     }
 
     /**
-     * The "booting" method of the model.
-     *
-     * @return void
-     */
-    protected static function boot()
-    {
-        parent::boot();
-        static::addGlobalScope(new VendorScope());
-    }
-
-    /**
      * The attributes excluded from the model's JSON form.
      *
      * @var array
@@ -148,7 +136,7 @@ class Vendor extends Model
     protected $hidden = ['place'];
 
     /**
-     * The place of the vendor
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function place()
     {
@@ -156,7 +144,7 @@ class Vendor extends Model
     }
 
     /**
-     * The fleetbase company instance the vendor represents
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function connectCompany()
     {
@@ -164,7 +152,7 @@ class Vendor extends Model
     }
 
     /**
-     * The company which owns this vendor record.
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function company()
     {
@@ -217,5 +205,16 @@ class Vendor extends Model
     public function routeNotificationForTwilio()
     {
         return $this->phone;
+    }
+
+    /**
+     * Set the vendor type or default to `vendor`
+     *
+     * @param string|null $type
+     * @return void
+     */
+    public function setTypeAttribute(?string $type)
+    {
+        $this->attributes['type'] = $type ?? 'vendor';
     }
 }

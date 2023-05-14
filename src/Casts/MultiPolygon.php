@@ -2,7 +2,7 @@
 
 namespace Fleetbase\FleetOps\Casts;
 
-use Fleetbase\Support\Utils;
+use Fleetbase\FleetOps\Support\Utils;
 use Illuminate\Contracts\Database\Eloquent\CastsAttributes;
 use Grimzy\LaravelMysqlSpatial\Types\MultiPolygon as MultiPolygonType;
 use Grimzy\LaravelMysqlSpatial\Types\Geometry;

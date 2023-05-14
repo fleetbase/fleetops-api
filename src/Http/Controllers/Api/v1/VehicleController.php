@@ -10,7 +10,7 @@ use Fleetbase\Http\Requests\UpdateVehicleRequest;
 use Fleetbase\Http\Resources\v1\Vehicle as VehicleResource;
 use Fleetbase\FleetOps\Models\Vehicle;
 use Fleetbase\FleetOps\Models\Driver;
-use Fleetbase\Support\Utils;
+use Fleetbase\FleetOps\Support\Utils;
 use Exception;
 use Fleetbase\Http\Resources\v1\DeletedResource;
 

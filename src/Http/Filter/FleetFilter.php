@@ -3,6 +3,7 @@
 namespace Fleetbase\FleetOps\Http\Filter;
 
 use Fleetbase\Http\Filter\Filter;
+use Fleetbase\FleetOps\Support\Utils;
 
 class FleetFilter extends Filter
 {
@@ -23,22 +24,22 @@ class FleetFilter extends Filter
         });
     }
 
-    public function serviceAreaName(?string $serviceAreaName)
+    public function serviceArea(?string $serviceArea)
     {
         $this->builder->whereHas(
-            'serviceArea', 
-            function ($query) use ($serviceAreaName) {
-                $query->searchWhere('name', $serviceAreaName);
+            'serviceArea',
+            function ($query) use ($serviceArea) {
+                $query->where('uuid', $serviceArea);
             }
         );
     }
 
-    public function zoneName(?string $zoneName)
+    public function zone(?string $zone)
     {
         $this->builder->whereHas(
-            'zone', 
-            function ($query) use ($serviceAreaName) {
-                $query->searchWhere('name', $zoneName);
+            'zone',
+            function ($query) use ($zone) {
+                $query->where('uuid', $zone);
             }
         );
     }
@@ -61,5 +62,27 @@ class FleetFilter extends Filter
     public function status(?string $status)
     {
         $this->builder->searchWhere('status', $status);
+    }
+
+    public function createdAt($createdAt) 
+    {
+        $createdAt = Utils::dateRange($createdAt);
+
+        if (is_array($createdAt)) {
+            $this->builder->whereBetween('created_at', $createdAt);
+        } else {
+            $this->builder->whereDate('created_at', $createdAt);
+        }
+    }
+
+    public function updatedAt($updatedAt) 
+    {
+        $updatedAt = Utils::dateRange($updatedAt);
+
+        if (is_array($updatedAt)) {
+            $this->builder->whereBetween('updated_at', $updatedAt);
+        } else {
+            $this->builder->whereDate('updated_at', $updatedAt);
+        }
     }
 }

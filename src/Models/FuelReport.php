@@ -2,14 +2,14 @@
 
 namespace Fleetbase\FleetOps\Models;
 
+use Fleetbase\FleetOps\Casts\Point;
 use Fleetbase\Models\Model;
-use Fleetbase\Support\Utils;
+use Fleetbase\FleetOps\Support\Utils;
 use Fleetbase\Traits\HasApiModelBehavior;
 use Fleetbase\Traits\HasUuid;
 use Fleetbase\Traits\TracksApiCredential;
 use Fleetbase\Traits\HasPublicId;
 use Grimzy\LaravelMysqlSpatial\Eloquent\SpatialTrait;
-use Grimzy\LaravelMysqlSpatial\Types\Geometry;
 
 class FuelReport extends Model
 {
@@ -48,8 +48,15 @@ class FuelReport extends Model
      * 
      * @var array
      */
-    protected $spatialFields = [
-        'location'
+    protected $spatialFields = ['location'];
+
+    /**
+     * The attributes that should be cast to native types.
+     *
+     * @var array
+     */
+    protected $casts = [
+        'location' => Point::class,
     ];
 
     /**
@@ -67,31 +74,6 @@ class FuelReport extends Model
     protected $hidden = ['driver', 'vehicle'];
 
     /**
-     * Convert coordinates to spatial geometry
-     *
-     * @param Object $coordinates
-     * @return void
-     */
-    public function setLocationAttribute($location) {
-
-        if(Utils::exists($location, 'coordinates')) {
-            $location['coordinates'] = array_map(function($coord) {
-                return (float) $coord;
-            }, Utils::get($location, 'coordinates'));
-        }
-
-        if(Utils::exists($location, 'bbox')) {
-            $location['bbox'] = array_map(function($coord) {
-                return (float) $coord;
-            }, Utils::get($location, 'bbox'));
-        }
-
-        $location = Geometry::fromJson(json_encode($location));
-
-        $this->attributes['location'] = $location;
-    }
-
-    /**
      * Set the parcel fee as only numbers
      *
      * @void
@@ -102,23 +84,19 @@ class FuelReport extends Model
     }
 
     /**
-     * Driver who reported
-     *
-     * @var Model
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function driver()
     {
-        return $this->belongsTo(Driver::class);
+        return $this->belongsTo(Driver::class)->without(['vehicle']);
     }
 
     /**
-     * The vehicle reported from
-     *
-     * @var Model
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function vehicle()
     {
-        return $this->belongsTo(Vehicle::class);
+        return $this->belongsTo(Vehicle::class)->without(['driver']);
     }
 
     /**
@@ -128,7 +106,7 @@ class FuelReport extends Model
      */
     public function getDriverNameAttribute()
     {
-        return $this->fromCache('driver.name');
+        return data_get($this, 'driver.name');
     }
 
     /**
@@ -138,6 +116,6 @@ class FuelReport extends Model
      */
     public function getVehicleNameAttribute()
     {
-        return $this->fromCache('vehicle.name');
+        return data_get($this, 'vehicle.display_name');
     }
 }

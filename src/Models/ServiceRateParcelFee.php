@@ -4,7 +4,7 @@ namespace Fleetbase\FleetOps\Models;
 
 use Fleetbase\Models\Model;
 use Fleetbase\Casts\Money;
-use Fleetbase\Support\Utils;
+use Fleetbase\FleetOps\Support\Utils;
 use Fleetbase\Traits\HasUuid;
 use PhpUnitsOfMeasure\PhysicalQuantity\Length;
 use PhpUnitsOfMeasure\PhysicalQuantity\Mass;

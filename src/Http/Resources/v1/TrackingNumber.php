@@ -2,7 +2,7 @@
 
 namespace Fleetbase\FleetOps\Http\Resources\v1;
 
-use Fleetbase\Support\Utils;
+use Fleetbase\FleetOps\Support\Utils;
 use Fleetbase\Support\Http;
 use Fleetbase\Http\Resources\FleetbaseResource;
 
@@ -20,6 +20,9 @@ class TrackingNumber extends FleetbaseResource
             'id' => $this->when(Http::isInternalRequest(), $this->id, $this->public_id),
             'uuid' => $this->when(Http::isInternalRequest(), $this->uuid),
             'public_id' => $this->when(Http::isInternalRequest(), $this->public_id),
+            'status_uuid' => $this->when(Http::isInternalRequest(), $this->status_uuid),
+            'owner_uuid' => $this->when(Http::isInternalRequest(), $this->owner_uuid),
+            'owner_type' => $this->when(Http::isInternalRequest(), $this->owner_type),
             'tracking_number' => $this->tracking_number,
             'subject' => Utils::get($this->owner, 'public_id'),
             'region' => $this->region,

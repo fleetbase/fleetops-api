@@ -2,19 +2,19 @@
 
 namespace Fleetbase\FleetOps\Http\Controllers\Api\v1;
 
-use Illuminate\Database\Eloquent\ModelNotFoundException;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 use Fleetbase\Http\Controllers\Controller;
-use Fleetbase\Http\Requests\QueryServiceQuotesRequest;
-use Fleetbase\Http\Resources\v1\ServiceQuote as ServiceQuoteResource;
+use Fleetbase\FleetOps\Http\Requests\QueryServiceQuotesRequest;
+use Fleetbase\FleetOps\Http\Resources\v1\ServiceQuote as ServiceQuoteResource;
 use Fleetbase\FleetOps\Models\ServiceQuote;
 use Fleetbase\FleetOps\Models\ServiceQuoteItem;
 use Fleetbase\FleetOps\Models\ServiceRate;
 use Fleetbase\FleetOps\Models\Payload;
 use Fleetbase\FleetOps\Models\Place;
 use Fleetbase\FleetOps\Models\IntegratedVendor;
-use Fleetbase\Support\Utils;
+use Fleetbase\FleetOps\Support\Utils;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Exception;
 
 class ServiceQuoteController extends Controller
@@ -22,8 +22,8 @@ class ServiceQuoteController extends Controller
     /**
      * Query for Fleetbase ServiceQuote resources.
      *
-     * @param  \Fleetbase\Http\Requests\QueryServiceQuotesRequest  $request
-     * @return \Fleetbase\Http\Resources\ServiceQuoteCollection
+     * @param  \Fleetbase\FleetOps\Http\Requests\QueryServiceQuotesRequest  $request
+     * @return \Fleetbase\FleetOps\Http\Resources\ServiceQuoteCollection
      */
     public function query(QueryServiceQuotesRequest $request)
     {
@@ -120,7 +120,14 @@ class ServiceQuoteController extends Controller
         }
 
         // get all service rates
-        $serviceRates = ServiceRate::getServicableForPlaces($waypoints, $serviceType, $currency);
+        $serviceRates = ServiceRate::getServicableForPlaces(
+            $waypoints,
+            $serviceType,
+            $currency,
+            function ($query) use ($request) {
+                $query->where('company_uuid', $request->session()->get('company'));
+            }
+        );
         $serviceQuotes = collect();
 
         // calculate quotes
@@ -304,7 +311,14 @@ class ServiceQuoteController extends Controller
         }
 
         // get all service rates
-        $serviceRates = ServiceRate::getServicableForPlaces($waypoints, $serviceType, $currency);
+        $serviceRates = ServiceRate::getServicableForPlaces(
+            $waypoints,
+            $serviceType,
+            $currency,
+            function ($query) use ($request) {
+                $query->where('company_uuid', $request->session()->get('company'));
+            }
+        );
         $serviceQuotes = collect();
 
         // calculate quotes

@@ -3,7 +3,7 @@
 namespace Fleetbase\FleetOps\Events;
 
 use Fleetbase\FleetOps\Models\Driver;
-use Fleetbase\Support\Utils;
+use Fleetbase\FleetOps\Support\Utils;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;

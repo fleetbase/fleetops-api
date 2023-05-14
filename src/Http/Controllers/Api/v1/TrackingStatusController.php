@@ -10,7 +10,7 @@ use Fleetbase\Http\Requests\UpdateTrackingStatusRequest;
 use Fleetbase\Http\Resources\v1\DeletedResource;
 use Fleetbase\Http\Resources\v1\TrackingStatus as TrackingStatusResource;
 use Fleetbase\Models\TrackingStatus;
-use Fleetbase\Support\Utils;
+use Fleetbase\FleetOps\Support\Utils;
 
 class TrackingStatusController extends Controller
 {

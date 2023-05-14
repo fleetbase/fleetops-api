@@ -3,23 +3,23 @@
 namespace Fleetbase\FleetOps\Models;
 
 use Fleetbase\Models\Model;
+use Fleetbase\FleetOps\Traits\HasTrackingNumber;
+use Fleetbase\FleetOps\Support\Utils;
 use Fleetbase\Traits\HasApiModelBehavior;
-use Illuminate\Support\Carbon;
 use Fleetbase\Traits\HasInternalId;
 use Fleetbase\Traits\HasUuid;
-use Fleetbase\Traits\HasTrackingNumber;
 use Fleetbase\Casts\Json;
-use Fleetbase\Support\Utils;
-use PhpUnitsOfMeasure\PhysicalQuantity\Length;
-use PhpUnitsOfMeasure\PhysicalQuantity\Mass;
-use Illuminate\Support\Str;
-use Barryvdh\DomPDF\Facade as PDF;
 use Fleetbase\Casts\PolymorphicType;
-use Fleetbase\Models\Storefront\Product;
+use Fleetbase\Storefront\Models\Product;
 use Fleetbase\Traits\HasMetaAttributes;
 use Fleetbase\Traits\HasPublicId;
 use Fleetbase\Traits\SendsWebhooks;
 use Fleetbase\Traits\TracksApiCredential;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Str;
+use PhpUnitsOfMeasure\PhysicalQuantity\Length;
+use PhpUnitsOfMeasure\PhysicalQuantity\Mass;
+use Barryvdh\DomPDF\Facade as PDF;
 use Milon\Barcode\Facades\DNS2DFacade as DNS2D;
 
 class Entity extends Model
@@ -54,6 +54,7 @@ class Entity extends Model
      */
     protected $fillable = [
         '_key',
+        'public_id',
         'payload_uuid',
         'company_uuid',
         'driver_assigned_uuid',
@@ -169,7 +170,7 @@ class Entity extends Model
      */
     public function files()
     {
-        return $this->hasMany(File::class);
+        return $this->hasMany(\Fleetbase\Models\File::class);
     }
 
     /**

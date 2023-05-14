@@ -3,18 +3,16 @@
 namespace Fleetbase\FleetOps\Models;
 
 use Fleetbase\Models\Model;
-use Brick\Geo\IO\GeoJSONReader;
-use Fleetbase\Support\Utils;
-// use Fleetbase\Support\TimezoneMapService;
 use Fleetbase\Casts\Money;
-use Fleetbase\Scopes\ServiceRateScope;
-use Fleetbase\Support\Algo;
 use Fleetbase\Traits\HasApiModelBehavior;
 use Fleetbase\Traits\HasUuid;
 use Fleetbase\Traits\HasPublicId;
 use Fleetbase\Traits\TracksApiCredential;
 use Fleetbase\Traits\SendsWebhooks;
+use Fleetbase\FleetOps\Support\Algo;
+use Fleetbase\FleetOps\Support\Utils;
 use Illuminate\Support\Facades\DB;
+use Brick\Geo\IO\GeoJSONReader;
 
 class ServiceRate extends Model
 {
@@ -107,20 +105,7 @@ class ServiceRate extends Model
     protected $filterParams = [];
 
     /**
-     * The "booting" method of the model.
-     *
-     * @return void
-     */
-    protected static function boot()
-    {
-        parent::boot();
-        static::addGlobalScope(new ServiceRateScope());
-    }
-
-    /**
-     * Fees for the rate
-     *
-     * @var Model
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
     public function rateFees()
     {
@@ -128,9 +113,7 @@ class ServiceRate extends Model
     }
 
     /**
-     * Fees for the rate
-     *
-     * @var Model
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
     public function parcelFees()
     {
@@ -138,9 +121,7 @@ class ServiceRate extends Model
     }
 
     /**
-     * Service area for rate.
-     *
-     * @var Model
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function serviceArea()
     {
@@ -148,9 +129,7 @@ class ServiceRate extends Model
     }
 
     /**
-     * Service area for rate.
-     *
-     * @var Model
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function zone()
     {
@@ -158,64 +137,113 @@ class ServiceRate extends Model
     }
 
     /**
-     * Get the service area name
+     * Get the service area name attribute.
      *
-     * @var string
+     * @return string|null
      */
-    public function getServiceAreaNameAttribute()
+    public function getServiceAreaNameAttribute(): ?string
     {
-        return static::attributeFromCache($this->serviceArea, 'name');
+        return $this->fromCache('serviceArea.name');
     }
 
     /**
-     * Get the zone's name
+     * Get the zone name attribute.
      *
-     * @var string
+     * @return string|null
      */
-    public function getZoneNameAttribute()
+    public function getZoneNameAttribute(): ?string
     {
-        return static::attributeFromCache($this->zone, 'name');
+        return $this->fromCache('zone.name');
     }
 
     /**
-     * Determines if rate calulcation method
+     * Set the number of estimated days for the service to complete
+     *
+     * @param integer $estimatedDays
+     * @return void
      */
-    public function isRateCalculationMethod($method)
+    public function setEstimatedDaysAttribute($estimatedDays = 0)
+    {
+        $this->attributes['estimated_days'] = $estimatedDays ?? 0;
+    }
+
+    /**
+     * Check if the rate calculation method matches the given method.
+     *
+     * @param string $method
+     * @return bool
+     */
+    public function isRateCalculationMethod($method): bool
     {
         return $this->rate_calculation_method === $method;
     }
 
-    public function isFixedMeter()
+    /**
+     * Check if the rate calculation method is "fixed_meter".
+     *
+     * @return bool
+     */
+    public function isFixedMeter(): bool
     {
         return $this->rate_calculation_method === 'fixed_meter';
     }
 
-    public function isPerMeter()
+    /**
+     * Check if the rate calculation method is "per_meter".
+     *
+     * @return bool
+     */
+    public function isPerMeter(): bool
     {
         return $this->rate_calculation_method === 'per_meter';
     }
 
-    public function isPerDrop()
+    /**
+     * Check if the rate calculation method is "per_drop".
+     *
+     * @return bool
+     */
+    public function isPerDrop(): bool
     {
         return $this->rate_calculation_method === 'per_drop';
     }
 
-    public function isAlgorithm()
+    /**
+     * Check if the rate calculation method is "algo".
+     *
+     * @return bool
+     */
+    public function isAlgorithm(): bool
     {
         return $this->rate_calculation_method === 'algo';
     }
 
-    public function isParcelService()
+    /**
+     * Check if the service type is "parcel".
+     *
+     * @return bool
+     */
+    public function isParcelService(): bool
     {
         return $this->service_type === 'parcel';
     }
 
-    public function hasPeakHoursFee()
+    /**
+     * Check if the object has a peak hours fee.
+     *
+     * @return bool
+     */
+    public function hasPeakHoursFee(): bool
     {
         return (bool) $this->has_peak_hours_fee;
     }
 
-    public function isWithinPeakHours()
+    /**
+     * Check if the current time is within peak hours.
+     *
+     * @return bool
+     */
+    public function isWithinPeakHours(): bool
     {
         $currentTime = strtotime(date('H:i'));
         $startTime = strtotime($this->peak_hours_start);
@@ -224,45 +252,82 @@ class ServiceRate extends Model
         return $currentTime >= $startTime && $currentTime <= $endTime;
     }
 
-    public function hasPeakHoursFlatFee()
+    /**
+     * Check if the peak hours calculation method is "flat".
+     *
+     * @return bool
+     */
+    public function hasPeakHoursFlatFee(): bool
     {
         return $this->peak_hours_calculation_method === 'flat';
     }
 
-    public function hasPeakHoursPercentageFee()
+    /**
+     * Check if the peak hours calculation method is "percentage".
+     *
+     * @return bool
+     */
+    public function hasPeakHoursPercentageFee(): bool
     {
         return $this->peak_hours_calculation_method === 'percentage';
     }
 
-    public function hasCodFee()
+    /**
+     * Check if the object has a COD fee.
+     *
+     * @return bool
+     */
+    public function hasCodFee(): bool
     {
         return (bool) $this->has_cod_fee;
     }
 
-    public function hasCodFlatFee()
+    /**
+     * Check if the COD calculation method is "flat".
+     *
+     * @return bool
+     */
+    public function hasCodFlatFee(): bool
     {
         return $this->cod_calculation_method === 'flat';
     }
 
-    public function hasCodPercentageFee()
+    /**
+     * Check if the COD calculation method is "percentage".
+     *
+     * @return bool
+     */
+    public function hasCodPercentageFee(): bool
     {
         return $this->cod_calculation_method === 'percentage';
     }
 
-    public function hasZone()
+    /**
+     * Check if the object has a related zone.
+     *
+     * @return bool
+     */
+    public function hasZone(): bool
     {
-        $this->loadMissing('zone');
-
-        return (bool) $this->zone;
+        return $this->loadMissing('zone')->relationLoaded('zone');
     }
 
-    public function hasServiceArea()
+    /**
+     * Check if the object has a related service area.
+     *
+     * @return bool
+     */
+    public function hasServiceArea(): bool
     {
-        $this->loadMissing('serviceArea');
-
-        return (bool) $this->serviceArea;
+        return $this->loadMissing('serviceArea')->relationLoaded('serviceArea');
     }
 
+    /**
+     * Set the service rate fees for the current object.
+     *
+     * @param array|null $serviceRateFees An optional array of service rate fees.
+     * @return $this
+     */
     public function setServiceRateFees(?array $serviceRateFees = [])
     {
         if (!$serviceRateFees) {
@@ -294,6 +359,12 @@ class ServiceRate extends Model
         return $this;
     }
 
+    /**
+     * Set the service rate parcel fees for the current object.
+     *
+     * @param array|null $serviceRateParcelFees An optional array of service rate parcel fees.
+     * @return $this
+     */
     public function setServiceRateParcelFees(?array $serviceRateParcelFees = [])
     {
         if (!$serviceRateParcelFees) {
@@ -326,27 +397,37 @@ class ServiceRate extends Model
     }
 
     /**
-     * Retrieves all service rates applicable to an array of Point[]
+     * Get the service rates applicable for the given waypoints.
      *
-     * @param array|Collection $waypoints
-     * @return array
+     * @param array $waypoints An array of waypoints to check against service areas and zones.
+     * @param \Closure|null $queryCallback An optional closure to modify the service rates query.
+     * @return array An array of applicable service rates.
      */
-    public static function getServicableForWaypoints($waypoints = []): array
+    public static function getServicableForWaypoints($waypoints = [], ?\Closure $queryCallback = null): array
     {
         $reader = new GeoJSONReader();
         $applicableServiceRates = [];
-        $serviceRates = static::with(['zone', 'serviceArea'])->get();
+        $serviceRatesQuery = static::with(['zone', 'serviceArea']);
+
+        if (is_callable($queryCallback)) {
+            $queryCallback($serviceRatesQuery);
+        }
+
+        // get service rates
+        $serviceRates = $serviceRatesQuery->get();
 
         foreach ($serviceRates as $serviceRate) {
             if ($serviceRate->hasServiceArea()) {
-                // make sure all waypoints fall within the service area
-                foreach ($serviceRate->serviceArea->border as $polygon) {
-                    $polygon = $reader->read($polygon->toJson());
+                if (Utils::exists($serviceRate, 'serviceArea.border')) {
+                    // make sure all waypoints fall within the service area
+                    foreach ($serviceRate->serviceArea->border as $polygon) {
+                        $polygon = $reader->read($polygon->toJson());
 
-                    foreach ($waypoints as $waypoint) {
-                        if (!$polygon->contains($waypoint)) {
-                            // waypoint outside of service area, not applicable to route
-                            continue;
+                        foreach ($waypoints as $waypoint) {
+                            if (!$polygon->contains($waypoint)) {
+                                // waypoint outside of service area, not applicable to route
+                                continue;
+                            }
                         }
                     }
                 }
@@ -354,13 +435,15 @@ class ServiceRate extends Model
 
             if ($serviceRate->hasZone()) {
                 // make sure all waypoints fall within the service area
-                foreach ($serviceRate->zone->border as $polygon) {
-                    $polygon = $reader->read($polygon->toJson());
+                if (Utils::exists($serviceRate, 'zone.border')) {
+                    foreach ($serviceRate->zone->border as $polygon) {
+                        $polygon = $reader->read($polygon->toJson());
 
-                    foreach ($waypoints as $waypoint) {
-                        if (!$polygon->contains($waypoint)) {
-                            // waypoint outside of zone, not applicable to route
-                            continue;
+                        foreach ($waypoints as $waypoint) {
+                            if (!$polygon->contains($waypoint)) {
+                                // waypoint outside of zone, not applicable to route
+                                continue;
+                            }
                         }
                     }
                 }
@@ -373,26 +456,33 @@ class ServiceRate extends Model
     }
 
     /**
-     * Retrieves all service rates applicable to an array of Point[]
+     * Get the service rates applicable for the given places based on service type and currency.
      *
-     * @param array|Collection $waypoints
-     * @return array
+     * @param array $places An array of places to check against service areas and zones.
+     * @param string|null $service An optional service type to filter service rates.
+     * @param string|null $currency An optional currency to filter service rates.
+     * @param \Closure|null $queryCallback An optional closure to modify the service rates query.
+     * @return array An array of applicable service rates.
      */
-    public static function getServicableForPlaces($places = [], $service = null, $currency = null): array
+    public static function getServicableForPlaces($places = [], $service = null, $currency = null, ?\Closure $queryCallback = null): array
     {
         $reader = new GeoJSONReader();
         $applicableServiceRates = [];
-        $serviceRates = static::with(['zone', 'serviceArea', 'rateFees', 'parcelFees']);
+        $serviceRatesQuery = static::with(['zone', 'serviceArea', 'rateFees', 'parcelFees']);
 
         if ($currency) {
-            $serviceRates->where(DB::raw("lower(currency)"), strtolower($currency));
+            $serviceRatesQuery->where(DB::raw("lower(currency)"), strtolower($currency));
         }
 
         if ($service) {
-            $serviceRates->where('service_type', $service);
+            $serviceRatesQuery->where('service_type', $service);
         }
 
-        $serviceRates = $serviceRates->get();
+        if (is_callable($queryCallback)) {
+            $queryCallback($serviceRatesQuery);
+        }
+
+        $serviceRates = $serviceRatesQuery->get();
 
         $waypoints = collect($places)->map(function ($place) {
             return $place->getLocationAsPoint();
@@ -433,6 +523,14 @@ class ServiceRate extends Model
         return $applicableServiceRates;
     }
 
+    /**
+     * Generate a quote for a given pickup and dropoff point and entities.
+     *
+     * @param string $pickupPoint The coordinates of the pickup point.
+     * @param string $dropoffPoint The coordinates of the dropoff point.
+     * @param array $entities An array of entities to be considered for the quote.
+     * @return mixed The calculated quote based on the preliminary data.
+     */
     public function pointQuote($pickupPoint, $dropoffPoint, $entities = [])
     {
         $payload = new Payload();
@@ -450,6 +548,16 @@ class ServiceRate extends Model
         return $this->quoteFromPreliminaryData($entities, [$pickup, $dropoff], $matrix->distance, $matrix->time);
     }
 
+    /**
+     * Generate a quote based on the preliminary data provided.
+     *
+     * @param array $entities An array of entities to be considered for the quote.
+     * @param array $waypoints An array of waypoints to be considered for the quote.
+     * @param int|null $totalDistance The total distance for the service in meters.
+     * @param int|null $totalTime The total time for the service in seconds.
+     * @param bool|null $isCashOnDelivery Flag indicating if the payment method is Cash on Delivery.
+     * @return array An array containing the calculated quote and line items.
+     */
     public function quoteFromPreliminaryData($entities = [], $waypoints = [], ?int $totalDistance = 0, ?int $totalTime = 0, ?bool $isCashOnDelivery = false)
     {
         $lines = collect();
@@ -617,6 +725,12 @@ class ServiceRate extends Model
         return [$subTotal, $lines];
     }
 
+    /**
+     * Generate a quote based on the payload provided.
+     *
+     * @param Payload $payload An instance of the Payload class containing all necessary data for the quote calculation.
+     * @return array An array containing the calculated quote and line items.
+     */
     public function quote(Payload $payload)
     {
         $lines = collect();
@@ -794,6 +908,13 @@ class ServiceRate extends Model
         return [$subTotal, $lines];
     }
 
+    /**
+     * Find the ServiceRateFee based on the total distance.
+     *
+     * @param int $totalDistance The total distance in meters.
+     * @return ServiceRateFee|null The ServiceRateFee instance if found, otherwise null.
+     */
+
     public function findServiceRateFeeByDistance(int $totalDistance): ?ServiceRateFee
     {
         $this->load('rateFees');
@@ -821,6 +942,12 @@ class ServiceRate extends Model
         return $distanceFee;
     }
 
+    /**
+     * Find the ServiceRateFee based on the given number within the min and max range.
+     *
+     * @param int $number The number to check within the ServiceRateFee's min and max range.
+     * @return ServiceRateFee|null The ServiceRateFee instance if found, otherwise null.
+     */
     public function findServiceRateFeeByMinMax(int $number): ?ServiceRateFee
     {
         $this->load('rateFees');

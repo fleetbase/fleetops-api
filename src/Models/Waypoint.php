@@ -3,12 +3,12 @@
 namespace Fleetbase\FleetOps\Models;
 
 use Fleetbase\Models\Model;
-use Illuminate\Support\Carbon;
-use Fleetbase\Support\Utils;
-use Fleetbase\Traits\HasTrackingNumber;
+use Fleetbase\FleetOps\Support\Utils;
+use Fleetbase\FleetOps\Traits\HasTrackingNumber;
 use Fleetbase\Traits\HasUuid;
 use Fleetbase\Traits\HasPublicId;
 use Fleetbase\Traits\TracksApiCredential;
+use Illuminate\Support\Carbon;
 use Barryvdh\DomPDF\Facade as PDF;
 
 class Waypoint extends Model

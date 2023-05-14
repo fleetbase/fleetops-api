@@ -10,7 +10,7 @@ use Fleetbase\Http\Requests\UpdateZoneRequest;
 use Fleetbase\Http\Resources\v1\DeletedResource;
 use Fleetbase\Http\Resources\v1\Zone as ZoneResource;
 use Fleetbase\FleetOps\Models\Zone;
-use Fleetbase\Support\Utils;
+use Fleetbase\FleetOps\Support\Utils;
 
 class ZoneController extends Controller
 {

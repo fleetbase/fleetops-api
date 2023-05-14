@@ -11,7 +11,7 @@ use Fleetbase\Traits\HasPublicId;
 use Fleetbase\Traits\SendsWebhooks;
 use Fleetbase\Traits\TracksApiCredential;
 use Fleetbase\FleetOps\Integrations\Lalamove\Lalamove;
-use Fleetbase\Support\Utils as FleetbaseUtils;
+use Fleetbase\FleetOps\Support\Utils;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
@@ -149,7 +149,7 @@ class ServiceQuote extends Model
 
     /**
      * @param \Illuminate\Http\Request $request
-     * @return \Fleetbase\Models\ServiceQuote|null
+     * @return \Fleetbase\FleetOps\Models\ServiceQuote|null
      */
     public static function resolveFromRequest(Request $request): ?ServiceQuote
     {
@@ -163,10 +163,46 @@ class ServiceQuote extends Model
             $serviceQuote = static::where('uuid', $serviceQuote)->first();
         }
 
-        if (FleetbaseUtils::isPublicId($serviceQuote)) {
+        if (Utils::isPublicId($serviceQuote)) {
             $serviceQuote = static::where('public_id', $serviceQuote)->first();
         }
 
         return $serviceQuote;
+    }
+
+    /**
+     * Get the plural name of this model, either from the `pluralName` property or by inflecting the table name.
+     *
+     * @return string The plural name of this model.
+     */
+    public function getPluralName(): string
+    {
+        if (isset($this->pluralName)) {
+            return $this->pluralName;
+        }
+
+        if (isset($this->payloadKey)) {
+            return Str::plural($this->payloadKey);
+        }
+
+        return Str::plural($this->getTable());
+    }
+
+    /**
+     * Get the singular name of this model, either from the `singularName` property or by inflecting the table name.
+     *
+     * @return string The singular name of this model.
+     */
+    public function getSingularName(): string
+    {
+        if (isset($this->singularName)) {
+            return $this->singularName;
+        }
+
+        if (isset($this->payloadKey)) {
+            return Str::singular($this->payloadKey);
+        }
+
+        return Str::singular($this->getTable());
     }
 }

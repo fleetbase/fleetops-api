@@ -6,7 +6,7 @@ use Fleetbase\Http\Controllers\Controller;
 use Fleetbase\FleetOps\Models\Contact;
 use Fleetbase\FleetOps\Models\IntegratedVendor;
 use Fleetbase\FleetOps\Models\Vendor;
-use Fleetbase\Support\Utils;
+use Fleetbase\FleetOps\Support\Utils;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Arr;

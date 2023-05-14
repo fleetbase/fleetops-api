@@ -26,7 +26,7 @@ return new class extends Migration
             $table->string('latitude')->nullable();
             $table->string('longitude')->nullable();
             $table->string('amount')->nullable();
-            $table->string('curreny')->nullable();
+            $table->string('currency')->nullable();
             $table->string('volume')->nullable();
             $table->string('metric_unit')->nullable();
             $table->softDeletes();

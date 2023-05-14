@@ -3,7 +3,7 @@
 namespace Fleetbase\FleetOps\Observers;
 
 use Fleetbase\FleetOps\Models\Driver;
-use Fleetbase\FleetOps\Models\User;
+use Fleetbase\Models\User;
 
 class DriverObserver
 {

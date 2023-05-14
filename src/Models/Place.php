@@ -3,7 +3,6 @@
 namespace Fleetbase\FleetOps\Models;
 
 use Fleetbase\Models\Model;
-use Fleetbase\Support\Utils as FleetbaseUtils;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -42,7 +41,7 @@ class Place extends Model
      *
      * @var array
      */
-    protected $searchableColumns = ['name', 'street1', 'street2', 'country', 'province', 'district', 'city', 'postal_code'];
+    protected $searchableColumns = ['name', 'street1', 'street2', 'country', 'province', 'district', 'city', 'postal_code', 'phone'];
 
     /**
      * The attributes that are spatial columns.
@@ -150,7 +149,7 @@ class Place extends Model
                     return [];
                 }
                 
-                return FleetbaseUtils::getCountryData($this->country);
+                return Utils::getCountryData($this->country);
             }
         );
     }
@@ -388,7 +387,7 @@ class Place extends Model
         // If $place is a string
         if (is_string($place)) {
             // Check if $place is a valid public_id, return matching Place object if found
-            if (FleetbaseUtils::isPublicId($place)) {
+            if (Utils::isPublicId($place)) {
                 return Place::where('public_id', $place)->first();
             }
 
@@ -450,7 +449,7 @@ class Place extends Model
     public static function insertFromMixed($place)
     {
         if (gettype($place) === 'string') {
-            if (FleetbaseUtils::isPublicId($place)) {
+            if (Utils::isPublicId($place)) {
                 return Place::where('public_id', $place)->first();
             }
 
@@ -559,7 +558,7 @@ class Place extends Model
             if ($field === 'phone') {
                 continue;
             }
-            $value = FleetbaseUtils::or($row, $options['alias']);
+            $value = Utils::or($row, $options['alias']);
             if ($value) {
                 $address .= $value . ' ';
             }
@@ -575,7 +574,7 @@ class Place extends Model
 
         foreach ($addressFields as $field => $options) {
             if (empty($place->{$field})) {
-                $value = FleetbaseUtils::or($row, $options['alias']);
+                $value = Utils::or($row, $options['alias']);
                 if ($value) {
                     $place->{$field} = $value;
                 }
@@ -587,7 +586,7 @@ class Place extends Model
         }
 
         // set the phone number if found
-        $place->phone = FleetbaseUtils::or($row, $addressFields['phone']['alias']);
+        $place->phone = Utils::or($row, $addressFields['phone']['alias']);
 
         // set meta data
         $meta = collect($row)->except(['name', ...$addressFields['street_number']['alias'], ...$addressFields['street2']['alias'], ...$addressFields['city']['alias'], ...$addressFields['neighborhood']['alias'], ...$addressFields['province']['alias'], ...$addressFields['postal_code']['alias'], ...$addressFields['phone']['alias']])->toArray();

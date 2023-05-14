@@ -8,7 +8,7 @@ use Fleetbase\Http\Requests\ExportRequest;
 use Fleetbase\FleetOps\Exports\PlaceExport;
 use Fleetbase\FleetOps\Models\Place;
 use Fleetbase\FleetOps\Support\Utils as FleetOpsUtils;
-use Fleetbase\Support\Utils;
+use Fleetbase\FleetOps\Support\Utils;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;

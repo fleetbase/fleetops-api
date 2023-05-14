@@ -10,4 +10,24 @@ class ServiceRateFilter extends Filter
     {
         $this->builder->where('company_uuid', $this->session->get('company'));
     }
+
+    public function serviceArea(?string $serviceArea)
+    {
+        $this->builder->whereHas(
+            'serviceArea',
+            function ($query) use ($serviceArea) {
+                $query->where('uuid', $serviceArea);
+            }
+        );
+    }
+
+    public function zone(?string $zone)
+    {
+        $this->builder->whereHas(
+            'zone',
+            function ($query) use ($zone) {
+                $query->where('uuid', $zone);
+            }
+        );
+    }
 }

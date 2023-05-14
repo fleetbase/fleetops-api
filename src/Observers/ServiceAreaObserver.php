@@ -4,7 +4,7 @@ namespace Fleetbase\FleetOps\Observers;
 
 use Fleetbase\FleetOps\Models\ServiceArea;
 use Fleetbase\FleetOps\Support\Utils as FleetOpsUtils;
-use Fleetbase\Support\Utils;
+use Fleetbase\FleetOps\Support\Utils;
 
 class ServiceAreaObserver
 {

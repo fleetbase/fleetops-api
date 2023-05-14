@@ -2,12 +2,13 @@
 
 namespace Fleetbase\FleetOps\Support;
 
-use Fleetbase\Models\Company;
 use Fleetbase\FleetOps\Models\Driver;
 use Fleetbase\FleetOps\Models\Order;
+use Fleetbase\FleetOps\Models\Waypoint;
+use Fleetbase\Models\Company;
 use Fleetbase\Models\Extension;
 use Fleetbase\Models\ExtensionInstall;
-use Fleetbase\FleetOps\Models\Waypoint;
+use Fleetbase\FleetOps\Support\Utils;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
@@ -18,9 +19,9 @@ class Flow
     /**
      * Returns all the order type configurations for the current users session.
      *
-     * @return Collection
+     * @return \Illuminate\Support\Collection
      */
-    public static function queryOrderConfigurations($queryCallback = null): Collection
+    public static function queryOrderConfigurations($queryCallback = null): ?\Illuminate\Support\Collection
     {
         $installedExtensions = [];
 
@@ -47,6 +48,7 @@ class Flow
         $authored = $authoredQuery->get();
 
         // create array of configs
+        /** @var \Illuminate\Support\Collection $configs */
         $configs = collect([...$installedExtensions, ...$authored]);
 
         // if no installed configs always place default config
@@ -60,9 +62,9 @@ class Flow
     /**
      * Returns all the order type configurations for the current users session.
      *
-     * @return Collection
+     * @return \Illuminate\Support\Collection
      */
-    public static function getOrderConfigsForSession(): Collection
+    public static function getOrderConfigsForSession(): ?\Illuminate\Support\Collection
     {
         $installedExtensions = [];
 
@@ -80,6 +82,7 @@ class Flow
         $authored = Extension::where(['author_uuid' => session('company'), 'meta_type' => 'order_config', 'status' => 'private'])->get();
 
         // create array of configs
+        /** @var \Illuminate\Support\Collection $configs */
         $configs = collect([...$installedExtensions, ...$authored]);
 
         // if no installed configs always place default config
@@ -93,9 +96,9 @@ class Flow
     /**
      * Returns all the order type configurations for the current users session.
      *
-     * @return Collection
+     * @return \Illuminate\Support\Collection
      */
-    public static function getOrderConfigs(Order $order): Collection
+    public static function getOrderConfigs(Order $order): \Illuminate\Support\Collection
     {
         $installedExtensions = [];
 
@@ -113,6 +116,7 @@ class Flow
         $authored = Extension::where(['author_uuid' => $order->company_uuid, 'meta_type' => 'order_config', 'status' => 'private'])->get();
 
         // create array of configs
+        /** @var \Illuminate\Support\Collection $configs */
         $configs = collect([...$installedExtensions, ...$authored]);
 
         // if no installed configs always place default config
@@ -126,7 +130,7 @@ class Flow
     /**
      * Returns a order type configuration by key.
      *
-     * @return Extension
+     * @return \Fleetbase\Models\Extension
      */
     public static function getOrderConfig(Order $order): ?Extension
     {
@@ -157,7 +161,7 @@ class Flow
             $config = static::getDefaultOrderConfig();
 
             if ($config) {
-                return Utils::get($config, 'meta.flow');
+                return data_get($config, 'meta.flow');
             }
 
             return null;
@@ -167,7 +171,7 @@ class Flow
         $config = $configs->firstWhere('key', $order->type);
 
         if ($config) {
-            return Utils::get($config, 'meta.flow');
+            return data_get($config, 'meta.flow');
         }
 
         return null;
@@ -183,7 +187,7 @@ class Flow
         $config = static::getOrderConfig($order);
         $vars = static::getOrderFlowVars($order);
         $code = strtolower($order->status);
-        $status = Utils::get($config, 'meta.flow.' . $code . '.events');
+        $status = data_get($config, 'meta.flow.' . $code . '.events');
 
         $flow = static::bindVariablesToFlow($status, $vars);
         $flow = static::bindPodFlagsToFlow($config, $flow, $order);
@@ -214,7 +218,7 @@ class Flow
         $flow = array_values(static::getOrderConfigFlow($order));
         $config = $flow[$index] ?? null;
 
-        return Arr::first(Utils::get($config, 'events', []));
+        return Arr::first(data_get($config, 'events', []));
     }
 
     /**
@@ -231,7 +235,7 @@ class Flow
         $index = array_search($current, $keys) + 1;
         $config = $activities[$index] ?? null;
 
-        return Arr::first(Utils::get($config, 'events', []));
+        return Arr::first(data_get($config, 'events', []));
     }
 
     /**
@@ -283,7 +287,7 @@ class Flow
             return [];
         }
 
-        $status = Utils::get($config, 'meta.flow.waypoint|' . $code . '.events');
+        $status = data_get($config, 'meta.flow.waypoint|' . $code . '.events');
 
         if (!$status) {
             return static::getOrderFlow($order);
@@ -307,21 +311,20 @@ class Flow
         $allWaypoints = $order->payload->waypoints ?? collect();
 
         // set order vars
-        // $vars['order'] = Utils::serializeJsonResource(new NavigatorOrder($order));
         $vars['order'] = ['public_id' => $order->public_id, 'internal_id' => $order->internal_id, 'tracking_number' => $order->tracking, 'meta' => $order->meta];
 
         // set pickup
-        if (Utils::exists($order, 'payload.pickup')) {
+        if (!empty(data_get($order, 'payload.pickup'))) {
             $vars['order']['pickup'] = $order->payload->pickup->toArray();
         }
 
         // set dropoff
-        if (Utils::exists($order, 'payload.dropoff')) {
+        if (!empty(data_get($order, 'payload.dropoff'))) {
             $vars['order']['dropoff'] = $order->payload->dropoff->toArray();
         }
 
         // set return
-        if (Utils::exists($order, 'payload.return')) {
+        if (!empty(data_get($order, 'payload.return'))) {
             $vars['order']['return'] = $order->payload->return->toArray();
         }
 
@@ -335,14 +338,14 @@ class Flow
             $vars['waypoint']['ordinalIndex'] = Utils::ordinalNumber($currentWaypointIndex);
         }
 
-        // storefront order add store or network about
-        if ($order->type === 'storefront' && $order->hasMeta('storefront_id')) {
-            $storefront = Storefront::findAbout($order->getMeta('storefront_id'));
+        // // storefront order add store or network about
+        // if ($order->type === 'storefront' && $order->hasMeta('storefront_id')) {
+        //     $storefront = Storefront::findAbout($order->getMeta('storefront_id'));
 
-            if ($storefront) {
-                $vars['storefront'] = $storefront->toArray();
-            }
-        }
+        //     if ($storefront) {
+        //         $vars['storefront'] = $storefront->toArray();
+        //     }
+        // }
 
         return $vars;
     }
@@ -355,13 +358,13 @@ class Flow
             return $order->isMeta('require_pod');
         }
 
-        return (bool) Utils::get($config, 'meta.require_pod');
+        return (bool) data_get($config, 'meta.require_pod');
     }
 
     public static function bindPodFlagsToFlow($config, array $flows = [], ?Order $order)
     {
-        $podRequired = (bool) Utils::get($config, 'meta.require_pod', $order->pod_required);
-        $podMethod = Utils::get($config, 'meta.pod_method', $order->pod_method);
+        $podRequired = (bool) data_get($config, 'meta.require_pod', $order->pod_required);
+        $podMethod = data_get($config, 'meta.pod_method', $order->pod_method);
 
         if ($order->type === 'storefront') {
             $podRequired = $order->getMeta('require_pod');
@@ -429,7 +432,7 @@ class Flow
 
                     list($prop, $operator, $rightSideValue) = $logic;
 
-                    $leftSideValue = Utils::get($order, $prop);
+                    $leftSideValue = data_get($order, $prop);
                     $passed = false;
 
                     if ($operator === '=') {
@@ -536,7 +539,7 @@ class Flow
         if ($token) {
             $accessToken = PersonalAccessToken::findToken($token);
 
-            if ($accessToken && Utils::isUuid($accessToken->name)) {
+            if ($accessToken && Str::isUuid($accessToken->name)) {
                 $driver = Driver::where('uuid', $accessToken->name)->first();
 
                 if ($driver) {

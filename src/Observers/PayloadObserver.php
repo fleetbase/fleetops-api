@@ -3,7 +3,6 @@
 namespace Fleetbase\FleetOps\Observers;
 
 use Fleetbase\FleetOps\Models\Payload;
-use Fleetbase\Support\Utils;
 
 class PayloadObserver
 {
@@ -22,5 +21,17 @@ class PayloadObserver
             $order->setRelation('payload', $payload);
             $order->setDistanceAndTime();
         }
+    }
+    /**
+     * Handle the Payload "updating" event.
+     *
+     * @param  \Fleetbase\FleetOps\Models\Payload  $payload
+     * @return void
+     */
+    public function updating(Payload $payload)
+    {
+        $waypoints = request()->array('paylad.waypoints');
+        $payload->updateWaypoints($waypoints);
+        $payload->flushOrderCache();
     }
 }

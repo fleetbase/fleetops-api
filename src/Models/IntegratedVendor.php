@@ -3,7 +3,7 @@
 namespace Fleetbase\FleetOps\Models;
 
 use Fleetbase\Models\Model;
-use Fleetbase\Support\Utils;
+use Fleetbase\FleetOps\Support\Utils;
 use Fleetbase\Casts\Json;
 use Fleetbase\Traits\HasUuid;
 use Fleetbase\Traits\HasPublicId;
@@ -58,6 +58,7 @@ class IntegratedVendor extends Model
         'webhook_url',
         'provider',
         'sandbox',
+        'options',
         'credentials'
     ];
 
@@ -81,7 +82,8 @@ class IntegratedVendor extends Model
      * @var array
      */
     protected $casts = [
-        'credentials' => Json::class
+        'credentials' => Json::class,
+        'options' => Json::class,
     ];
 
     /**

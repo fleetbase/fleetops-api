@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Str;
 
-class Utils
+class Utils extends FleetbaseUtils
 {
     /**
      * A constant multiplier used to calculate driving time from distance.
@@ -173,8 +173,8 @@ class Utils
         }
 
         if (is_array($coordinates) || is_object($coordinates)) {
-            $latitude = FleetbaseUtils::or($coordinates, ['_lat', 'lat', '_latitude', 'latitude', 'x', '0']);
-            $longitude = FleetbaseUtils::or($coordinates, ['lon', '_lon', 'long', 'lng', '_lng', '_longitude', 'longitude', 'y', '1']);
+            $latitude = static::or($coordinates, ['_lat', 'lat', '_latitude', 'latitude', 'x', '0']);
+            $longitude = static::or($coordinates, ['lon', '_lon', 'long', 'lng', '_lng', '_longitude', 'longitude', 'y', '1']);
         }
 
         if (is_string($coordinates)) {
@@ -217,6 +217,67 @@ class Utils
     }
 
     /**
+     * Gets a Point object from coordinates.
+     *
+     * @param mixed $coordinates The coordinates input value to extract a coordinate from.
+     * @return \Grimzy\LaravelMysqlSpatial\Types\Point The extracted Point object.
+     */
+    public static function getPointFromMixed($coordinates): \Grimzy\LaravelMysqlSpatial\Types\Point
+    {
+        $latitude = null;
+        $longitude = null;
+
+        if ($coordinates instanceof \Grimzy\LaravelMysqlSpatial\Eloquent\SpatialExpression) {
+            $coordinates = $coordinates->getSpatialValue();
+        }
+
+        if ($coordinates instanceof \Fleetbase\FleetOps\Models\Place) {
+            $coordinates = $coordinates->location;
+        }
+
+        if ($coordinates instanceof \Grimzy\LaravelMysqlSpatial\Types\Point) {
+            $latitude = $coordinates->getLat();
+            $longitude = $coordinates->getLng();
+        } elseif (is_array($coordinates) || is_object($coordinates)) {
+            if (static::exists($coordinates, 'location')) {
+                return static::getPointFromMixed(data_get($coordinates, 'location'));
+            }
+
+            $latitude = static::or($coordinates, ['_lat', 'lat', '_latitude', 'latitude', 'x', '0']);
+            $longitude = static::or($coordinates, ['lon', '_lon', 'long', 'lng', '_lng', '_longitude', 'longitude', 'y', '1']);
+        }
+
+        if (is_string($coordinates)) {
+            $coords = [];
+
+            if (Str::startsWith($coordinates, 'POINT(')) {
+                $coordinates = Str::replaceFirst('POINT(', '', $coordinates);
+                $coordinates = Str::replace(')', '', $coordinates);
+                $coords = explode(' ', $coordinates);
+                $coords = array_reverse($coords);
+                $coordinates = null;
+            }
+
+            if (Str::contains($coordinates, ',')) {
+                $coords = explode(',', $coordinates);
+            }
+
+            if (Str::contains($coordinates, '|')) {
+                $coords = explode('|', $coordinates);
+            }
+
+            if (Str::contains($coordinates, ' ')) {
+                $coords = explode(' ', $coordinates);
+            }
+
+            $latitude = $coords[0];
+            $longitude = $coords[1];
+        }
+
+        return new \Grimzy\LaravelMysqlSpatial\Types\Point((float) $latitude, (float) $longitude);
+    }
+
+    /**
      * Gets a coordinate property from coordinates.
      *
      * @param mixed $coordinates The coordinates input value to extract a coordinate from.
@@ -240,8 +301,8 @@ class Utils
             $latitude = $coordinates->getLat();
             $longitude = $coordinates->getLng();
         } else if (is_array($coordinates) || is_object($coordinates)) {
-            $latitude = FleetbaseUtils::or($coordinates, ['_lat', 'lat', '_latitude', 'latitude', 'x', '0']);
-            $longitude = FleetbaseUtils::or($coordinates, ['lon', '_lon', 'long', 'lng', '_lng', '_longitude', 'longitude', 'y', '1']);
+            $latitude = static::or($coordinates, ['_lat', 'lat', '_latitude', 'latitude', 'x', '0']);
+            $longitude = static::or($coordinates, ['lon', '_lon', 'long', 'lng', '_lng', '_longitude', 'longitude', 'y', '1']);
         }
 
         if (is_string($coordinates)) {
@@ -393,15 +454,15 @@ class Utils
     public static function getDrivingDistanceAndTime($origin, $destination): DistanceMatrix
     {
         if ($origin instanceof \Fleetbase\FleetOps\Models\Place) {
-            $origin = FleetbaseUtils::createObject(
+            $origin = static::createObject(
                 [
                     'latitude' => $origin->location->getLat(),
                     'longitude' => $origin->location->getLng(),
                 ]
             );
         } else {
-            $point = static::getPointFromCoordinates($origin);
-            $origin = FleetbaseUtils::createObject(
+            $point = static::getPointFromMixed($origin);
+            $origin = static::createObject(
                 [
                     'latitude' => $point->getLat(),
                     'longitude' => $point->getLng(),
@@ -410,15 +471,15 @@ class Utils
         }
 
         if ($destination instanceof \Fleetbase\FleetOps\Models\Place) {
-            $destination = FleetbaseUtils::createObject(
+            $destination = static::createObject(
                 [
                     'latitude' => $destination->location->getLat(),
                     'longitude' => $destination->location->getLng(),
                 ]
             );
         } else {
-            $point = static::getPointFromCoordinates($destination);
-            $destination = FleetbaseUtils::createObject(
+            $point = static::getPointFromMixed($destination);
+            $destination = static::createObject(
                 [
                     'latitude' => $point->getLat(),
                     'longitude' => $point->getLng(),
@@ -450,7 +511,7 @@ class Utils
         $distance = data_get($response, 'rows.0.elements.0.distance.value');
         $time = data_get($response, 'rows.0.elements.0.duration.value');
 
-        $result = FleetbaseUtils::createObject(
+        $result = static::createObject(
             [
                 'distance' => $distance,
                 'time' => $time
@@ -459,6 +520,17 @@ class Utils
 
         // cache result
         Redis::set($cacheKey, json_encode($result));
+
+        return new DistanceMatrix($distance, $time);
+    }
+
+    public static function getPreliminaryDistanceMatrix($origin, $destination): DistanceMatrix
+    {
+        $origin = $origin instanceof \Fleetbase\FleetOps\Models\Place ? $origin->location : static::getPointFromMixed($origin);
+        $destination = $destination instanceof \Fleetbase\FleetOps\Models\Place ? $destination->location : static::getPointFromMixed($destination);
+
+        $distance = static::vincentyGreatCircleDistance($origin, $destination);
+        $time = round($distance / 100) * 7.2;
 
         return new DistanceMatrix($distance, $time);
     }
@@ -473,10 +545,18 @@ class Utils
      */
     public static function distanceMatrix($origins = [], $destinations = []): DistanceMatrix
     {
+        if ($origins instanceof \Illuminate\Support\Collection) {
+            $origins = $origins->toArray();
+        }
+
+        if ($destinations instanceof \Illuminate\Support\Collection) {
+            $destinations = $destinations->toArray();
+        }
+
         $origins = array_map(
             function ($origin) {
-                $point = static::getPointFromCoordinates($origin);
-                $origin = FleetbaseUtils::createObject(
+                $point = static::getPointFromMixed($origin);
+                $origin = static::createObject(
                     [
                         'latitude' => $point->getLat(),
                         'longitude' => $point->getLng(),
@@ -490,8 +570,8 @@ class Utils
 
         $destinations = array_map(
             function ($destination) {
-                $point = static::getPointFromCoordinates($destination);
-                $destination = FleetbaseUtils::createObject(
+                $point = static::getPointFromMixed($destination);
+                $destination = static::createObject(
                     [
                         'latitude' => $point->getLat(),
                         'longitude' => $point->getLng(),
@@ -527,7 +607,9 @@ class Utils
         if ($cachedResult) {
             $json = json_decode($cachedResult);
 
-            return $json;
+            if (!empty($json->distance) && !empty($json->time)) {
+                return new DistanceMatrix($json->distance, $json->time);
+            }
         }
 
         $response = Http::get(
@@ -543,7 +625,7 @@ class Utils
         $distance = data_get($response, 'rows.0.elements.0.distance.value');
         $time = data_get($response, 'rows.0.elements.0.duration.value');
 
-        $result = FleetbaseUtils::createObject(
+        $result = static::createObject(
             [
                 'distance' => $distance,
                 'time' => $time,
@@ -567,8 +649,8 @@ class Utils
      */
     public static function calculateDrivingDistanceAndTime($origin, $destination): DistanceMatrix
     {
-        $origin = $origin instanceof \Fleetbase\FleetOps\Models\Place ? $origin->location : static::getPointFromCoordinates($origin);
-        $destination = $destination instanceof \Fleetbase\FleetOps\Models\Place ? $destination->location : static::getPointFromCoordinates($destination);
+        $origin = $origin instanceof \Fleetbase\FleetOps\Models\Place ? $origin->location : static::getPointFromMixed($origin);
+        $destination = $destination instanceof \Fleetbase\FleetOps\Models\Place ? $destination->location : static::getPointFromMixed($destination);
 
         $distance = Utils::vincentyGreatCircleDistance($origin, $destination);
         $time = round($distance / 100) * self::DRIVING_TIME_MULTIPLIER;
@@ -775,5 +857,18 @@ class Utils
     public static function getCoordinatesFromPolygon(?\Grimzy\LaravelMysqlSpatial\Types\Polygon $polygon): array
     {
         return Arr::first($polygon->jsonSerialize()->getCoordinates());
+    }
+
+    /**
+     * Alias function to `getModelClassName` but uses FleetOps namespace.
+     *
+     * @param string|object $table The table name or an object instance to derive the class name from.
+     * @param string|array $namespaceSegments A string representing the namespace or an array of segments to be appended to the model class name.
+     * @return string The fully qualified class name, including the namespace.
+     * @throws InvalidArgumentException If the provided $namespaceSegments is not a string or an array.
+     */
+    public static function getModelClassName($table, $namespaceSegments = '\\Fleetbase\\FleetOps\\'): string
+    {
+        return parent::getModelClassName($table, $namespaceSegments);
     }
 }

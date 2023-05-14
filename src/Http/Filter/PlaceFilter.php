@@ -13,14 +13,7 @@ class PlaceFilter extends Filter
 
     public function query(?string $searchQuery)
     {
-        $this->builder->where(function ($query) use ($searchQuery) {
-            $query->orWhereHas(
-                'place',
-                function ($query) use ($searchQuery) {
-                    $query->searchWhere(['name','email','phone','address',], $searchQuery);
-                }
-            );
-        });
+        $this->builder->search($searchQuery);
     }
 
     public function internalId(?string $internalId)
@@ -32,9 +25,19 @@ class PlaceFilter extends Filter
     {
         $this->builder->searchWhere('public_id', $publicId);
     }
-    
+
+    public function phone(?string $phone)
+    {
+        $this->builder->searchWhere('phone', $phone);
+    }
+
+    public function email(?string $email)
+    {
+        $this->builder->searchWhere('email', $email);
+    }
+
     public function country(?string $country)
     {
-        $this->builder->searchWhere('country_name', $country);
+        $this->builder->where('country', $country);
     }
 }

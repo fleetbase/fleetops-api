@@ -81,7 +81,7 @@ class Fleet extends Model
      *
      * @var array
      */
-    protected $fillable = ['_key', 'company_uuid', 'service_area_uuid', 'zone_uuid', 'image_uuid', 'name', 'color', 'task', 'status', 'slug'];
+    protected $fillable = ['_key', 'public_id', 'company_uuid', 'service_area_uuid', 'zone_uuid', 'image_uuid', 'name', 'color', 'task', 'status', 'slug'];
 
     /**
      * Dynamic attributes that are appended to object
@@ -102,7 +102,7 @@ class Fleet extends Model
      */
     public function photo()
     {
-        return $this->belongsTo(File::class, 'image_uuid', 'uuid');
+        return $this->belongsTo(\Fleetbase\Models\File::class, 'image_uuid', 'uuid');
     }
 
     /**

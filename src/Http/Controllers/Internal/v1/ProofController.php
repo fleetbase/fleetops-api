@@ -11,7 +11,7 @@ use Fleetbase\FleetOps\Models\Order;
 use Fleetbase\FleetOps\Models\Proof;
 use Fleetbase\FleetOps\Models\Waypoint;
 use Fleetbase\Support\Resp;
-use Fleetbase\Support\Utils;
+use Fleetbase\FleetOps\Support\Utils;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 

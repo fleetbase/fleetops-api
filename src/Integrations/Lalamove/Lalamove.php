@@ -9,8 +9,10 @@ use Fleetbase\FleetOps\Models\ServiceQuote;
 use Fleetbase\FleetOps\Models\ServiceQuoteItem;
 use Fleetbase\FleetOps\Models\IntegratedVendor;
 use Fleetbase\FleetOps\Models\Contact;
-use Fleetbase\Support\Authy;
 use Fleetbase\FleetOps\Exceptions\IntegratedVendorException;
+use Fleetbase\FleetOps\Support\ParsePhone;
+use Fleetbase\Support\Auth;
+use Fleetbase\FleetOps\Support\Utils;
 use Illuminate\Support\Str;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
@@ -109,12 +111,12 @@ class Lalamove
 
         if ($market === null) {
             // check company session first
-            $company = Authy::getCompany(['uuid', 'country']);
+            $company = Auth::getCompany(['uuid', 'country']);
 
             if ($company && is_string($company->country) && LalamoveMarket::codes()->contains(strtoupper($company->country))) {
                 $market = strtoupper($company->country);
             } else {
-                $market = config('services.lalamove.market');
+                $market = config('services.lalamove.market', 'SG');
             }
         }
 
@@ -459,7 +461,7 @@ class Lalamove
     {
         $firstStop = Arr::first($stops);
         $lastStop = Arr::last($stops);
-        $market = $firstStop->country ?? $lastStop->country ?? Utils::get(request()->user(), 'company.country');
+        $market = $firstStop->country ?? $lastStop->country ?? data_get(request()->user(), 'company.country');
         $serviceType = $serviceType ?? 'MOTORCYCLE';
 
         $response = $this->setMarket($market)->getQuotations($serviceType, $stops, $scheduledAt, $specialRequests, $isRouteOptimized);
@@ -546,7 +548,7 @@ class Lalamove
         // create sender from request 
         // sender will always be the org
         $sender = [
-            'stopId' => Utils::get(Arr::first($stops), 'stopId'),
+            'stopId' => data_get(Arr::first($stops), 'stopId'),
             'name' => $serviceQuote->company->name,
             'phone' => $companyPhone
         ];
@@ -569,9 +571,9 @@ class Lalamove
         // use preliminary data to fill route variables
         if ($serviceQuote->hasMeta('preliminary_data')) {
             $preliminaryData = $serviceQuote->getMeta('preliminary_data');
-            $pickup = Utils::get($preliminaryData, 'pickup');
-            $dropoff = Utils::get($preliminaryData, 'dropoff');
-            $waypoints = Utils::get($preliminaryData, 'waypoints', []);
+            $pickup = data_get($preliminaryData, 'pickup');
+            $dropoff = data_get($preliminaryData, 'dropoff');
+            $waypoints = data_get($preliminaryData, 'waypoints', []);
         }
 
         // create phone lookup options from service quote
@@ -647,7 +649,7 @@ class Lalamove
             ->map(
                 function ($waypoint, $index) use ($stops, $companyPhone, $phoneOptions) {
                     return [
-                        'stopId' => Utils::get($stops[$index], 'stopId'),
+                        'stopId' => data_get($stops[$index], 'stopId'),
                         'name' => Utils::or($waypoint, ['name', 'street1']),
                         'phone' =>  ParsePhone::fromPlace($waypoint, $phoneOptions) ?? $companyPhone,
                         'remarks' => $waypoint->remarks ?? ''
@@ -665,7 +667,7 @@ class Lalamove
         $metadata = [
             'company' => $serviceQuote->company->public_id,
             'service_quote' => $serviceQuote->public_id,
-            'integrated_vendor' => Utils::get($this->integratedVendor, 'public_id'),
+            'integrated_vendor' => data_get($this->integratedVendor, 'public_id'),
             'platform' => 'fleetbase'
         ];
 

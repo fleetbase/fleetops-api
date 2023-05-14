@@ -2,10 +2,11 @@
 
 namespace Fleetbase\FleetOps\Support;
 
+use Fleetbase\FleetOps\Integrations\Lalamove\Lalamove;
 use Fleetbase\FleetOps\Integrations\Lalamove\LalamoveServiceType;
 use Fleetbase\FleetOps\Integrations\Lalamove\LalamoveMarket;
 use Fleetbase\FleetOps\Models\IntegratedVendor;
-use Fleetbase\Support\Utils as FleetbaseUtils;
+use Fleetbase\FleetOps\Support\Utils;
 use Illuminate\Support\Str;
 
 class ResolvedIntegratedVendor
@@ -54,7 +55,7 @@ class ResolvedIntegratedVendor
 
     public static function logo(string $code): string
     {
-        return FleetbaseUtils::assetFromS3('integrated-vendors/' . $code . '.png');
+        return Utils::assetFromS3('integrated-vendors/' . $code . '.png');
     }
 
     public function setIntegratedVendor(IntegratedVendor $vendor)
@@ -82,12 +83,12 @@ class ResolvedIntegratedVendor
         $resolvedParams = [];
 
         foreach ($params as $key => $path) {
-            if (!$this->vendor || !FleetbaseUtils::isset($this->vendor, $path)) {
+            if (!$this->vendor || !Utils::isset($this->vendor, $path)) {
                 continue;
             }
 
             if ($key === 'sandbox') {
-                $resolvedParams[$key] = FleetbaseUtils::castBoolean(data_get($this->vendor, $path));
+                $resolvedParams[$key] = Utils::castBoolean(data_get($this->vendor, $path));
                 continue;
             }
 

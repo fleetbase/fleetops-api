@@ -4,16 +4,16 @@ namespace Fleetbase\FleetOps\Models;
 
 use Fleetbase\Models\Model;
 use Fleetbase\Traits\HasApiModelBehavior;
-use Fleetbase\Scopes\DriverScope;
 use Fleetbase\Traits\HasUuid;
 use Fleetbase\Traits\TracksApiCredential;
 use Fleetbase\Traits\HasInternalId;
 use Fleetbase\Traits\HasPublicId;
 use Fleetbase\Traits\SendsWebhooks;
 use Fleetbase\Casts\Json;
-use Fleetbase\FleetOps\Casts\Point;
-use Fleetbase\Support\Utils;
+use Fleetbase\FleetOps\Support\Utils;
 use Fleetbase\FleetOps\Support\Utils as FleetOpsUtils;
+use Fleetbase\FleetOps\Scopes\DriverScope;
+use Fleetbase\FleetOps\Casts\Point;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Support\Facades\DB;
@@ -55,6 +55,7 @@ class Driver extends Model
      */
     protected $fillable = [
         '_key',
+        'public_id',
         'internal_id',
         'user_uuid',
         'company_uuid',

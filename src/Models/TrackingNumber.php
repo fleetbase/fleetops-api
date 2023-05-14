@@ -3,19 +3,18 @@
 namespace Fleetbase\FleetOps\Models;
 
 use Fleetbase\Models\Model;
-use Illuminate\Support\Carbon;
-use Fleetbase\Casts\Point;
-use Fleetbase\Support\Utils;
+use Fleetbase\FleetOps\Casts\Point;
+use Fleetbase\FleetOps\Support\Utils;
 use Fleetbase\Traits\HasUuid;
 use Fleetbase\Traits\HasPublicId;
 use Fleetbase\Traits\TracksApiCredential;
 use Fleetbase\Traits\HasApiModelBehavior;
 use Fleetbase\Traits\SendsWebhooks;
-use Grimzy\LaravelMysqlSpatial\Eloquent\SpatialTrait;
-use Milon\Barcode\Facades\DNS2DFacade as DNS2D;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Grimzy\LaravelMysqlSpatial\Eloquent\SpatialTrait;
+use Milon\Barcode\Facades\DNS2DFacade as DNS2D;
 
 class TrackingNumber extends Model
 {
@@ -170,7 +169,7 @@ class TrackingNumber extends Model
      */
     public static function generateTrackingNumber($region = 'SG', $length = 10)
     {
-        $company = Company::where('uuid', session('company'))->withoutGlobalScopes()->first();
+        $company = \Fleetbase\Models\Company::where('uuid', session('company'))->withoutGlobalScopes()->first();
         $companyName = $company ? strtoupper(substr($company->name, 0, 3)) : null;
         $number = $companyName ?? 'FLB';
 
@@ -222,7 +221,7 @@ class TrackingNumber extends Model
             return $result;
         }
 
-        throw (new ModelNotFoundException())->setModel(static::class, $id);
+        throw (new \Illuminate\Database\Eloquent\ModelNotFoundException())->setModel(static::class, $id);
     }
 
     public function updateOwnerStatus(?TrackingStatus $trackingStatus = null)

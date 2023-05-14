@@ -10,7 +10,7 @@ use Fleetbase\Http\Requests\UpdateEntityRequest;
 use Fleetbase\Http\Resources\v1\DeletedResource;
 use Fleetbase\Http\Resources\v1\Entity as EntityResource;
 use Fleetbase\FleetOps\Models\Entity;
-use Fleetbase\Support\Utils;
+use Fleetbase\FleetOps\Support\Utils;
 
 class EntityController extends Controller
 {

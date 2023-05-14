@@ -10,7 +10,7 @@ use Fleetbase\Http\Requests\UpdateVendorRequest;
 use Fleetbase\Http\Resources\v1\DeletedResource;
 use Fleetbase\Http\Resources\v1\Vendor as VendorResource;
 use Fleetbase\FleetOps\Models\Vendor;
-use Fleetbase\Support\Utils;
+use Fleetbase\FleetOps\Support\Utils;
 
 class VendorController extends Controller
 {

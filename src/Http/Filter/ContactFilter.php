@@ -3,7 +3,7 @@
 namespace Fleetbase\FleetOps\Http\Filter;
 
 use Fleetbase\Http\Filter\Filter;
-use Fleetbase\Support\Utils;
+use Fleetbase\FleetOps\Support\Utils;
 
 class ContactFilter extends Filter
 {

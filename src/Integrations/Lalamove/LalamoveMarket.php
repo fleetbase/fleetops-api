@@ -2,7 +2,7 @@
 
 namespace Fleetbase\FleetOps\Integrations\Lalamove;
 
-use Fleetbase\Support\Utils;
+use Fleetbase\FleetOps\Support\Utils;
 
 class LalamoveMarket
 {

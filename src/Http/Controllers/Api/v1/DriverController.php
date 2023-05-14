@@ -17,7 +17,7 @@ use Fleetbase\Http\Resources\v1\Driver as DriverResource;
 use Fleetbase\Http\Resources\v1\Organization;
 use Fleetbase\Models\Company;
 use Fleetbase\Models\CompanyUser;
-use Fleetbase\Support\Utils;
+use Fleetbase\FleetOps\Support\Utils;
 use Fleetbase\FleetOps\Models\Driver;
 // use Fleetbase\FleetOps\Models\Position;
 use Fleetbase\Models\User;

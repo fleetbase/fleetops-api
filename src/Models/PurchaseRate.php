@@ -9,7 +9,7 @@ use Fleetbase\Traits\TracksApiCredential;
 use Fleetbase\Traits\SendsWebhooks;
 use Fleetbase\Traits\HasMetaAttributes;
 use Fleetbase\Traits\HasApiModelBehavior;
-use Fleetbase\Support\Utils;
+use Fleetbase\FleetOps\Support\Utils;
 use Fleetbase\Casts\Json;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;

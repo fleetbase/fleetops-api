@@ -30,6 +30,8 @@ class Order extends FleetbaseResource
             'tracking_number_uuid' => $this->when(Http::isInternalRequest(), $this->tracking_number_uuid),
             'driver_assigned_uuid' => $this->when(Http::isInternalRequest(), $this->driver_assigned_uuid),
             'service_quote_uuid' => $this->when(Http::isInternalRequest(), $this->service_quote_uuid),
+            'has_driver_assigned' => $this->when(Http::isInternalRequest(), $this->has_driver_assigned),
+            'is_scheduled' => $this->when(Http::isInternalRequest(), $this->is_scheduled),
             'customer' => Resolve::resourceForMorph($this->customer_type, $this->customer_uuid),
             'payload' => new Payload($this->payload),
             'facilitator' =>  Resolve::resourceForMorph($this->facilitator_type, $this->facilitator_uuid),

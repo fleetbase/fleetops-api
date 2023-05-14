@@ -3,7 +3,7 @@
 namespace Fleetbase\FleetOps\Models;
 
 use Fleetbase\Models\Model;
-use Fleetbase\Support\Utils;
+use Fleetbase\FleetOps\Support\Utils;
 use Fleetbase\Traits\TracksApiCredential;
 use Fleetbase\Traits\HasUuid;
 

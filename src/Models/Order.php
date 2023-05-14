@@ -2,9 +2,15 @@
 
 namespace Fleetbase\FleetOps\Models;
 
-use Illuminate\Support\Carbon;
 use Fleetbase\Models\Model;
-use Fleetbase\Scopes\OrderScope;
+use Fleetbase\FleetOps\Traits\HasTrackingNumber;
+use Fleetbase\FleetOps\Support\Utils;
+use Fleetbase\FleetOps\Support\Flow;
+use Fleetbase\FleetOps\Events\OrderCompleted;
+use Fleetbase\FleetOps\Events\OrderDriverAssigned;
+use Fleetbase\FleetOps\Events\OrderCanceled;
+use Fleetbase\FleetOps\Events\OrderDispatched;
+use Fleetbase\Storefront\Notifications\StorefrontOrderReadyForPickup;
 use Fleetbase\Traits\HasUuid;
 use Fleetbase\Traits\TracksApiCredential;
 use Fleetbase\Traits\HasPublicId;
@@ -12,24 +18,15 @@ use Fleetbase\Traits\HasApiModelBehavior;
 use Fleetbase\Traits\HasInternalId;
 use Fleetbase\Traits\Searchable;
 use Fleetbase\Traits\HasOptionsAttributes;
+use Fleetbase\Traits\HasMetaAttributes;
 use Fleetbase\Traits\SendsWebhooks;
 use Fleetbase\Casts\Json;
 use Fleetbase\Casts\PolymorphicType;
-use Fleetbase\Events\OrderCanceled;
-use Fleetbase\Events\OrderDispatched;
-use Fleetbase\Traits\HasTrackingNumber;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 use Spatie\Activitylog\Traits\LogsActivity;
-// use GeneaLabs\LaravelModelCaching\Traits\Cachable;
 use Grimzy\LaravelMysqlSpatial\Types\Point;
 use Barryvdh\DomPDF\Facade as PDF;
-use Fleetbase\Events\OrderCompleted;
-use Fleetbase\Events\OrderDriverAssigned;
-use Fleetbase\Notifications\StorefrontOrderReadyForPickup;
-use Fleetbase\Support\Api;
-use Fleetbase\Support\Utils;
-use Fleetbase\Traits\HasMetaAttributes;
-use Exception;
 
 class Order extends Model
 {
@@ -74,6 +71,7 @@ class Order extends Model
      */
     protected $fillable = [
         '_key',
+        'public_id',
         'internal_id',
         'route_uuid',
         'customer_uuid',
@@ -223,17 +221,6 @@ class Order extends Model
     protected static $logName = 'order';
 
     /**
-     * The "booting" method of the model.
-     *
-     * @return void
-     */
-    protected static function boot()
-    {
-        parent::boot();
-        static::addGlobalScope(new OrderScope());
-    }
-
-    /**
      * @return \Barryvdh\DomPDF\PDF
      */
     public function pdfLabel()
@@ -293,6 +280,14 @@ class Order extends Model
     public function company()
     {
         return $this->belongsTo(\Fleetbase\Models\Company::class);
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     */
+    public function orderConfig()
+    {
+        return $this->hasOne(\Fleetbase\Models\Extension::class, 'key', 'type')->where('type', 'order_config');
     }
 
     /**
@@ -835,7 +830,7 @@ class Order extends Model
             return false;
         }
 
-        if (Utils::isUuid($serviceQuote)) {
+        if (Str::isUuid($serviceQuote)) {
             $serviceQuote = ServiceQuote::where('uuid', $serviceQuote)->first();
         }
 
@@ -958,7 +953,7 @@ class Order extends Model
             });
         }
 
-        $flow = Api::getOrderFlow($this);
+        $flow = Flow::getOrderFlow($this);
         $activity = null;
 
         if (count($flow) === 1 && $code === null) {
@@ -1028,7 +1023,7 @@ class Order extends Model
                     return $this->assignDriver($driver);
                 }
 
-                throw new Exception('Invalid driver provided for assignment!');
+                throw new \Exception('Invalid driver provided for assignment!');
             }
 
             $this->driver_assigned_uuid = $driver;

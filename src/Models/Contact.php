@@ -59,7 +59,7 @@ class Contact extends Model
      *
      * @var array
      */
-    protected $fillable = ['_key', 'internal_id', 'company_uuid', 'user_uuid', 'photo_uuid', 'name', 'title', 'email', 'phone', 'type', 'meta', 'slug'];
+    protected $fillable = ['_key', 'public_id', 'internal_id', 'company_uuid', 'user_uuid', 'photo_uuid', 'name', 'title', 'email', 'phone', 'type', 'meta', 'slug'];
 
 
     /**
@@ -205,8 +205,6 @@ class Contact extends Model
     }
 
     /**
-     * The users registered client devices.
-     *
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
     public function facilitatorOrders()
@@ -215,8 +213,6 @@ class Contact extends Model
     }
 
     /**
-     * The users registered client devices.
-     *
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
     public function customerOrders()
