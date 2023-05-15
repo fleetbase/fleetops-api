@@ -2,8 +2,9 @@
 
 namespace Fleetbase\FleetOps\Http\Resources\v1;
 
-use Fleetbase\Support\Resolve;
 use Fleetbase\Http\Resources\FleetbaseResource;
+use Fleetbase\FleetOps\Support\Utils;
+use Fleetbase\Support\Resolve;
 use Fleetbase\Support\Http;
 
 class Order extends FleetbaseResource
@@ -23,7 +24,9 @@ class Order extends FleetbaseResource
             'internal_id' => $this->internal_id,
             'transaction_uuid' => $this->when(Http::isInternalRequest(), $this->transaction_uuid),
             'customer_uuid' => $this->when(Http::isInternalRequest(), $this->customer_uuid),
+            'customer_type' => $this->when(Http::isInternalRequest(), $this->customer_type),
             'facilitator_uuid' => $this->when(Http::isInternalRequest(), $this->facilitator_uuid),
+            'facilitator_type' => $this->when(Http::isInternalRequest(), $this->facilitator_type),
             'payload_uuid' => $this->when(Http::isInternalRequest(), $this->payload_uuid),
             'route_uuid' => $this->when(Http::isInternalRequest(), $this->route_uuid),
             'purchase_rate_uuid' => $this->when(Http::isInternalRequest(), $this->purchase_rate_uuid),
@@ -32,9 +35,9 @@ class Order extends FleetbaseResource
             'service_quote_uuid' => $this->when(Http::isInternalRequest(), $this->service_quote_uuid),
             'has_driver_assigned' => $this->when(Http::isInternalRequest(), $this->has_driver_assigned),
             'is_scheduled' => $this->when(Http::isInternalRequest(), $this->is_scheduled),
-            'customer' => Resolve::resourceForMorph($this->customer_type, $this->customer_uuid),
+            'customer' => $this->setCustomerType(Resolve::resourceForMorph($this->customer_type, $this->customer_uuid)),
             'payload' => new Payload($this->payload),
-            'facilitator' =>  Resolve::resourceForMorph($this->facilitator_type, $this->facilitator_uuid),
+            'facilitator' =>  $this->setFacilitatorType(Resolve::resourceForMorph($this->facilitator_type, $this->facilitator_uuid)),
             'driver_assigned' => new Driver($this->driverAssigned()->without(['jobs', 'currentJob', 'driverAssigned'])->first()),
             'tracking_number' => new TrackingNumber($this->trackingNumber),
             'tracking_statuses' => $this->whenLoaded('trackingStatuses', TrackingStatus::collection($this->trackingStatuses)),
@@ -55,6 +58,43 @@ class Order extends FleetbaseResource
             'updated_at' => $this->updated_at,
             'created_at' => $this->created_at,
         ];
+    }
+
+    /**
+     * Set the customer type for the given data array.
+     *
+     * @param array $resolved The input data array.
+     * @return array The modified data array with the customer type set.
+     */
+    public function setCustomerType($resolved)
+    {
+        if (empty($resolved)) {
+            return $resolved;
+        }
+
+        data_set($resolved, 'type', 'customer');
+        data_set($resolved, 'customer_type', 'customer-' . Utils::toEmberResourceType($this->customer_type));
+
+        return $resolved;
+    }
+
+
+    /**
+     * Set the facilitator type for the given data array.
+     *
+     * @param array $resolved The input data array.
+     * @return array The modified data array with the facilitator type set.
+     */
+    public function setFacilitatorType($resolved)
+    {
+        if (empty($resolved)) {
+            return $resolved;
+        }
+
+        data_set($resolved, 'type', 'facilitator');
+        data_set($resolved, 'facilitator_type', 'facilitator-' . Utils::toEmberResourceType($this->facilitator_type));
+
+        return $resolved;
     }
 
     /**

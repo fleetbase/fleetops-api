@@ -174,7 +174,7 @@ class Vendor extends Model
      */
     public function getLogoUrlAttribute()
     {
-        return $this->fromCache('logo.s3url', 'https://s3.ap-southeast-1.amazonaws.com/flb-assets/static/no-avatar.png');
+        return data_get($this, 'logo.s3url', 'https://s3.ap-southeast-1.amazonaws.com/flb-assets/static/no-avatar.png');
     }
 
     /**
@@ -184,7 +184,7 @@ class Vendor extends Model
      */
     public function getAddressAttribute()
     {
-        return $this->fromCache('place.address_html');
+        return data_get($this, 'place.address_html');
     }
 
     /**
@@ -194,7 +194,7 @@ class Vendor extends Model
      */
     public function getAddressStreetAttribute()
     {
-        return $this->fromCache('place.street1');
+        return data_get($this, 'place.street1');
     }
 
     /**

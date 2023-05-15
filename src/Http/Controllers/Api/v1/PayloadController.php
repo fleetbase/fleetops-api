@@ -5,10 +5,10 @@ namespace Fleetbase\FleetOps\Http\Controllers\Api\v1;
 use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Fleetbase\Http\Controllers\Controller;
-use Fleetbase\Http\Requests\CreatePayloadRequest;
-use Fleetbase\Http\Requests\UpdatePayloadRequest;
-use Fleetbase\Http\Resources\v1\DeletedResource;
-use Fleetbase\Http\Resources\v1\Payload as PayloadResource;
+use Fleetbase\FleetOps\Http\Requests\CreatePayloadRequest;
+use Fleetbase\FleetOps\Http\Requests\UpdatePayloadRequest;
+use Fleetbase\FleetOps\Http\Resources\v1\DeletedResource;
+use Fleetbase\FleetOps\Http\Resources\v1\Payload as PayloadResource;
 use Fleetbase\FleetOps\Models\Payload;
 use Fleetbase\FleetOps\Models\Place;
 use Fleetbase\FleetOps\Models\Waypoint;
@@ -76,7 +76,7 @@ class PayloadController extends Controller
         // find for the payload
         try {
             $payload = Payload::findRecordOrFail($id, ['waypoints']);
-        } catch (ModelNotFoundException $exception) {
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $exception) {
             return response()->json(
                 [
                     'error' => 'Payload resource not found.',
@@ -138,7 +138,7 @@ class PayloadController extends Controller
      */
     public function query(Request $request)
     {
-        $results = Payload::queryFromRequest($request);
+        $results = Payload::queryWithRequest($request);
 
         return PayloadResource::collection($results);
     }
@@ -154,7 +154,7 @@ class PayloadController extends Controller
         // find for the payload
         try {
             $payload = Payload::findRecordOrFail($id);
-        } catch (ModelNotFoundException $exception) {
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $exception) {
             return response()->json(
                 [
                     'error' => 'Payload resource not found.',
@@ -178,7 +178,7 @@ class PayloadController extends Controller
         // find for the driver
         try {
             $payload = Payload::findRecordOrFail($id);
-        } catch (ModelNotFoundException $exception) {
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $exception) {
             return response()->json(
                 [
                     'error' => 'Payload resource not found.',

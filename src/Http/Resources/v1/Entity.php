@@ -20,11 +20,13 @@ class Entity extends FleetbaseResource
             'id' => $this->when(Http::isInternalRequest(), $this->id, $this->public_id),
             'uuid' => $this->when(Http::isInternalRequest(), $this->uuid),
             'public_id' => $this->when(Http::isInternalRequest(), $this->public_id),
+            'customer_uuid' => $this->when(Http::isInternalRequest(), $this->customer_uuid),
+            'customer_type' => $this->when(Http::isInternalRequest(), $this->customer_type),
             'internal_id' => $this->internal_id,
             'name' => $this->name,
             'type' => $this->type ?? null,
             'destination' => $this->when(Http::isPublicRequest(), data_get($this, 'destination.public_id'), null),
-            'customer' => Resolve::resourceForMorph($this->customer_type, $this->customer_uuid),
+            'customer' => $this->setCustomerType(Resolve::resourceForMorph($this->customer_type, $this->customer_uuid)),
             'tracking_number' => new TrackingNumber($this->trackingNumber),
             'description' => $this->description ?? null,
             'photo_url' => $this->photo_url ?? null,
@@ -43,6 +45,24 @@ class Entity extends FleetbaseResource
             'updated_at' => $this->updated_at,
             'created_at' => $this->created_at,
         ];
+    }
+
+    /**
+     * Set the customer type for the given data array.
+     *
+     * @param array $resolved The input data array.
+     * @return array The modified data array with the customer type set.
+     */
+    public function setCustomerType($resolved)
+    {
+        if (empty($resolved)) {
+            return $resolved;
+        }
+
+        data_set($resolved, 'type', 'customer');
+        data_set($resolved, 'customer_type', Utils::toEmberResourceType($this->customer_type));
+
+        return $resolved;
     }
 
     /**

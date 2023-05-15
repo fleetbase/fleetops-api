@@ -3,13 +3,11 @@
 namespace Fleetbase\FleetOps\Http\Controllers\Api\v1;
 
 use Illuminate\Http\Request;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Fleetbase\Http\Controllers\Controller;
-use Fleetbase\Http\Requests\CreateTrackingNumberRequest;
-use Fleetbase\Http\Requests\DecodeTrackingNumberQR;
-use Fleetbase\Http\Requests\UpdateTrackingNumberRequest;
-use Fleetbase\Http\Resources\v1\DeletedResource;
-use Fleetbase\Http\Resources\v1\TrackingNumber as TrackingNumberResource;
+use Fleetbase\FleetOps\Http\Requests\CreateTrackingNumberRequest;
+use Fleetbase\FleetOps\Http\Requests\DecodeTrackingNumberQR;
+use Fleetbase\FleetOps\Http\Resources\v1\DeletedResource;
+use Fleetbase\FleetOps\Http\Resources\v1\TrackingNumber as TrackingNumberResource;
 use Fleetbase\FleetOps\Models\TrackingNumber;
 use Fleetbase\FleetOps\Support\Utils;
 
@@ -60,7 +58,7 @@ class TrackingNumberController extends Controller
      */
     public function query(Request $request)
     {
-        $results = TrackingNumber::queryFromRequest($request);
+        $results = TrackingNumber::queryWithRequest($request);
 
         return TrackingNumberResource::collection($results);
     }
@@ -76,7 +74,7 @@ class TrackingNumberController extends Controller
         // find for the trackingNumber
         try {
             $trackingNumber = TrackingNumber::findTrackingOrFail($id);
-        } catch (ModelNotFoundException $exception) {
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $exception) {
             return response()->json(
                 [
                     'error' => 'TrackingNumber resource not found.',
@@ -100,7 +98,7 @@ class TrackingNumberController extends Controller
         // find for the driver
         try {
             $trackingNumber = TrackingNumber::findTrackingOrFail($id);
-        } catch (ModelNotFoundException $exception) {
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $exception) {
             return response()->json(
                 [
                     'error' => 'TrackingNumber resource not found.',

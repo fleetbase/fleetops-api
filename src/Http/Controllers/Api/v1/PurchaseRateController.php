@@ -3,19 +3,15 @@
 namespace Fleetbase\FleetOps\Http\Controllers\Api\v1;
 
 use Illuminate\Http\Request;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Fleetbase\Http\Controllers\Controller;
-use Fleetbase\Http\Requests\CreatePurchaseRateRequest;
-// use Fleetbase\Http\Requests\UpdatePurchaseRateRequest;
-use Fleetbase\Http\Resources\v1\PurchaseRate as PurchaseRateResource;
+use Fleetbase\FleetOps\Http\Requests\CreatePurchaseRateRequest;
+use Fleetbase\FleetOps\Http\Resources\v1\PurchaseRate as PurchaseRateResource;
 use Fleetbase\FleetOps\Models\PurchaseRate;
 use Fleetbase\FleetOps\Models\ServiceQuote;
 use Fleetbase\FleetOps\Models\ServiceRate;
 use Fleetbase\FleetOps\Models\Order;
 use Fleetbase\FleetOps\Models\Payload;
 use Fleetbase\FleetOps\Support\Utils;
-use Fleetbase\Support\Resp;
-use Exception;
 
 class PurchaseRateController extends Controller
 {
@@ -98,8 +94,8 @@ class PurchaseRateController extends Controller
             // create order with integrated vendor, then resume fleetbase order creation
             try {
                 $integratedVendorOrder = $serviceQuote->integratedVendor->api()->createOrderFromServiceQuote($serviceQuote, $request);
-            } catch (Exception $e) {
-                return Resp::error($e->getMessage());
+            } catch (\Exception $e) {
+                return response()->error($e->getMessage());
             }
         }
 
@@ -172,7 +168,7 @@ class PurchaseRateController extends Controller
      */
     public function query(Request $request)
     {
-        $results = PurchaseRate::queryFromRequest($request);
+        $results = PurchaseRate::queryWithRequest($request);
 
         return PurchaseRateResource::collection($results);
     }
@@ -188,7 +184,7 @@ class PurchaseRateController extends Controller
         // find for the purchaseRate
         try {
             $purchaseRate = PurchaseRate::findRecordOrFail($id);
-        } catch (ModelNotFoundException $exception) {
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $exception) {
             return response()->json(
                 [
                     'error' => 'PurchaseRate resource not found.',

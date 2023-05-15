@@ -3,13 +3,12 @@
 namespace Fleetbase\FleetOps\Http\Controllers\Api\v1;
 
 use Illuminate\Http\Request;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Fleetbase\Http\Controllers\Controller;
-use Fleetbase\Http\Requests\CreateTrackingStatusRequest;
-use Fleetbase\Http\Requests\UpdateTrackingStatusRequest;
-use Fleetbase\Http\Resources\v1\DeletedResource;
-use Fleetbase\Http\Resources\v1\TrackingStatus as TrackingStatusResource;
-use Fleetbase\Models\TrackingStatus;
+use Fleetbase\FleetOps\Http\Requests\CreateTrackingStatusRequest;
+use Fleetbase\FleetOps\Http\Requests\UpdateTrackingStatusRequest;
+use Fleetbase\FleetOps\Http\Resources\v1\DeletedResource;
+use Fleetbase\FleetOps\Http\Resources\v1\TrackingStatus as TrackingStatusResource;
+use Fleetbase\FleetOps\Models\TrackingStatus;
 use Fleetbase\FleetOps\Support\Utils;
 
 class TrackingStatusController extends Controller
@@ -55,7 +54,7 @@ class TrackingStatusController extends Controller
         // find for the trackingStatus
         try {
             $trackingStatus = TrackingStatus::findRecordOrFail($id);
-        } catch (ModelNotFoundException $exception) {
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $exception) {
             return response()->json(
                 [
                     'error' => 'TrackingStatus resource not found.',
@@ -82,7 +81,7 @@ class TrackingStatusController extends Controller
      */
     public function query(Request $request)
     {
-        $results = TrackingStatus::queryFromRequest($request);
+        $results = TrackingStatus::queryWithRequest($request);
 
         return TrackingStatusResource::collection($results);
     }
@@ -98,7 +97,7 @@ class TrackingStatusController extends Controller
         // find for the trackingStatus
         try {
             $trackingStatus = TrackingStatus::findRecordOrFail($id);
-        } catch (ModelNotFoundException $exception) {
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $exception) {
             return response()->json(
                 [
                     'error' => 'TrackingStatus resource not found.',
@@ -122,7 +121,7 @@ class TrackingStatusController extends Controller
         // find for the driver
         try {
             $trackingStatus = TrackingStatus::findRecordOrFail($id);
-        } catch (ModelNotFoundException $exception) {
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $exception) {
             return response()->json(
                 [
                     'error' => 'TrackingStatus resource not found.',

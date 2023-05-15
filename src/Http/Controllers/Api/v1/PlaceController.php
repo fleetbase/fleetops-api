@@ -2,18 +2,16 @@
 
 namespace Fleetbase\FleetOps\Http\Controllers\Api\v1;
 
-use Illuminate\Http\Request;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
-use Illuminate\Support\Str;
-use Illuminate\Support\Facades\DB;
 use Fleetbase\Http\Controllers\Controller;
-use Fleetbase\Http\Requests\CreatePlaceRequest;
-use Fleetbase\Http\Requests\UpdatePlaceRequest;
-use Fleetbase\Http\Resources\v1\DeletedResource;
-use Fleetbase\Http\Resources\v1\Place as PlaceResource;
+use Fleetbase\FleetOps\Http\Requests\CreatePlaceRequest;
+use Fleetbase\FleetOps\Http\Requests\UpdatePlaceRequest;
+use Fleetbase\FleetOps\Http\Resources\v1\DeletedResource;
+use Fleetbase\FleetOps\Http\Resources\v1\Place as PlaceResource;
 use Fleetbase\FleetOps\Models\Place;
 use Fleetbase\FleetOps\Support\Utils;
-use Fleetbase\Support\Resp;
+use Illuminate\Http\Request;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
 use Grimzy\LaravelMysqlSpatial\Types\Point;
 use Geocoder\Laravel\Facades\Geocoder;
 use Geocoder\Provider\GoogleMapsPlaces\GoogleMapsPlaces;
@@ -77,10 +75,9 @@ class PlaceController extends Controller
 
         // owner assignment
         if ($request->has('owner')) {
-
             $id = $request->input('owner');
 
-            // patch for storefront - customer_
+            // check if customer_ based contact
             if (Str::startsWith($id, 'customer')) {
                 $id = Str::replaceFirst('customer', 'contact', $id);
             }
@@ -127,7 +124,7 @@ class PlaceController extends Controller
 
         $place->save();
 
-        return Resp::resource(new PlaceResource($place));
+        return new PlaceResource($place);
     }
 
     /**
@@ -141,8 +138,8 @@ class PlaceController extends Controller
     {
         try {
             $place = Place::findRecordOrFail($id);
-        } catch (ModelNotFoundException $exception) {
-            return Resp::error('Place resource not found.');
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $exception) {
+            return response()->error('Place resource not found.');
         }
 
         // get request input
@@ -174,7 +171,7 @@ class PlaceController extends Controller
 
             $id = $request->input('owner');
 
-            // patch for storefront - customer_
+            // check if customer_ based contact
             if (Str::startsWith($id, 'customer')) {
                 $id = Str::replaceFirst('customer', 'contact', $id);
             }
@@ -205,7 +202,7 @@ class PlaceController extends Controller
         $place->update($input);
         $place->flushAttributesCache();
 
-        return Resp::resource(new PlaceResource($place));
+        return new PlaceResource($place);
     }
 
     /**
@@ -216,7 +213,7 @@ class PlaceController extends Controller
      */
     public function query(Request $request)
     {
-        $results = Place::queryFromRequest($request, function (&$query, $request) {
+        $results = Place::queryWithRequest($request, function (&$query, $request) {
             if ($request->has('vendor')) {
                 $query->whereHas('vendor', function ($q) use ($request) {
                     $q->where('public_id', $request->input('vendor'));
@@ -311,11 +308,11 @@ class PlaceController extends Controller
         // find for the place
         try {
             $place = Place::findRecordOrFail($id);
-        } catch (ModelNotFoundException $exception) {
-            return Resp::error('Place resource not found.');
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $exception) {
+            return response()->error('Place resource not found.');
         }
 
-        return Resp::resource(new PlaceResource($place));
+        return new PlaceResource($place);
     }
 
     /**
@@ -328,12 +325,12 @@ class PlaceController extends Controller
     {
         try {
             $place = Place::findRecordOrFail($id);
-        } catch (ModelNotFoundException $exception) {
-            return Resp::error('Place resource not found.');
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $exception) {
+            return response()->error('Place resource not found.');
         }
 
         $place->delete();
 
-        return Resp::resource(new DeletedResource($place));
+        return new DeletedResource($place);
     }
 }

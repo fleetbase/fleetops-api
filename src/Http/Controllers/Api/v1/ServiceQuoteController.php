@@ -12,10 +12,8 @@ use Fleetbase\FleetOps\Models\Payload;
 use Fleetbase\FleetOps\Models\Place;
 use Fleetbase\FleetOps\Models\IntegratedVendor;
 use Fleetbase\FleetOps\Support\Utils;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
-use Exception;
 
 class ServiceQuoteController extends Controller
 {
@@ -55,7 +53,7 @@ class ServiceQuoteController extends Controller
             if ($integratedVendor) {
                 try {
                     $serviceQuotes = $integratedVendor->api()->setRequestId($requestId)->getQuoteFromPayload($payload, $serviceType, $scheduledAt, $isRouteOptimized);
-                } catch (Exception $e) {
+                } catch (\Exception $e) {
                     return response()->json([
                         'errors' => [$e->getMessage()]
                     ], 400);
@@ -239,7 +237,7 @@ class ServiceQuoteController extends Controller
                 try {
                     /** @var \Fleetbase\Models\ServiceQuote $serviceQuote */
                     $serviceQuote = $integratedVendor->api()->setRequestId($requestId)->getQuoteFromPreliminaryPayload($waypoints, $entities, $serviceType, $scheduledAt, $isRouteOptimized);
-                } catch (Exception $e) {
+                } catch (\Exception $e) {
                     return response()->json([
                         'errors' => [$e->getMessage()]
                     ], 400);
@@ -372,7 +370,7 @@ class ServiceQuoteController extends Controller
         // find for the serviceQuote
         try {
             $serviceQuote = ServiceQuote::findRecordOrFail($id);
-        } catch (ModelNotFoundException $exception) {
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $exception) {
             return response()->json([
                 'error' => 'ServiceQuote resource not found.'
             ], 404);

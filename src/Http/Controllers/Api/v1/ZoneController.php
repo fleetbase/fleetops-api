@@ -3,12 +3,11 @@
 namespace Fleetbase\FleetOps\Http\Controllers\Api\v1;
 
 use Illuminate\Http\Request;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Fleetbase\Http\Controllers\Controller;
-use Fleetbase\Http\Requests\CreateZoneRequest;
-use Fleetbase\Http\Requests\UpdateZoneRequest;
-use Fleetbase\Http\Resources\v1\DeletedResource;
-use Fleetbase\Http\Resources\v1\Zone as ZoneResource;
+use Fleetbase\FleetOps\Http\Requests\CreateZoneRequest;
+use Fleetbase\FleetOps\Http\Requests\UpdateZoneRequest;
+use Fleetbase\FleetOps\Http\Resources\v1\DeletedResource;
+use Fleetbase\FleetOps\Http\Resources\v1\Zone as ZoneResource;
 use Fleetbase\FleetOps\Models\Zone;
 use Fleetbase\FleetOps\Support\Utils;
 
@@ -55,7 +54,7 @@ class ZoneController extends Controller
         // find for the zone
         try {
             $zone = Zone::findRecordOrFail($id);
-        } catch (ModelNotFoundException $exception) {
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $exception) {
             return response()->json(
                 [
                     'error' => 'Zone resource not found.',
@@ -90,7 +89,7 @@ class ZoneController extends Controller
      */
     public function query(Request $request)
     {
-        $results = Zone::queryFromRequest($request);
+        $results = Zone::queryWithRequest($request);
 
         return ZoneResource::collection($results);
     }
@@ -106,7 +105,7 @@ class ZoneController extends Controller
         // find for the zone
         try {
             $zone = Zone::findRecordOrFail($id);
-        } catch (ModelNotFoundException $exception) {
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $exception) {
             return response()->json(
                 [
                     'error' => 'Zone resource not found.',
@@ -130,7 +129,7 @@ class ZoneController extends Controller
         // find for the driver
         try {
             $zone = Zone::findRecordOrFail($id);
-        } catch (ModelNotFoundException $exception) {
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $exception) {
             return response()->json(
                 [
                     'error' => 'Zone resource not found.',

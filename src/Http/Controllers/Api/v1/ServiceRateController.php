@@ -3,12 +3,11 @@
 namespace Fleetbase\FleetOps\Http\Controllers\Api\v1;
 
 use Illuminate\Http\Request;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Fleetbase\Http\Controllers\Controller;
-use Fleetbase\Http\Requests\CreateServiceRateRequest;
-use Fleetbase\Http\Requests\UpdateServiceRateRequest;
-use Fleetbase\Http\Resources\v1\DeletedResource;
-use Fleetbase\Http\Resources\v1\ServiceRate as ServiceRateResource;
+use Fleetbase\FleetOps\Http\Requests\CreateServiceRateRequest;
+use Fleetbase\FleetOps\Http\Requests\UpdateServiceRateRequest;
+use Fleetbase\FleetOps\Http\Resources\v1\DeletedResource;
+use Fleetbase\FleetOps\Http\Resources\v1\ServiceRate as ServiceRateResource;
 use Fleetbase\FleetOps\Models\ServiceRate;
 use Fleetbase\FleetOps\Models\ServiceRateFee;
 use Fleetbase\FleetOps\Support\Utils;
@@ -101,7 +100,7 @@ class ServiceRateController extends Controller
         // find for the serviceRate
         try {
             $serviceRate = ServiceRate::findRecordOrFail($id);
-        } catch (ModelNotFoundException $exception) {
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $exception) {
             return response()->json(
                 [
                     'error' => 'ServiceRate resource not found.',
@@ -167,7 +166,7 @@ class ServiceRateController extends Controller
      */
     public function query(Request $request)
     {
-        $results = ServiceRate::queryFromRequest($request);
+        $results = ServiceRate::queryWithRequest($request);
 
         return ServiceRateResource::collection($results);
     }
@@ -183,7 +182,7 @@ class ServiceRateController extends Controller
         // find for the serviceRate
         try {
             $serviceRate = ServiceRate::findRecordOrFail($id);
-        } catch (ModelNotFoundException $exception) {
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $exception) {
             return response()->json(
                 [
                     'error' => 'ServiceRate resource not found.',
@@ -207,7 +206,7 @@ class ServiceRateController extends Controller
         // find for the driver
         try {
             $serviceRate = ServiceRate::findRecordOrFail($id);
-        } catch (ModelNotFoundException $exception) {
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $exception) {
             return response()->json(
                 [
                     'error' => 'ServiceRate resource not found.',

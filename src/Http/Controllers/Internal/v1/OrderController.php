@@ -20,7 +20,6 @@ use Fleetbase\FleetOps\Events\OrderStarted;
 use Fleetbase\Http\Requests\Internal\BulkDeleteRequest;
 use Fleetbase\Models\File;
 use Fleetbase\Models\Type;
-// use Fleetbase\Storefront\Notifications\StorefrontOrderEnroute;
 use Fleetbase\Exceptions\FleetbaseRequestValidationException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -109,7 +108,7 @@ class OrderController extends FleetOpsController
                 }
             );
 
-            return ['order' => new $this->resource($record)]; 
+            return ['order' => new $this->resource($record)];
         } catch (\Exception $e) {
             return response()->error($e->getMessage());
         } catch (\Illuminate\Database\QueryException $e) {
@@ -383,12 +382,6 @@ class OrderController extends FleetOpsController
                 $entity->insertActivity($activity['status'], $activity['details'], $location, $activity['code']);
             }
         }
-
-        // // if storefront order / notify customer driver has started and is en-route
-        // if ($order->hasMeta('storefront_id')) {
-        //     $order->load(['customer']);
-        //     $order->customer->notify(new StorefrontOrderEnroute($order));
-        // }
 
         // update order activity
         $updateActivityRequest = new Request(['activity' => $flow]);

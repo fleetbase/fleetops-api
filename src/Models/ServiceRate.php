@@ -143,7 +143,7 @@ class ServiceRate extends Model
      */
     public function getServiceAreaNameAttribute(): ?string
     {
-        return $this->fromCache('serviceArea.name');
+        return data_get($this, 'serviceArea.name');
     }
 
     /**
@@ -153,7 +153,7 @@ class ServiceRate extends Model
      */
     public function getZoneNameAttribute(): ?string
     {
-        return $this->fromCache('zone.name');
+        return data_get($this, 'zone.name');
     }
 
     /**

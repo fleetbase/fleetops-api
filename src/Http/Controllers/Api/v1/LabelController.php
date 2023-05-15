@@ -3,8 +3,8 @@
 namespace Fleetbase\FleetOps\Http\Controllers\Api\v1;
 
 use Fleetbase\Http\Controllers\Controller;
-use Fleetbase\Models\External\Entity;
-use Fleetbase\Models\External\Waypoint;
+use Fleetbase\FleetOps\Models\Entity;
+use Fleetbase\FleetOps\Models\Waypoint;
 use Fleetbase\FleetOps\Models\Order;
 use Fleetbase\Support\Resp;
 use Illuminate\Http\Request;
@@ -39,7 +39,7 @@ class LabelController extends Controller
         }
 
         if (!$subject) {
-            return Resp::error('Unable to render label.');
+            return response()->error('Unable to render label.');
         }
 
         switch ($format) {
@@ -58,6 +58,6 @@ class LabelController extends Controller
                 return response()->json(['data' => mb_convert_encoding($base64, 'UTF-8', 'UTF-8')]);
         }
 
-        return Resp::error('Unable to render label.');
+        return response()->error('Unable to render label.');
     }
 }

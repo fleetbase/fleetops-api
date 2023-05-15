@@ -5,9 +5,13 @@ namespace Fleetbase\FleetOps\Listeners;
 use Fleetbase\FleetOps\Events\OrderCanceled;
 use Fleetbase\FleetOps\Models\Driver;
 use Fleetbase\FleetOps\Notifications\OrderCanceled as OrderCanceledNotification;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Queue\InteractsWithQueue;
 
-class HandleOrderCanceled
+class HandleOrderCanceled implements ShouldQueue
 {
+    use InteractsWithQueue;
+    
     /**
      * Handle the event.
      *

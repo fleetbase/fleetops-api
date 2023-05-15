@@ -278,7 +278,7 @@ class Driver extends Model
      */
     public function devices()
     {
-        return $this->hasMany(UserDevice::class, 'user_uuid', 'user_uuid');
+        return $this->hasMany(\Fleetbase\Models\UserDevice::class, 'user_uuid', 'user_uuid');
     }
 
     /**
@@ -342,7 +342,7 @@ class Driver extends Model
      */
     public function getCurrentJobIdAttribute()
     {
-        return $this->fromCache('currentJob.public_id');
+        return data_get($this, 'currentJob.public_id');
     }
 
     /**
@@ -350,7 +350,7 @@ class Driver extends Model
      */
     public function getVehicleNameAttribute()
     {
-        return $this->fromCache('vehicle.display_name');
+        return data_get($this, 'vehicle.display_name');
     }
 
     /**
@@ -358,7 +358,7 @@ class Driver extends Model
      */
     public function getVehicleIdAttribute()
     {
-        return $this->fromCache('vehicle.public_id');
+        return data_get($this, 'vehicle.public_id');
     }
 
     /**
@@ -370,7 +370,7 @@ class Driver extends Model
             return Vehicle::getAvatar();
         }
 
-        return $this->fromCache('vehicle.avatar_url');
+        return data_get($this, 'vehicle.avatar_url');
     }
 
     /**
@@ -378,7 +378,7 @@ class Driver extends Model
      */
     public function getVendorIdAttribute()
     {
-        return $this->fromCache('vendor.public_id');
+        return data_get($this, 'vendor.public_id');
     }
 
     /**
@@ -386,7 +386,7 @@ class Driver extends Model
      */
     public function getVendorNameAttribute()
     {
-        return $this->fromCache('vendor.name');
+        return data_get($this, 'vendor.name');
     }
 
     /**
@@ -394,7 +394,7 @@ class Driver extends Model
      */
     public function getPhotoUrlAttribute()
     {
-        return $this->fromCache('user.avatarUrl');
+        return data_get($this, 'user.avatarUrl');
     }
 
     /**
@@ -402,7 +402,7 @@ class Driver extends Model
      */
     public function getNameAttribute()
     {
-        return $this->fromCache('user.name');
+        return data_get($this, 'user.name');
     }
 
     /**
@@ -410,7 +410,7 @@ class Driver extends Model
      */
     public function getPhoneAttribute()
     {
-        return $this->fromCache('user.phone');
+        return data_get($this, 'user.phone');
     }
 
     /**
@@ -418,7 +418,7 @@ class Driver extends Model
      */
     public function getEmailAttribute()
     {
-        return $this->fromCache('user.email');
+        return data_get($this, 'user.email');
     }
 
     /**

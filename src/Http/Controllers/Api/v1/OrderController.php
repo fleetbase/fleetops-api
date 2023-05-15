@@ -2,8 +2,9 @@
 
 namespace Fleetbase\FleetOps\Http\Controllers\Api\v1;
 
-use Fleetbase\FleetOps\Events\OrderDispatchFailed;
 use Fleetbase\Http\Controllers\Controller;
+use Fleetbase\FleetOps\Events\OrderDispatchFailed;
+use Fleetbase\FleetOps\Events\OrderStarted;
 use Fleetbase\FleetOps\Http\Requests\CreateOrderRequest;
 use Fleetbase\FleetOps\Http\Requests\UpdateOrderRequest;
 use Fleetbase\FleetOps\Http\Resources\v1\Order as OrderResource;
@@ -18,10 +19,9 @@ use Fleetbase\FleetOps\Models\Waypoint;
 use Fleetbase\FleetOps\Models\ServiceQuote;
 use Fleetbase\FleetOps\Support\Flow;
 use Fleetbase\FleetOps\Support\Utils;
-use Fleetbase\Http\Resources\v1\DeletedResource;
+use Fleetbase\FleetOps\Http\Resources\v1\DeletedResource;
 use Fleetbase\Models\File;
 use Fleetbase\Models\Company;
-use Fleetbase\Storefront\Notifications\StorefrontOrderEnroute;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
@@ -324,7 +324,7 @@ class OrderController extends Controller
      */
     public function query(Request $request)
     {
-        $results = Order::queryFromRequest($request, function (&$query, $request, &$filters) {
+        $results = Order::queryWithRequest($request, function (&$query, $request, &$filters) {
             if ($request->has('payload')) {
                 $query->whereHas('payload', function ($q) use ($request) {
                     $q->where('public_id', $request->input('payload'));
@@ -693,6 +693,9 @@ class OrderController extends Controller
         $order->started_at = now();
         $order->save();
 
+        // trigger start event
+        event(new OrderStarted($order));
+
         // set order as drivers current order
         $driver->current_job_uuid = $order->uuid;
         $driver->save();
@@ -703,12 +706,6 @@ class OrderController extends Controller
         // set first destination for payload
         $payload->setFirstWaypoint($activity, $location);
         $order->setRelation('payload', $payload);
-
-        // if storefront order / notify customer driver has started and is en-route
-        if ($order->hasMeta('storefront_id')) {
-            $order->load(['customer']);
-            $order->customer->notify(new StorefrontOrderEnroute($order));
-        }
 
         // update order activity
         $updateActivityRequest = new Request(['activity' => $flow]);

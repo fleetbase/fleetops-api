@@ -10,7 +10,6 @@ use Fleetbase\FleetOps\Events\OrderCompleted;
 use Fleetbase\FleetOps\Events\OrderDriverAssigned;
 use Fleetbase\FleetOps\Events\OrderCanceled;
 use Fleetbase\FleetOps\Events\OrderDispatched;
-use Fleetbase\Storefront\Notifications\StorefrontOrderReadyForPickup;
 use Fleetbase\Traits\HasUuid;
 use Fleetbase\Traits\TracksApiCredential;
 use Fleetbase\Traits\HasPublicId;
@@ -379,13 +378,13 @@ class Order extends Model
     }
 
     /**
-     * Get the adhoc distance for this order, or fallback to settings or default value.
+     * Get the adhoc distance for this order, or fallback to settings or default value which is 6km.
      * 
      * @return int
      */
     public function getAdhocDistance()
     {
-        $this->adhoc_distance ?? Utils::get($this, 'company.options.fleetops.adhoc_distance', 6000);
+        return $this->adhoc_distance ?? data_get($this, 'company.options.fleetops.adhoc_distance', 6000);
     }
 
     /**
@@ -395,7 +394,7 @@ class Order extends Model
      */
     public function getDriverNameAttribute()
     {
-        return $this->fromCache('driverAssigned.name');
+        return data_get($this, 'driverAssigned.name');
     }
 
     /**
@@ -405,7 +404,7 @@ class Order extends Model
      */
     public function getTrackingAttribute()
     {
-        return $this->fromCache('trackingNumber.tracking_number');
+        return data_get($this, 'trackingNumber.tracking_number');
     }
 
     /**
@@ -425,7 +424,7 @@ class Order extends Model
      */
     public function getTransactionAmountAttribute()
     {
-        return $this->fromCache('transaction.amount');
+        return data_get($this, 'transaction.amount');
     }
 
     /**
@@ -435,7 +434,7 @@ class Order extends Model
      */
     public function getCustomerNameAttribute()
     {
-        return $this->fromCache('customer.name');
+        return data_get($this, 'customer.name');
     }
 
     /**
@@ -445,7 +444,7 @@ class Order extends Model
      */
     public function getCustomerPhoneAttribute()
     {
-        return $this->fromCache('customer.phone');
+        return data_get($this, 'customer.phone');
     }
 
     /**
@@ -455,7 +454,7 @@ class Order extends Model
      */
     public function getFacilitatorNameAttribute()
     {
-        return $this->fromCache('facilitator.name');
+        return data_get($this, 'facilitator.name');
     }
 
     /**
@@ -465,7 +464,7 @@ class Order extends Model
      */
     public function getFacilitatorIsVendorAttribute()
     {
-        return $this->facilitator_type === 'Fleetbase\\Models\\Vendor';
+        return $this->facilitator_type === 'Fleetbase\\FleetOps\\Models\\Vendor';
     }
 
 
@@ -476,7 +475,7 @@ class Order extends Model
      */
     public function getFacilitatorIsIntegratedVendorAttribute()
     {
-        return $this->facilitator_type === 'Fleetbase\\Models\\IntegratedVendor';
+        return $this->facilitator_type === 'Fleetbase\\FleetOps\\Models\\IntegratedVendor';
     }
 
     /**
@@ -486,7 +485,7 @@ class Order extends Model
      */
     public function getFacilitatorIsContactAttribute()
     {
-        return $this->facilitator_type === 'Fleetbase\\Models\\Contact';
+        return $this->facilitator_type === 'Fleetbase\\FleetOps\\Models\\Contact';
     }
 
     /**
@@ -496,7 +495,7 @@ class Order extends Model
      */
     public function getCustomerIsVendorAttribute()
     {
-        return $this->customer_type === 'Fleetbase\\Models\\Vendor';
+        return $this->customer_type === 'Fleetbase\\FleetOps\\Models\\Vendor';
     }
 
     /**
@@ -506,7 +505,7 @@ class Order extends Model
      */
     public function getCustomerIsContactAttribute()
     {
-        return $this->customer_type === 'Fleetbase\\Models\\Contact';
+        return $this->customer_type === 'Fleetbase\\FleetOps\\Models\\Contact';
     }
 
     /**
@@ -530,7 +529,7 @@ class Order extends Model
      */
     public function getPurchaseRateIdAttribute()
     {
-        return $this->fromCache('purchaseRate.public_id');
+        return data_get($this, 'purchaseRate.public_id');
     }
 
     /**
@@ -538,7 +537,7 @@ class Order extends Model
      */
     public function getPayloadIdAttribute()
     {
-        return $this->fromCache('payload.public_id');
+        return data_get($this, 'payload.public_id');
     }
 
     /**
@@ -548,7 +547,7 @@ class Order extends Model
      */
     public function getQrCodeAttribute()
     {
-        return $this->fromCache('trackingNumber.qr_code');
+        return data_get($this, 'trackingNumber.qr_code');
     }
 
     /**
@@ -558,7 +557,7 @@ class Order extends Model
      */
     public function getCreatedByNameAttribute()
     {
-        return $this->fromCache('createdBy.name');
+        return data_get($this, 'createdBy.name');
     }
 
     /**
@@ -568,7 +567,7 @@ class Order extends Model
      */
     public function getUpdatedByNameAttribute()
     {
-        return $this->fromCache('updatedBy.name');
+        return data_get($this, 'updatedBy.name');
     }
 
     /**
@@ -915,7 +914,7 @@ class Order extends Model
     public function setCustomer($model)
     {
         $this->customer_uuid = $model->uuid;
-        $this->customer_type = Utils::getMutationType($model);
+        $this->customer_type = Utils::getModelClassName($model);
     }
 
     public function setDriverLocationAsPickup($force = false)
@@ -984,15 +983,6 @@ class Order extends Model
 
         $this->setStatus($activity['code']);
         $this->insertActivity($activity['status'], $activity['details'], $location, $activity['code']);
-
-        // notufy customer order is ready for pickup
-        if ($this->isMeta('is_pickup')) {
-            $this->load(['customer']);
-
-            if ($this->customer) {
-                $this->customer->notify(new StorefrontOrderReadyForPickup($this));
-            }
-        }
 
         return true;
     }

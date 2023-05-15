@@ -151,32 +151,32 @@ class PurchaseRate extends Model
 
     public function getAmountAttribute()
     {
-        return $this->fromCache('serviceQuote.amount');
+        return data_get($this, 'serviceQuote.amount');
     }
 
     public function getCurrencyAttribute()
     {
-        return $this->fromCache('serviceQuote.currency');
+        return data_get($this, 'serviceQuote.currency');
     }
 
     public function getServiceQuoteIdAttribute()
     {
-        return $this->fromCache('serviceQuote.public_id');
+        return data_get($this, 'serviceQuote.public_id');
     }
 
     public function getOrderIdAttribute()
     {
-        return $this->fromCache('order.public_id');
+        return data_get($this, 'order.public_id');
     }
 
     public function getCustomerIdAttribute()
     {
-        return $this->fromCache('customer.public_id');
+        return data_get($this, 'customer.public_id');
     }
 
     public function getTransactionIdAttribute()
     {
-        return $this->fromCache('transaction.public_id');
+        return data_get($this, 'transaction.public_id');
     }
 
     /**

@@ -134,7 +134,7 @@ class ServiceQuote extends Model
      */
     public function getServiceRateNameAttribute()
     {
-        return $this->fromCache('serviceRate.service_name');
+        return data_get($this, 'serviceRate.service_name');
     }
 
     public function fromIntegratedVendor()

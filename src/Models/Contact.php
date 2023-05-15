@@ -145,7 +145,7 @@ class Contact extends Model
      */
     public function devices()
     {
-        return $this->hasMany(UserDevice::class, 'user_uuid', 'user_uuid');
+        return $this->hasMany(\Fleetbase\Models\UserDevice::class, 'user_uuid', 'user_uuid');
     }
 
     /**

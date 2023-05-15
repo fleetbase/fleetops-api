@@ -3,12 +3,11 @@
 namespace Fleetbase\FleetOps\Http\Controllers\Api\v1;
 
 use Illuminate\Http\Request;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Fleetbase\Http\Controllers\Controller;
-use Fleetbase\Http\Requests\CreateServiceAreaRequest;
-use Fleetbase\Http\Requests\UpdateServiceAreaRequest;
-use Fleetbase\Http\Resources\v1\DeletedResource;
-use Fleetbase\Http\Resources\v1\ServiceArea as ServiceAreaResource;
+use Fleetbase\FleetOps\Http\Requests\CreateServiceAreaRequest;
+use Fleetbase\FleetOps\Http\Requests\UpdateServiceAreaRequest;
+use Fleetbase\FleetOps\Http\Resources\v1\DeletedResource;
+use Fleetbase\FleetOps\Http\Resources\v1\ServiceArea as ServiceAreaResource;
 use Fleetbase\FleetOps\Models\ServiceArea;
 
 class ServiceAreaController extends Controller
@@ -48,7 +47,7 @@ class ServiceAreaController extends Controller
         // find for the serviceArea
         try {
             $serviceArea = ServiceArea::findRecordOrFail($id);
-        } catch (ModelNotFoundException $exception) {
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $exception) {
             return response()->json(
                 [
                     'error' => 'ServiceArea resource not found.',
@@ -77,7 +76,7 @@ class ServiceAreaController extends Controller
      */
     public function query(Request $request)
     {
-        $results = ServiceArea::queryFromRequest($request);
+        $results = ServiceArea::queryWithRequest($request);
 
         return ServiceAreaResource::collection($results);
     }
@@ -93,7 +92,7 @@ class ServiceAreaController extends Controller
         // find for the serviceArea
         try {
             $serviceArea = ServiceArea::findRecordOrFail($id);
-        } catch (ModelNotFoundException $exception) {
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $exception) {
             return response()->json(
                 [
                     'error' => 'ServiceArea resource not found.',
@@ -117,7 +116,7 @@ class ServiceAreaController extends Controller
         // find for the driver
         try {
             $serviceArea = ServiceArea::findRecordOrFail($id);
-        } catch (ModelNotFoundException $exception) {
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $exception) {
             return response()->json(
                 [
                     'error' => 'ServiceArea resource not found.',

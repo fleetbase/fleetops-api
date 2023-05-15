@@ -13,7 +13,7 @@ class CreateContactRequest extends FleetbaseRequest
      */
     public function authorize()
     {
-        return session('storefront_key') || request()->session()->has('api_credential');
+        return request()->session()->has('storefront_key') || request()->session()->has('api_credential');
     }
 
     /**

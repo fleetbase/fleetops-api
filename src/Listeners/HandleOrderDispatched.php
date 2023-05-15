@@ -10,12 +10,12 @@ use Fleetbase\FleetOps\Notifications\OrderDispatched as OrderDispatchedNotificat
 use Fleetbase\FleetOps\Notifications\OrderPing;
 use Fleetbase\FleetOps\Support\Flow;
 use Fleetbase\FleetOps\Support\Utils;
-// use Illuminate\Contracts\Queue\ShouldQueue;
-// use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Queue\InteractsWithQueue;
 
-class HandleOrderDispatched
+class HandleOrderDispatched implements ShouldQueue
 {
-    // use InteractsWithQueue;
+    use InteractsWithQueue;
 
     /**
      * Handle the event.
@@ -32,8 +32,6 @@ class HandleOrderDispatched
         session([
             'company' => $order->company_uuid
         ]);
-
-        // Log::info('[HandleOrderDispatched] ' . print_r($order, true));
 
         /** make sure driver is assigned if not trigger failed dispatch */
         if (!$order->hasDriverAssigned && !$order->adhoc) {
@@ -62,7 +60,7 @@ class HandleOrderDispatched
             $order->load(['company']);
 
             $pickup = $order->getPickupLocation();
-            $distance = Utils::get($order, 'adhoc_distance') ?? Utils::get($order, 'company.options.fleetops.adhoc_distance', 6000); // defaults to 6km
+            $distance = $order->getAdhocDistance(); 
 
             if (!Utils::isPoint($pickup)) {
                 return;
@@ -100,6 +98,10 @@ class HandleOrderDispatched
             return event(new OrderDispatchFailed($order, 'Order was dispatched, but driver was unable to be notified.'));
         }
 
-        $driver->notify(new OrderDispatchedNotification($order));
+        try {
+            $driver->notify(new OrderDispatchedNotification($order));
+        } catch(\Exception $exception) {
+            // silently fail notifying driver for now
+        }
     }
 }

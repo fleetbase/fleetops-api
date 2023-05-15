@@ -581,9 +581,8 @@ class Lalamove
             $phoneOptions['currency'] = $serviceQuote->currency;
         }
 
-        // If service quote is created from a storefront cart it
-        // should have origin and destination in meta
-        // if from network cart origin will be an array of storeLocations[]
+        // Check if ServiceQuote has an origin and destination
+        // If from network cart origin will be an array of storeLocations[]
         if ($serviceQuote->hasMeta('origin') && $serviceQuote->hasMeta('destination')) {
             $origin = $serviceQuote->getMeta('origin');
             $destination = $serviceQuote->getMeta('destination');

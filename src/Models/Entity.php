@@ -10,7 +10,6 @@ use Fleetbase\Traits\HasInternalId;
 use Fleetbase\Traits\HasUuid;
 use Fleetbase\Casts\Json;
 use Fleetbase\Casts\PolymorphicType;
-use Fleetbase\Storefront\Models\Product;
 use Fleetbase\Traits\HasMetaAttributes;
 use Fleetbase\Traits\HasPublicId;
 use Fleetbase\Traits\SendsWebhooks;
@@ -246,7 +245,7 @@ class Entity extends Model
      */
     public function getPhotoUrlAttribute()
     {
-        return $this->fromCache('photo.s3url', 'https://s3.ap-southeast-1.amazonaws.com/flb-assets/static/parcels/medium.png');
+        return data_get($this, 'photo.s3url', 'https://s3.ap-southeast-1.amazonaws.com/flb-assets/static/parcels/medium.png');
     }
 
     /**
@@ -338,7 +337,7 @@ class Entity extends Model
      */
     public function getTrackingAttribute()
     {
-        return $this->fromCache('trackingNumber.tracking_number');
+        return data_get($this, 'trackingNumber.tracking_number');
     }
 
     /**
@@ -346,7 +345,7 @@ class Entity extends Model
      */
     public function getStatusAttribute()
     {
-        return $this->fromCache('trackingNumber.last_status');
+        return data_get($this, 'trackingNumber.last_status');
     }
 
     public static function insertGetUuid($values = [], ?Payload $payload = null)
@@ -400,25 +399,6 @@ class Entity extends Model
         }
 
         return $result ? $uuid : false;
-    }
-
-    public static function fromStorefrontProduct(Product $product)
-    {
-        return new static([
-            'company_uuid' => session('company'),
-            'photo_uuid' => $product->primary_image_uuid,
-            'internal_id' => $product->public_id,
-            'name' => $product->name,
-            'description' => $product->description,
-            'currency' => $product->currency,
-            'sku' => $product->sku,
-            'price' => $product->price,
-            'sale_price' => $product->sale_price,
-            'meta' => [
-                'product_id' => $product->public_id,
-                'image_url' => $product->primary_image_url,
-            ]
-        ]);
     }
 
     public function setCustomer($model)
