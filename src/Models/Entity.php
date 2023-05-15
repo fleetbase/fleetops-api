@@ -18,7 +18,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 use PhpUnitsOfMeasure\PhysicalQuantity\Length;
 use PhpUnitsOfMeasure\PhysicalQuantity\Mass;
-use Barryvdh\DomPDF\Facade as PDF;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Milon\Barcode\Facades\DNS2DFacade as DNS2D;
 
 class Entity extends Model
@@ -127,7 +127,7 @@ class Entity extends Model
      */
     public function pdfLabel()
     {
-        return PDF::loadHTML($this->label());
+        return Pdf::loadHTML($this->label());
     }
 
     /**

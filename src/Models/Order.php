@@ -25,7 +25,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Grimzy\LaravelMysqlSpatial\Types\Point;
-use Barryvdh\DomPDF\Facade as PDF;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class Order extends Model
 {
@@ -224,7 +224,7 @@ class Order extends Model
      */
     public function pdfLabel()
     {
-        return PDF::loadHTML($this->label());
+        return Pdf::loadHTML($this->label());
     }
 
     /**
@@ -242,7 +242,7 @@ class Order extends Model
     {
         $this->load(['trackingNumber', 'company']);
 
-        return view('labels/default', [
+        return view('fleetops::labels/default', [
             'order' => $this,
             'trackingNumber' => $this->trackingNumber,
             'company' => $this->company,
