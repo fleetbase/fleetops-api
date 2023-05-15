@@ -32,6 +32,8 @@ Route::prefix(config('fleetops.api.routing.prefix', null))->namespace('Fleetbase
                             'contacts',
                             function ($router, $controller) {
                                 $router->get('export', $controller('export'));
+                                $router->get('facilitators/{id}', $controller('getAsFacilitator'));
+                                $router->get('customers/{id}', $controller('getAsCustomer'));
                                 $router->delete('bulk-delete', $controller('bulkDelete'));
                             }
                         );
@@ -138,6 +140,8 @@ Route::prefix(config('fleetops.api.routing.prefix', null))->namespace('Fleetbase
                             function ($router, $controller) {
                                 $router->get('statuses', $controller('statuses'));
                                 $router->get('export', $controller('export'));
+                                $router->get('facilitators/{id}', $controller('getAsFacilitator'));
+                                $router->get('customers/{id}', $controller('getAsCustomer'));
                                 $router->delete('bulk-delete', $controller('bulkDelete'));
                             }
                         );

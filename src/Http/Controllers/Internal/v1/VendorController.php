@@ -27,7 +27,7 @@ class VendorController extends FleetOpsController
      */
     public function getAsFacilitator($id)
     {
-        $vendor = Vendor::where('uuid', $id)->first();
+        $vendor = Vendor::where('uuid', $id)->withTrashed()->first();
 
         if (!$vendor) {
             return response()->error('Facilitator not found.');
@@ -45,7 +45,7 @@ class VendorController extends FleetOpsController
      */
     public function getAsCustomer($id)
     {
-        $vendor = Vendor::where('uuid', $id)->first();
+        $vendor = Vendor::where('uuid', $id)->withTrashed()->first();
 
         if (!$vendor) {
             return response()->error('Customer not found.');

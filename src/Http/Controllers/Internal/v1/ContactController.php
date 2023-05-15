@@ -25,7 +25,7 @@ class ContactController extends FleetOpsController
      */
     public function getAsFacilitator($id)
     {
-        $contact = Contact::where('uuid', $id)->first();
+        $contact = Contact::where('uuid', $id)->withTrashes()->first();
 
         if (!$contact) {
             return response()->error('Facilitator not found.');
@@ -43,7 +43,7 @@ class ContactController extends FleetOpsController
      */
     public function getAsCustomer($id)
     {
-        $contact = Contact::where('uuid', $id)->first();
+        $contact = Contact::where('uuid', $id)->withTrashed()->first();
 
         if (!$contact) {
             return response()->error('Customer not found.');
