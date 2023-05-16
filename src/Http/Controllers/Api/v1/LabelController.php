@@ -6,7 +6,6 @@ use Fleetbase\Http\Controllers\Controller;
 use Fleetbase\FleetOps\Models\Entity;
 use Fleetbase\FleetOps\Models\Waypoint;
 use Fleetbase\FleetOps\Models\Order;
-use Fleetbase\Support\Resp;
 use Illuminate\Http\Request;
 
 class LabelController extends Controller
