@@ -1,6 +1,6 @@
 {
     "name": "fleetbase/fleetops-api",
-    "version": "1.0.0-dev",
+    "version": "1.0.0-alpha",
     "description": "FleetOps TMS and Last-Mile Operations System",
     "keywords": [
         "fleetops",
@@ -24,7 +24,7 @@
         "barryvdh/laravel-dompdf": "^2.0",
         "brick/geo": "0.7.2",
         "cknow/laravel-money": "^7.1",
-        "fleetbase/core-api": "*",
+        "fleetbase/core-api": "^1.0.0-alpha",
         "geocoder-php/google-maps-places-provider": "^1.4",
         "giggsey/libphonenumber-for-php": "^8.13",
         "league/geotools": "^1.1.0",
@@ -50,12 +50,6 @@
             "Fleetbase\\Tests\\": "tests/"
         }
     },
-    "repositories": [
-        {
-            "type": "path",
-            "url": "../core-api"
-        }
-    ],
     "minimum-stability": "dev",
     "prefer-stable": true,
     "extra": {
