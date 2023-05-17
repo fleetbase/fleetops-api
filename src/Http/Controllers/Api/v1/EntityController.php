@@ -1,16 +1,15 @@
 <?php
 
-namespace Fleetbase\Http\Controllers\Api\v1;
+namespace Fleetbase\FleetOps\Http\Controllers\Api\v1;
 
 use Illuminate\Http\Request;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Fleetbase\Http\Controllers\Controller;
-use Fleetbase\Http\Requests\CreateEntityRequest;
-use Fleetbase\Http\Requests\UpdateEntityRequest;
-use Fleetbase\Http\Resources\v1\DeletedResource;
-use Fleetbase\Http\Resources\v1\Entity as EntityResource;
-use Fleetbase\Models\Entity;
-use Fleetbase\Support\Utils;
+use Fleetbase\FleetOps\Http\Requests\CreateEntityRequest;
+use Fleetbase\FleetOps\Http\Requests\UpdateEntityRequest;
+use Fleetbase\FleetOps\Http\Resources\v1\DeletedResource;
+use Fleetbase\FleetOps\Http\Resources\v1\Entity as EntityResource;
+use Fleetbase\FleetOps\Models\Entity;
+use Fleetbase\FleetOps\Support\Utils;
 
 class EntityController extends Controller
 {
@@ -97,7 +96,7 @@ class EntityController extends Controller
         // find for the entity
         try {
             $entity = Entity::findRecordOrFail($id);
-        } catch (ModelNotFoundException $exception) {
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $exception) {
             return response()->json(
                 [
                     'error' => 'Entity resource not found.',
@@ -174,7 +173,7 @@ class EntityController extends Controller
      */
     public function query(Request $request)
     {
-        $results = Entity::queryFromRequest($request);
+        $results = Entity::queryWithRequest($request);
 
         return EntityResource::collection($results);
     }
@@ -190,7 +189,7 @@ class EntityController extends Controller
         // find for the entity
         try {
             $entity = Entity::findRecordOrFail($id);
-        } catch (ModelNotFoundException $exception) {
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $exception) {
             return response()->json(
                 [
                     'error' => 'Entity resource not found.',
@@ -214,7 +213,7 @@ class EntityController extends Controller
         // find for the driver
         try {
             $entity = Entity::findRecordOrFail($id);
-        } catch (ModelNotFoundException $exception) {
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $exception) {
             return response()->json(
                 [
                     'error' => 'Entity resource not found.',

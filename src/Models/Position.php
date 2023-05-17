@@ -1,7 +1,8 @@
 <?php
 
-namespace Fleetbase\Models;
+namespace Fleetbase\FleetOps\Models;
 
+use Fleetbase\Models\Model;
 use Fleetbase\Traits\HasApiModelBehavior;
 use Fleetbase\Traits\HasUuid;
 use Fleetbase\Traits\TracksApiCredential;
@@ -86,7 +87,7 @@ class Position extends Model
      */
     public function company()
     {
-        return $this->belongsTo(Company::class);
+        return $this->belongsTo(\Fleetbase\Models\Company::class);
     }
 
     /**

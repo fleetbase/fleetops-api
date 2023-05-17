@@ -1,16 +1,15 @@
 <?php
 
-namespace Fleetbase\Http\Controllers\Api\v1;
+namespace Fleetbase\FleetOps\Http\Controllers\Api\v1;
 
 use Illuminate\Http\Request;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Fleetbase\Http\Controllers\Controller;
-use Fleetbase\Http\Requests\CreateVendorRequest;
-use Fleetbase\Http\Requests\UpdateVendorRequest;
-use Fleetbase\Http\Resources\v1\DeletedResource;
-use Fleetbase\Http\Resources\v1\Vendor as VendorResource;
-use Fleetbase\Models\Vendor;
-use Fleetbase\Support\Utils;
+use Fleetbase\FleetOps\Http\Requests\CreateVendorRequest;
+use Fleetbase\FleetOps\Http\Requests\UpdateVendorRequest;
+use Fleetbase\FleetOps\Http\Resources\v1\DeletedResource;
+use Fleetbase\FleetOps\Http\Resources\v1\Vendor as VendorResource;
+use Fleetbase\FleetOps\Models\Vendor;
+use Fleetbase\FleetOps\Support\Utils;
 
 class VendorController extends Controller
 {
@@ -64,7 +63,7 @@ class VendorController extends Controller
         // find for the vendor
         try {
             $vendor = Vendor::findRecordOrFail($id);
-        } catch (ModelNotFoundException $exception) {
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $exception) {
             return response()->json(
                 [
                     'error' => 'Vendor resource not found.',
@@ -103,7 +102,7 @@ class VendorController extends Controller
      */
     public function query(Request $request)
     {
-        $results = Vendor::queryFromRequest($request);
+        $results = Vendor::queryWithRequest($request);
 
         return VendorResource::collection($results);
     }
@@ -119,7 +118,7 @@ class VendorController extends Controller
         // find for the vendor
         try {
             $vendor = Vendor::findRecordOrFail($id);
-        } catch (ModelNotFoundException $exception) {
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $exception) {
             return response()->json(
                 [
                     'error' => 'Vendor resource not found.',
@@ -143,7 +142,7 @@ class VendorController extends Controller
         // find for the driver
         try {
             $vendor = Vendor::findRecordOrFail($id);
-        } catch (ModelNotFoundException $exception) {
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $exception) {
             return response()->json(
                 [
                     'error' => 'Vendor resource not found.',

@@ -1,10 +1,9 @@
 <?php
 
-namespace Fleetbase\Models;
+namespace Fleetbase\FleetOps\Models;
 
+use Fleetbase\Models\Model;
 use Fleetbase\Traits\HasUuid;
-use Fleetbase\Models\EmberModel;
-use Fleetbase\Traits\TracksApiCredential;
 
 class ServiceQuoteItem extends Model
 {

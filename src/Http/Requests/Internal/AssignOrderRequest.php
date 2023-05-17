@@ -1,8 +1,8 @@
 <?php
 
-namespace Fleetbase\Http\Requests\Internal;
+namespace Fleetbase\FleetOps\Http\Requests\Internal;
 
-use Fleetbase\Http\Requests\Request;
+use Fleetbase\Http\Requests\FleetbaseRequest;
 
 class AssignOrderRequest extends FleetbaseRequest
 {

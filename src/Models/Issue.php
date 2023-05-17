@@ -1,11 +1,13 @@
 <?php
 
-namespace Fleetbase\Models;
+namespace Fleetbase\FleetOps\Models;
 
+use Fleetbase\FleetOps\Casts\Point;
+use Fleetbase\Models\Model;
 use Fleetbase\Traits\HasUuid;
 use Fleetbase\Traits\TracksApiCredential;
 use Fleetbase\Traits\HasPublicId;
-use Fleetbase\Support\Utils;
+use Fleetbase\FleetOps\Support\Utils;
 use Fleetbase\Traits\HasApiModelBehavior;
 use Grimzy\LaravelMysqlSpatial\Eloquent\SpatialTrait;
 use Grimzy\LaravelMysqlSpatial\Types\Geometry;
@@ -64,7 +66,7 @@ class Issue extends Model
      * @var array
      */
     protected $spatialFields = [
-        'location'
+        'location' => Point::class
     ];
 
     /**
@@ -82,54 +84,23 @@ class Issue extends Model
     protected $hidden = [];
 
     /**
-     * Convert coordinates to spatial geometry
-     *
-     * @param Object $coordinates
-     * @return void
-     */
-    public function setLocationAttribute($location) {
-
-        if(Utils::exists($location, 'coordinates')) {
-            $location['coordinates'] = array_map(function($coord) {
-                return (float) $coord;
-            }, Utils::get($location, 'coordinates'));
-        }
-
-        if(Utils::exists($location, 'bbox')) {
-            $location['bbox'] = array_map(function($coord) {
-                return (float) $coord;
-            }, Utils::get($location, 'bbox'));
-        }
-
-        $location = Geometry::fromJson(json_encode($location));
-
-        $this->attributes['location'] = $location;
-    }
-
-    /**
-     * User who reported issue
-     *
-     * @var Model
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function reportedBy()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(\Fleetbase\Models\User::class);
     }
 
     /**
-     * User assigned to issue
-     *
-     * @var Model
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function assignedTo()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(\Fleetbase\Models\User::class);
     }
 
     /**
-     * Vehicle reported from or for
-     *
-     * @var Model
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function vehicle()
     {

@@ -1,29 +1,61 @@
 <?php
 
-namespace Fleetbase\Providers;
+namespace Fleetbase\FleetOps\Providers;
 
-use Exception;
-
-require __DIR__ . '/../../vendor/autoload.php';
+use Fleetbase\Providers\CoreServiceProvider;
+use Brick\Geo\Engine\GeometryEngineRegistry;
+use Brick\Geo\Engine\GEOSEngine;
 
 if (!class_exists(CoreServiceProvider::class)) {
-    throw new Exception('FleetOps cannot be loaded without `fleetbase/core-api` installed!');
+    throw new \Exception('FleetOps cannot be loaded without `fleetbase/core-api` installed!');
 }
 
 /**
- * CoreServiceProvider
+ * FleetOps service provider.
+ *
+ * @package \Fleetbase\FleetOps\Providers
  */
 class FleetOpsServiceProvider extends CoreServiceProvider
 {
     /**
+     * The observers registered with the service provider.
+     *
+     * @var array
+     */
+    public $observers = [
+        \Fleetbase\FleetOps\Models\Order::class => \Fleetbase\FleetOps\Observers\OrderObserver::class,
+        \Fleetbase\FleetOps\Models\Payload::class => \Fleetbase\FleetOps\Observers\PayloadObserver::class,
+        \Fleetbase\FleetOps\Models\Place::class => \Fleetbase\FleetOps\Observers\PlaceObserver::class,
+        \Fleetbase\FleetOps\Models\ServiceRate::class => \Fleetbase\FleetOps\Observers\ServiceRateObserver::class,
+        \Fleetbase\FleetOps\Models\PurchaseRate::class => \Fleetbase\FleetOps\Observers\PurchaseRateObserver::class,
+        \Fleetbase\FleetOps\Models\ServiceArea::class => \Fleetbase\FleetOps\Observers\ServiceAreaObserver::class,
+        \Fleetbase\FleetOps\Models\TrackingNumber::class => \Fleetbase\FleetOps\Observers\TrackingNumberObserver::class,
+        \Fleetbase\FleetOps\Models\Driver::class => \Fleetbase\FleetOps\Observers\DriverObserver::class,
+        \Fleetbase\FleetOps\Models\Vehicle::class => \Fleetbase\FleetOps\Observers\VehicleObserver::class,
+        \Fleetbase\Models\User::class => \Fleetbase\FleetOps\Observers\UserObserver::class,
+    ];
+
+    /**
      * Bootstrap any package services.
      *
      * @return void
+     *
+     * @throws \Exception If the `fleetbase/core-api` package is not installed.
      */
     public function boot()
     {
+        $this->registerObservers();
         $this->registerExpansionsFrom(__DIR__ . '/../Expansions');
         $this->loadRoutesFrom(__DIR__ . '/../routes.php');
+        $this->loadMigrationsFrom(__DIR__ . '/../../migrations');
+        $this->loadViewsFrom(__DIR__ . '/../../resources/views', 'fleetops');
         $this->mergeConfigFrom(__DIR__ . '/../../config/fleetops.php', 'fleetops');
+        $this->mergeConfigFrom(__DIR__ . '/../../config/api.php', 'api');
+        $this->mergeConfigFrom(__DIR__ . '/../../config/cache.stores.php', 'cache.stores');
+        $this->mergeConfigFrom(__DIR__ . '/../../config/geocoder.php', 'geocoder');
+        $this->mergeConfigFrom(__DIR__ . '/../../config/dompdf.php', 'dompdf');
+
+        // Register the GeometryEngine for GEOSEngine
+        GeometryEngineRegistry::set(new GEOSEngine());
     }
 }

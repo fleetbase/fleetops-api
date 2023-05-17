@@ -1,36 +1,30 @@
 <?php
 
-namespace Fleetbase\Http\Controllers\Api\v1;
+namespace Fleetbase\FleetOps\Http\Controllers\Api\v1;
 
-
-use Exception;
-use Fleetbase\Events\DriverLocationChanged;
-use Illuminate\Http\Request;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Fleetbase\Http\Controllers\Controller;
-use Fleetbase\Http\Requests\CreateDriverRequest;
-use Fleetbase\Http\Requests\UpdateDriverRequest;
+use Fleetbase\Fleetops\Events\DriverLocationChanged;
+use Fleetbase\FleetOps\Http\Requests\CreateDriverRequest;
+use Fleetbase\FleetOps\Http\Requests\UpdateDriverRequest;
+use Fleetbase\Fleetops\Http\Resources\v1\DeletedResource;
+use Fleetbase\FleetOps\Http\Resources\v1\Driver as DriverResource;
+use Fleetbase\FleetOps\Support\Utils;
+use Fleetbase\FleetOps\Support\Flow;
+use Fleetbase\FleetOps\Models\Driver;
 use Fleetbase\Http\Requests\SwitchOrganizationRequest;
-// use Fleetbase\Http\Resources\v1\Company as CompanyResource;
-use Fleetbase\Http\Resources\v1\DeletedResource;
-use Fleetbase\Http\Resources\v1\Driver as DriverResource;
-use Fleetbase\Http\Resources\v1\Organization;
+use Fleetbase\Http\Resources\Organization;
 use Fleetbase\Models\Company;
 use Fleetbase\Models\CompanyUser;
-use Fleetbase\Support\Utils;
-use Fleetbase\Models\Driver;
-// use Fleetbase\Models\Position;
 use Fleetbase\Models\User;
 use Fleetbase\Models\UserDevice;
 use Fleetbase\Models\VerificationCode;
-use Fleetbase\Support\Api;
-use Fleetbase\Support\Authy;
-use Fleetbase\Support\Resp;
-use Grimzy\LaravelMysqlSpatial\Types\Point;
-use Geocoder\Laravel\Facades\Geocoder;
+use Fleetbase\Support\Auth;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Illuminate\Support\Carbon;
+use Grimzy\LaravelMysqlSpatial\Types\Point;
+use Geocoder\Laravel\Facades\Geocoder;
 
 class DriverController extends Controller
 {
@@ -107,7 +101,7 @@ class DriverController extends Controller
         // find for the driver
         try {
             $driver = Driver::findRecordOrFail($id, ['user']);
-        } catch (ModelNotFoundException $exception) {
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $exception) {
             return response()->json(
                 [
                     'error' => 'Driver resource not found.',
@@ -168,13 +162,16 @@ class DriverController extends Controller
      */
     public function query(Request $request)
     {
-        $results = Driver::queryFromRequest($request, function (&$query, $request) {
-            if ($request->has('vendor')) {
-                $query->whereHas('vendor', function ($q) use ($request) {
-                    $q->where('public_id', $request->input('vendor'));
-                });
+        $results = Driver::queryWithRequest(
+            $request,
+            function (&$query, $request) {
+                if ($request->has('vendor')) {
+                    $query->whereHas('vendor', function ($q) use ($request) {
+                        $q->where('public_id', $request->input('vendor'));
+                    });
+                }
             }
-        });
+        );
 
         return DriverResource::collection($results);
     }
@@ -186,12 +183,12 @@ class DriverController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Fleetbase\Http\Resources\DriverCollection
      */
-    public function find($id, Request $request)
+    public function find($id)
     {
         // find for the driver
         try {
             $driver = Driver::findRecordOrFail($id, ['user', 'vehicle', 'vendor', 'currentJob']);
-        } catch (ModelNotFoundException $exception) {
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $exception) {
             return response()->json(
                 [
                     'error' => 'Driver resource not found.',
@@ -216,7 +213,7 @@ class DriverController extends Controller
         // find for the driver
         try {
             $driver = Driver::findRecordOrFail($id, ['user', 'vehicle', 'vendor', 'currentJob']);
-        } catch (ModelNotFoundException $exception) {
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $exception) {
             return response()->json(
                 [
                     'error' => 'Driver resource not found.',
@@ -249,7 +246,7 @@ class DriverController extends Controller
 
         try {
             $driver = Driver::findRecordOrFail($id);
-        } catch (ModelNotFoundException $exception) {
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $exception) {
             return response()->json(
                 [
                     'error' => 'Driver resource not found.',
@@ -293,13 +290,13 @@ class DriverController extends Controller
      *
      * @param  string  $id
      * @param  \Illuminate\Http\Request  $request
-     * @return \Fleetbase\Http\Resources\Storefront\Customer
+     * @return \Illuminate\Http\Response
      */
     public function registerDevice(string $id, Request $request)
     {
         try {
             $driver = Driver::findRecordOrFail($id);
-        } catch (ModelNotFoundException $exception) {
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $exception) {
             return response()->json(
                 [
                     'error' => 'Driver resource not found.',
@@ -312,11 +309,11 @@ class DriverController extends Controller
         $platform = $request->or(['platform', 'os']);
 
         if (!$token) {
-            return Resp::error('Token is required to register device.');
+            return response()->error('Token is required to register device.');
         }
 
         if (!$platform) {
-            return Resp::error('Platform is required to register device.');
+            return response()->error('Platform is required to register device.');
         }
 
         $device = UserDevice::firstOrCreate(
@@ -332,7 +329,7 @@ class DriverController extends Controller
             ]
         );
 
-        return Resp::json([
+        return response()->json([
             'device' => $device->public_id
         ]);
     }
@@ -341,7 +338,7 @@ class DriverController extends Controller
      * Authenticates customer using login credentials and returns with auth token.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @return \Fleetbase\Http\Resources\Storefront\Customer
+     * @return \Fleetbase\FleetOps\Http\Resources\v1\Driver
      */
     public function login(Request $request)
     {
@@ -352,11 +349,11 @@ class DriverController extends Controller
         $user = User::where('email', $identity)->orWhere('phone', static::phone($identity))->first();
 
         if (!Hash::check($password, $user->password)) {
-            return Resp::error('Authentication failed using password provided.', 401);
+            return response()->error('Authentication failed using password provided.', 401);
         }
 
         // get the current company session
-        $company = Api::getCompanySession();
+        $company = Flow::getCompanySession();
 
         // get driver record
         $driver = Driver::firstOrCreate(
@@ -376,8 +373,8 @@ class DriverController extends Controller
         // generate auth token
         try {
             $token = $user->createToken($driver->uuid);
-        } catch (Exception $e) {
-            return Resp::error($e->getMessage());
+        } catch (\Exception $e) {
+            return response()->error($e->getMessage());
         }
 
         $driver->token = $token->plainTextToken;
@@ -399,11 +396,11 @@ class DriverController extends Controller
         $user = User::where('phone', $phone)->whereNull('deleted_at')->withoutGlobalScopes()->first();
 
         if (!$user) {
-            return Resp::error('No driver with this phone # found.');
+            return response()->error('No driver with this phone # found.');
         }
 
         // get the current company session
-        $company = Api::getCompanySession();
+        $company = Flow::getCompanySession();
 
         // generate verification token
         VerificationCode::generateSmsVerificationFor($user, 'driver_login', function ($verification) use ($company) {
@@ -417,7 +414,7 @@ class DriverController extends Controller
      * Verifys SMS code and sends auth token with customer resource.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @return \Fleetbase\Http\Resources\Storefront\Customer
+     * @return \Fleetbase\FleetOps\Http\Resources\v1\Driver
      */
     public function verifyCode(Request $request)
     {
@@ -434,18 +431,18 @@ class DriverController extends Controller
         $user = User::where('phone', $identity)->orWhere('email', $identity)->first();
 
         if (!$user) {
-            return Resp::error('Unable to verify code.');
+            return response()->error('Unable to verify code.');
         }
 
         // find and verify code
         $verificationCode = VerificationCode::where(['subject_uuid' => $user->uuid, 'code' => $code, 'for' => $for])->exists();
 
         if (!$verificationCode && $code !== '999000') {
-            return Resp::error('Invalid verification code!');
+            return response()->error('Invalid verification code!');
         }
 
         // get the current company session
-        $company = Api::getCompanySession();
+        $company = Flow::getCompanySession();
 
         // get driver record
         $driver = Driver::firstOrCreate(
@@ -466,8 +463,8 @@ class DriverController extends Controller
         // generate auth token
         try {
             $token = $user->createToken($driver->uuid);
-        } catch (Exception $e) {
-            return Resp::error($e->getMessage());
+        } catch (\Exception $e) {
+            return response()->error($e->getMessage());
         }
 
         // $driver->update(['auth_token' => $token->plainTextToken]);
@@ -500,13 +497,13 @@ class DriverController extends Controller
      *
      * @param  string  $id
      * @param  \Illuminate\Http\Request  $request
-     * @return \Fleetbase\Http\Resources\Storefront\Customer
+     * @return \Fleetbase\Http\Resources\Organization
      */
     public function listOrganizations(string $id, Request $request)
     {
         try {
             $driver = Driver::findRecordOrFail($id, ['user.companies']);
-        } catch (ModelNotFoundException $exception) {
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $exception) {
             return response()->json(
                 [
                     'error' => 'Driver resource not found.',
@@ -527,7 +524,7 @@ class DriverController extends Controller
      *
      * @param  string  $id
      * @param \Fleetbase\Http\Requests\SwitchOrganizationRequest $request
-     * @return \Fleetbase\Http\Resources\Storefront\Customer
+     * @return \Fleetbase\Http\Resources\Organization
      */
     public function switchOrganization(string $id, SwitchOrganizationRequest $request)
     {
@@ -535,7 +532,7 @@ class DriverController extends Controller
 
         try {
             $driver = Driver::findRecordOrFail($id, ['user']);
-        } catch (ModelNotFoundException $exception) {
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $exception) {
             return response()->json(
                 [
                     'error' => 'Driver resource not found.',
@@ -560,7 +557,7 @@ class DriverController extends Controller
         }
 
         $driver->user->assignCompany($company);
-        Authy::setSession($driver->user);
+        Auth::setSession($driver->user);
 
         return new Organization($company);
     }

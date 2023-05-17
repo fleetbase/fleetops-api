@@ -1,34 +1,32 @@
 <?php
 
-namespace Fleetbase\Http\Controllers\Internal\v1;
+namespace Fleetbase\FleetOps\Http\Controllers\Internal\v1;
 
-use Fleetbase\Http\Controllers\FleetbaseController;
-use Fleetbase\Http\Requests\BulkActionRequest;
-use Fleetbase\Http\Requests\CancelOrderRequest;
-use Fleetbase\Imports\OrdersImport;
+use Fleetbase\FleetOps\Http\Controllers\FleetOpsController;
+use Fleetbase\FleetOps\Http\Requests\CancelOrderRequest;
+use Fleetbase\FleetOps\Models\Order;
+use Fleetbase\FleetOps\Models\TrackingStatus;
+use Fleetbase\FleetOps\Events\OrderDispatchFailed;
+use Fleetbase\FleetOps\Models\Driver;
+use Fleetbase\FleetOps\Models\Entity;
+use Fleetbase\FleetOps\Models\Payload;
+use Fleetbase\FleetOps\Models\Place;
+use Fleetbase\FleetOps\Models\Waypoint;
+use Fleetbase\FleetOps\Models\ServiceQuote;
+use Fleetbase\FleetOps\Imports\OrdersImport;
+use Fleetbase\FleetOps\Support\Flow;
+use Fleetbase\FleetOps\Support\Utils;
+use Fleetbase\FleetOps\Events\OrderStarted;
+use Fleetbase\Http\Requests\Internal\BulkDeleteRequest;
 use Fleetbase\Models\File;
-use Fleetbase\Models\Order;
-use Fleetbase\Models\TrackingStatus;
 use Fleetbase\Models\Type;
-use Fleetbase\Support\Api;
-use Fleetbase\Support\Utils;
-use Fleetbase\Events\OrderDispatchFailed;
-use Fleetbase\Models\Driver;
-use Fleetbase\Models\Entity;
-use Fleetbase\Models\Payload;
-use Fleetbase\Models\Place;
-use Fleetbase\Models\Waypoint;
-use Fleetbase\Models\ServiceQuote;
-use Fleetbase\Notifications\StorefrontOrderEnroute;
+use Fleetbase\Exceptions\FleetbaseRequestValidationException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
-use Exception;
-use Fleetbase\Exceptions\FleetbaseRequestValidationException;
-use Illuminate\Database\QueryException;
 
-class OrderController extends FleetbaseController
+class OrderController extends FleetOpsController
 {
     /**
      * The resource to query
@@ -58,7 +56,7 @@ class OrderController extends FleetbaseController
                         // create order with integrated vendor, then resume fleetbase order creation
                         try {
                             $integratedVendorOrder = $serviceQuote->integratedVendor->api()->createOrderFromServiceQuote($serviceQuote, $request);
-                        } catch (Exception $e) {
+                        } catch (\Exception $e) {
                             return response()->error($e->getMessage());
                         }
 
@@ -110,10 +108,10 @@ class OrderController extends FleetbaseController
                 }
             );
 
-            return new $this->resource($record); 
-        } catch (Exception $e) {
+            return ['order' => new $this->resource($record)];
+        } catch (\Exception $e) {
             return response()->error($e->getMessage());
-        } catch (QueryException $e) {
+        } catch (\Illuminate\Database\QueryException $e) {
             return response()->error($e->getMessage());
         } catch (FleetbaseRequestValidationException $e) {
             return response()->error($e->getErrors());
@@ -144,7 +142,7 @@ class OrderController extends FleetbaseController
 
             try {
                 $data = Excel::toArray(new OrdersImport(), $file->path, 's3');
-            } catch (Exception $e) {
+            } catch (\Exception $e) {
                 return response()->error('Invalid file, unable to proccess.');
             }
 
@@ -194,10 +192,10 @@ class OrderController extends FleetbaseController
     /**
      * Updates a order to canceled and updates order activity.
      *
-     * @param  \Fleetbase\Http\Requests\BulkActionRequest  $request
+     * @param  \Fleetbase\Http\Requests\Internal\BulkDeleteRequest  $request
      * @return \Illuminate\Http\Response
      */
-    public function bulkDelete(BulkActionRequest $request)
+    public function bulkDelete(BulkDeleteRequest $request)
     {
         $ids = $request->input('ids', []);
 
@@ -225,10 +223,10 @@ class OrderController extends FleetbaseController
     /**
      * Updates a order to canceled and updates order activity.
      *
-     * @param  \Fleetbase\Http\Requests\BulkActionRequest  $request
+     * @param  \Fleetbase\Http\Requests\Internal\BulkDeleteRequest  $request
      * @return \Illuminate\Http\Response
      */
-    public function bulkCancel(BulkActionRequest $request)
+    public function bulkCancel(BulkDeleteRequest $request)
     {
         /** @var \Fleetbase\Models\Order */
         $orders = Order::whereIn('uuid', $request->input('ids'))->get();
@@ -333,12 +331,12 @@ class OrderController extends FleetbaseController
         }
 
         /** 
-         * @var \Fleetbase\Models\Driver 
+         * @var \Fleetbase\FleetOps\Models\Driver 
          */
         $driver = Driver::where('uuid', $order->driver_assigned_uuid)->withoutGlobalScopes()->first();
 
         /** 
-         * @var \Fleetbase\Models\Payload 
+         * @var \Fleetbase\FleetOps\Models\Payload 
          */
         $payload = Payload::where('uuid', $order->payload_uuid)->withoutGlobalScopes()->with(['waypoints', 'waypointMarkers', 'entities'])->first();
 
@@ -351,12 +349,15 @@ class OrderController extends FleetbaseController
         $order->started_at = now();
         $order->save();
 
+        // trigger start event
+        event(new OrderStarted($order));
+
         // set order as drivers current order
         $driver->current_job_uuid = $order->uuid;
         $driver->save();
 
         // get the next order activity
-        $flow = $activity = Api::getNextActivity($order);
+        $flow = $activity = Flow::getNextActivity($order);
 
         /** 
          * @var \Grimzy\LaravelMysqlSpatial\Types\Point 
@@ -380,12 +381,6 @@ class OrderController extends FleetbaseController
             foreach ($payload->entities as $entity) {
                 $entity->insertActivity($activity['status'], $activity['details'], $location, $activity['code']);
             }
-        }
-
-        // if storefront order / notify customer driver has started and is en-route
-        if ($order->hasMeta('storefront_id')) {
-            $order->load(['customer']);
-            $order->customer->notify(new StorefrontOrderEnroute($order));
         }
 
         // update order activity
@@ -474,7 +469,7 @@ class OrderController extends FleetbaseController
             return response()->error('No order found.');
         }
 
-        $flow = Api::getOrderFlow($order);
+        $flow = Flow::getOrderFlow($order);
 
         return response()->json($flow);
     }

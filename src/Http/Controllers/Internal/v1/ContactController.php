@@ -1,16 +1,15 @@
 <?php
 
-namespace Fleetbase\Http\Controllers\Internal\v1;
+namespace Fleetbase\FleetOps\Http\Controllers\Internal\v1;
 
-use Fleetbase\Exports\ContactExport;
-use Fleetbase\Http\Controllers\FleetbaseController;
+use Fleetbase\FleetOps\Http\Controllers\FleetOpsController;
+use Fleetbase\FleetOps\Exports\ContactExport;
 use Fleetbase\Http\Requests\ExportRequest;
-use Fleetbase\Models\Contact;
-use Fleetbase\Support\Resp;
+use Fleetbase\FleetOps\Models\Contact;
 use Illuminate\Support\Str;
 use Maatwebsite\Excel\Facades\Excel;
 
-class ContactController extends FleetbaseController
+class ContactController extends FleetOpsController
 {
     /**
      * The resource to query
@@ -18,7 +17,7 @@ class ContactController extends FleetbaseController
      * @var string
      */
     public $resource = 'contact';
-    
+
     /**
      * Returns the contact as a `facilitator-contact`
      *
@@ -26,7 +25,7 @@ class ContactController extends FleetbaseController
      */
     public function getAsFacilitator($id)
     {
-        $contact = Contact::where('uuid', $id)->first();
+        $contact = Contact::where('uuid', $id)->withTrashes()->first();
 
         if (!$contact) {
             return response()->error('Facilitator not found.');
@@ -44,7 +43,7 @@ class ContactController extends FleetbaseController
      */
     public function getAsCustomer($id)
     {
-        $contact = Contact::where('uuid', $id)->first();
+        $contact = Contact::where('uuid', $id)->withTrashed()->first();
 
         if (!$contact) {
             return response()->error('Customer not found.');

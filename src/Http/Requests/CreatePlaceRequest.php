@@ -1,9 +1,9 @@
 <?php
 
-namespace Fleetbase\Http\Requests;
+namespace Fleetbase\FleetOps\Http\Requests;
 
+use Fleetbase\Http\Requests\FleetbaseRequest;
 use Fleetbase\Rules\ExistsInAny;
-use Fleetbase\Support\Utils;
 use Illuminate\Validation\Rule;
 
 class CreatePlaceRequest extends FleetbaseRequest

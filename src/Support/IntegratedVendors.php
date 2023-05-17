@@ -1,8 +1,12 @@
 <?php
 
-namespace Fleetbase\Support;
+namespace Fleetbase\FleetOps\Support;
 
-use Fleetbase\Models\IntegratedVendor;
+use Fleetbase\FleetOps\Integrations\Lalamove\Lalamove;
+use Fleetbase\FleetOps\Integrations\Lalamove\LalamoveServiceType;
+use Fleetbase\FleetOps\Integrations\Lalamove\LalamoveMarket;
+use Fleetbase\FleetOps\Models\IntegratedVendor;
+use Fleetbase\FleetOps\Support\Utils;
 use Illuminate\Support\Str;
 
 class ResolvedIntegratedVendor
@@ -84,11 +88,11 @@ class ResolvedIntegratedVendor
             }
 
             if ($key === 'sandbox') {
-                $resolvedParams[$key] = Utils::castBoolean(Utils::get($this->vendor, $path));
+                $resolvedParams[$key] = Utils::castBoolean(data_get($this->vendor, $path));
                 continue;
             }
 
-            $resolvedParams[$key] = Utils::get($this->vendor, $path);
+            $resolvedParams[$key] = data_get($this->vendor, $path);
         }
 
         return $resolvedParams;
@@ -171,7 +175,7 @@ class ResolvedIntegratedVendor
             return;
         }
 
-        $callbacks = Utils::get($this->callbacks, $callback, []);
+        $callbacks = data_get($this->callbacks, $callback, []);
         $api = $this->getBridgeInstance();
 
         if (is_array($callbacks)) {

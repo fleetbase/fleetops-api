@@ -1,8 +1,9 @@
 <?php
 
-namespace Fleetbase\Http\Resources\v1;
+namespace Fleetbase\FleetOps\Http\Resources\v1;
 
 use Fleetbase\Http\Resources\FleetbaseResource;
+use Fleetbase\Support\Http;
 
 class ServiceQuote extends FleetbaseResource
 {
@@ -15,9 +16,14 @@ class ServiceQuote extends FleetbaseResource
     public function toArray($request)
     {
         return [
-            'id' => $this->public_id,
-            'service_rate' => $this->serviceRate->public_id ?? null,
-            'facilitator' => $this->integratedVendor->public_id ?? null,
+            'id' => $this->when(Http::isInternalRequest(), $this->id, $this->public_id),
+            'uuid' => $this->when(Http::isInternalRequest(), $this->uuid),
+            'public_id' => $this->when(Http::isInternalRequest(), $this->public_id),
+            'service_rate_uuid' => $this->when(Http::isInternalRequest(), $this->service_rate_uuid),
+            'payload_uuid' => $this->when(Http::isInternalRequest(), $this->payload_uuid),
+            'service_rate_name' => $this->when(Http::isInternalRequest(), data_get($this, 'serviceRate.name')),
+            'service_rate' => $this->when(Http::isPublicRequest(), data_get($this, 'serviceRate.public_id')),
+            'facilitator' => $this->when(Http::isPublicRequest(), data_get($this, 'integratedVendor.public_id')),
             'request_id' => $this->request_id,
             'amount' => $this->amount,
             'currency' => $this->currency,
@@ -35,8 +41,8 @@ class ServiceQuote extends FleetbaseResource
     {
         return [
             'id' => $this->public_id,
-            'service_rate' => $this->serviceRate->public_id ?? null,
-            'facilitator' => $this->integratedVendor->public_id ?? null,
+            'service_rate' => data_get($this, 'serviceRate.public_id'),
+            'facilitator' => data_get($this, 'integratedVendor.public_id'),
             'request_id' => $this->request_id,
             'amount' => $this->amount,
             'currency' => $this->currency,

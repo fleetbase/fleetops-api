@@ -1,9 +1,10 @@
 <?php
 
-namespace Fleetbase\Http\Resources\v1;
+namespace Fleetbase\FleetOps\Http\Resources\v1;
 
 use Fleetbase\Http\Resources\FleetbaseResource;
-use Fleetbase\Support\Utils;
+use Fleetbase\FleetOps\Support\Utils;
+use Fleetbase\Support\Http;
 
 class PurchaseRate extends FleetbaseResource
 {
@@ -16,7 +17,9 @@ class PurchaseRate extends FleetbaseResource
     public function toArray($request)
     {
         return [
-            'id' => $this->public_id,
+            'id' => $this->when(Http::isInternalRequest(), $this->id, $this->public_id),
+            'uuid' => $this->when(Http::isInternalRequest(), $this->uuid),
+            'public_id' => $this->when(Http::isInternalRequest(), $this->public_id),
             'service_quote' => $this->service_quote_id,
             'order' => $this->order_id,
             'customer' => $this->customer_id,

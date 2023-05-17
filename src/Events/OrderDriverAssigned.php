@@ -1,6 +1,8 @@
 <?php
 
-namespace Fleetbase\Events;
+namespace Fleetbase\FleetOps\Events;
+
+use Fleetbase\Events\ResourceLifecycleEvent;
 
 class OrderDriverAssigned extends ResourceLifecycleEvent
 {

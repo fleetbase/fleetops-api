@@ -1,19 +1,18 @@
 <?php
 
-namespace Fleetbase\Http\Controllers\Internal\v1;
+namespace Fleetbase\FleetOps\Http\Controllers\Internal\v1;
 
-use Fleetbase\Http\Controllers\FleetbaseController;
-use Fleetbase\Models\Entity;
+use Fleetbase\FleetOps\Http\Controllers\FleetOpsController;
+use Fleetbase\FleetOps\Models\Entity;
+use Fleetbase\FleetOps\Models\Order;
+use Fleetbase\FleetOps\Models\Proof;
+use Fleetbase\FleetOps\Models\Waypoint;
+use Fleetbase\FleetOps\Support\Utils;
 use Fleetbase\Models\File;
-use Fleetbase\Models\Order;
-use Fleetbase\Models\Proof;
-use Fleetbase\Models\Waypoint;
-use Fleetbase\Support\Resp;
-use Fleetbase\Support\Utils;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
-class ProofController extends FleetbaseController
+class ProofController extends FleetOpsController
 {
     /**
      * The resource to query

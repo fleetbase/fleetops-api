@@ -1,11 +1,15 @@
 <?php
 
-namespace Fleetbase\Http\Controllers\Internal\v1;
+namespace Fleetbase\FleetOps\Http\Controllers\Internal\v1;
 
-use Fleetbase\Http\Controllers\FleetbaseController;
+use Fleetbase\FleetOps\Http\Controllers\FleetOpsController;
+use Fleetbase\FleetOps\Exports\DriverExport;
+use Fleetbase\Http\Requests\ExportRequest;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+use Maatwebsite\Excel\Facades\Excel;
 
-class DriverController extends FleetbaseController
+class DriverController extends FleetOpsController
 {
   /**
    * The resource to query
@@ -26,9 +30,24 @@ class DriverController extends FleetbaseController
       ->where('company_uuid', session('company'))
       ->distinct()
       ->get()
+      ->pluck('status')
       ->filter()
-      ->pluck('status');
+      ->values();
 
     return response()->json($statuses);
+  }
+
+  /**
+   * Export the drivers to excel or csv
+   *
+   * @param  \Illuminate\Http\Request  $query
+   * @return \Illuminate\Http\Response
+   */
+  public static function export(ExportRequest $request)
+  {
+    $format = $request->input('format', 'xlsx');
+    $fileName = trim(Str::slug('drivers-' . date('Y-m-d-H:i')) . '.' . $format);
+
+    return Excel::download(new DriverExport(), $fileName);
   }
 }

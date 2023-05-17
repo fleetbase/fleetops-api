@@ -1,10 +1,10 @@
 <?php
 
-namespace Fleetbase\Http\Resources\v1;
+namespace Fleetbase\FleetOps\Http\Resources\v1;
 
 use Fleetbase\Http\Resources\FleetbaseResource;
 use Fleetbase\Support\Resolve;
-use Illuminate\Support\Arr;
+use Fleetbase\Support\Http;
 use Grimzy\LaravelMysqlSpatial\Types\Point;
 
 class Place extends FleetbaseResource
@@ -17,11 +17,14 @@ class Place extends FleetbaseResource
      */
     public function toArray($request)
     {
-        $place = [
-            'id' => $this->public_id ?? null,
+        return [
+            'id' => $this->when(Http::isInternalRequest(), $this->id, $this->public_id),
+            'uuid' => $this->when(Http::isInternalRequest(), $this->uuid),
+            'public_id' => $this->when(Http::isInternalRequest(), $this->public_id),
             'name' => $this->name,
             'location' => $this->location ?? new Point(0, 0),
             'address' => $this->address,
+            'address_html' => $this->when(Http::isInternalRequest(), $this->address_html),
             'street1' => $this->street1 ?? null,
             'street2' => $this->street2 ?? null,
             'city' => $this->city ?? null,
@@ -32,19 +35,15 @@ class Place extends FleetbaseResource
             'building' => $this->building ?? null,
             'security_access_code' => $this->security_access_code ?? null,
             'country' => $this->country ?? null,
+            'country_name' => $this->when(Http::isInternalRequest(), $this->country_name),
             'phone' => $this->phone ?? null,
-            'owner' => Resolve::resourceForMorph($this->owner_type, $this->owner_uuid),
+            'owner' => $this->when(!Http::isInternalRequest(), Resolve::resourceForMorph($this->owner_type, $this->owner_uuid)),
+            'tracking_number' => $this->whenLoaded('trackingNumber', $this->trackingNumber),
             'type' => $this->type ?? null,
             'meta' => $this->meta ?? [],
             'updated_at' => $this->updated_at,
             'created_at' => $this->created_at
         ];
-
-        if ($this->trackingNumber) {
-            $place = Arr::insertAfterKey($place, ['tracking_number' => $this->tracking_number], 'owner');
-        }
-
-        return $place;
     }
 
     /**

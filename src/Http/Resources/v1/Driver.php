@@ -1,8 +1,9 @@
 <?php
 
-namespace Fleetbase\Http\Resources\v1;
+namespace Fleetbase\FleetOps\Http\Resources\v1;
 
 use Fleetbase\Http\Resources\FleetbaseResource;
+use Fleetbase\Support\Http;
 use Grimzy\LaravelMysqlSpatial\Types\Point;
 
 class Driver extends FleetbaseResource
@@ -16,16 +17,23 @@ class Driver extends FleetbaseResource
     public function toArray($request)
     {
         return [
-            'id' => $this->public_id,
+            'id' => $this->when(Http::isInternalRequest(), $this->id, $this->public_id),
+            'uuid' => $this->when(Http::isInternalRequest(), $this->uuid),
+            'public_id' => $this->when(Http::isInternalRequest(), $this->public_id),
             'internal_id' => $this->internal_id,
             'name' => $this->name,
             'email' => $this->email ?? null,
             'phone' => $this->phone ?? null,
             'drivers_license_number' => $this->drivers_license_number ?? null,
             'photo_url' => $this->photo_url ?? null,
-            'vehicle' => new VehicleWithoutDriver($this->vehicle),
-            'current_job' => $this->currentJob->public_id ?? null,
-            'vendor' => new Vendor($this->vendor) ?? null,
+            'vehicle_name' => $this->when(Http::isInternalRequest(), $this->vehicle_name),
+            'vehicle_avatar' => $this->when(Http::isInternalRequest(), $this->vehicle_avatar),
+            'vendor_name' => $this->when(Http::isInternalRequest(), $this->vendor_name),
+            'vehicle' => $this->whenLoaded('vehicle', new VehicleWithoutDriver($this->vehicle)),
+            'current_job' => $this->whenLoaded('currentJob', new CurrentJob($this->currentJob)),
+            'jobs' => $this->whenLoaded('jobs', CurrentJob::collection($this->jobs()->without(['driverAssigned'])->get())),
+            'vendor' => $this->whenLoaded('vendor', new Vendor($this->vendor)),
+            'fleets' => $this->whenLoaded('fleets', Fleet::collection($this->fleets()->without('drivers')->get())),
             'location' => $this->location ?? new Point(0, 0),
             'heading' => $this->heading ?? null,
             'altitude' => $this->altitude ?? null,

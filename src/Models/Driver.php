@@ -1,20 +1,23 @@
 <?php
 
-namespace Fleetbase\Models;
+namespace Fleetbase\FleetOps\Models;
 
+use Fleetbase\Models\Model;
 use Fleetbase\Traits\HasApiModelBehavior;
-use Fleetbase\Scopes\DriverScope;
 use Fleetbase\Traits\HasUuid;
 use Fleetbase\Traits\TracksApiCredential;
 use Fleetbase\Traits\HasInternalId;
 use Fleetbase\Traits\HasPublicId;
 use Fleetbase\Traits\SendsWebhooks;
 use Fleetbase\Casts\Json;
-use Fleetbase\Support\Utils;
+use Fleetbase\FleetOps\Support\Utils;
+use Fleetbase\FleetOps\Support\Utils as FleetOpsUtils;
+use Fleetbase\FleetOps\Scopes\DriverScope;
+use Fleetbase\FleetOps\Casts\Point;
 use Illuminate\Notifications\Notifiable;
-use Grimzy\LaravelMysqlSpatial\Eloquent\SpatialTrait;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Support\Facades\DB;
+use Grimzy\LaravelMysqlSpatial\Eloquent\SpatialTrait;
 use Spatie\Activitylog\Traits\CausesActivity;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Sluggable\SlugOptions;
@@ -52,12 +55,12 @@ class Driver extends Model
      */
     protected $fillable = [
         '_key',
+        'public_id',
         'internal_id',
         'user_uuid',
         'company_uuid',
         'vehicle_uuid',
         'vendor_uuid',
-        // 'vendor_type', ? customers can be vendors?
         'current_job_uuid',
         'auth_token',
         'signup_token_used',
@@ -89,8 +92,8 @@ class Driver extends Model
      */
     protected $casts = [
         'meta' => Json::class,
+        'location' => Point::class,
         'online' => 'boolean',
-        // 'location' => SpatialPointCast::class,
     ];
 
     /**
@@ -112,11 +115,8 @@ class Driver extends Model
         'email',
         'rotation',
         'vehicle_name',
-        // 'vehicle_id',
         'vehicle_avatar',
         'vendor_name',
-        // 'vendor_id',
-        // 'current_job_id'
     ];
 
     /**
@@ -180,7 +180,7 @@ class Driver extends Model
      */
     public function user()
     {
-        return $this->belongsTo(User::class)->select(['uuid', 'avatar_uuid', 'name', 'phone', 'email'])->without(['driver']);
+        return $this->belongsTo(\Fleetbase\Models\User::class)->select(['uuid', 'avatar_uuid', 'name', 'phone', 'email'])->without(['driver'])->withTrashed();
     }
 
     /**
@@ -188,7 +188,7 @@ class Driver extends Model
      */
     public function company()
     {
-        return $this->belongsTo(Company::class);
+        return $this->belongsTo(\Fleetbase\Models\Company::class);
     }
 
     /**
@@ -278,7 +278,7 @@ class Driver extends Model
      */
     public function devices()
     {
-        return $this->hasMany(UserDevice::class, 'user_uuid', 'user_uuid');
+        return $this->hasMany(\Fleetbase\Models\UserDevice::class, 'user_uuid', 'user_uuid');
     }
 
     /**
@@ -288,9 +288,13 @@ class Driver extends Model
      */
     public function routeNotificationForFcm()
     {
-        return $this->devices->where('platform', 'android')->map(function ($userDevice) {
-            return $userDevice->token;
-        })->toArray();
+        return $this->devices
+            ->where('platform', 'android')->map(
+                function ($userDevice) {
+                    return $userDevice->token;
+                }
+            )
+            ->toArray();
     }
 
     /**
@@ -300,9 +304,12 @@ class Driver extends Model
      */
     public function routeNotificationForApn()
     {
-        return $this->devices->where('platform', 'ios')->map(function ($userDevice) {
-            return $userDevice->token;
-        })->toArray();
+        return $this->devices
+            ->where('platform', 'ios')->map(
+                function ($userDevice) {
+                    return $userDevice->token;
+                }
+            )->toArray();
     }
 
     /**
@@ -335,7 +342,7 @@ class Driver extends Model
      */
     public function getCurrentJobIdAttribute()
     {
-        return static::attributeFromCache($this, 'currentJob.public_id');
+        return data_get($this, 'currentJob.public_id');
     }
 
     /**
@@ -343,7 +350,7 @@ class Driver extends Model
      */
     public function getVehicleNameAttribute()
     {
-        return static::attributeFromCache($this, 'vehicle.display_name');
+        return data_get($this, 'vehicle.display_name');
     }
 
     /**
@@ -351,7 +358,7 @@ class Driver extends Model
      */
     public function getVehicleIdAttribute()
     {
-        return static::attributeFromCache($this, 'vehicle.public_id');
+        return data_get($this, 'vehicle.public_id');
     }
 
     /**
@@ -363,7 +370,7 @@ class Driver extends Model
             return Vehicle::getAvatar();
         }
 
-        return static::attributeFromCache($this, 'vehicle.avatar_url');
+        return data_get($this, 'vehicle.avatar_url');
     }
 
     /**
@@ -371,7 +378,7 @@ class Driver extends Model
      */
     public function getVendorIdAttribute()
     {
-        return static::attributeFromCache($this, 'vendor.public_id');
+        return data_get($this, 'vendor.public_id');
     }
 
     /**
@@ -379,7 +386,7 @@ class Driver extends Model
      */
     public function getVendorNameAttribute()
     {
-        return static::attributeFromCache($this, 'vendor.name');
+        return data_get($this, 'vendor.name');
     }
 
     /**
@@ -387,7 +394,7 @@ class Driver extends Model
      */
     public function getPhotoUrlAttribute()
     {
-        return static::attributeFromCache($this, 'user.avatarUrl');
+        return data_get($this, 'user.avatarUrl');
     }
 
     /**
@@ -395,7 +402,7 @@ class Driver extends Model
      */
     public function getNameAttribute()
     {
-        return static::attributeFromCache($this, 'user.name');
+        return data_get($this, 'user.name');
     }
 
     /**
@@ -403,7 +410,7 @@ class Driver extends Model
      */
     public function getPhoneAttribute()
     {
-        return static::attributeFromCache($this, 'user.phone');
+        return data_get($this, 'user.phone');
     }
 
     /**
@@ -411,9 +418,14 @@ class Driver extends Model
      */
     public function getEmailAttribute()
     {
-        return static::attributeFromCache($this, 'user.email');
+        return data_get($this, 'user.email');
     }
 
+    /**
+     * Unassigns the current order from the driver if a driver is assigned.
+     *
+     * @return bool True if the driver was unassigned and the changes were saved, false otherwise
+     */
     public function unassignCurrentOrder()
     {
         if (!empty($this->driver_assigned_uuid)) {
@@ -443,16 +455,33 @@ class Driver extends Model
         return $this;
     }
 
+    /**
+     * Checks if the vehicle is assigned to the driver.
+     *
+     * @return bool True if the vehicle is assigned, false otherwise
+     */
     public function isVehicleAssigned()
     {
         return $this->isVehicleNotAssigned() === false;
     }
 
+    /**
+     * Checks if the vehicle is not assigned to the driver.
+     *
+     * @return bool True if the vehicle is not assigned, false otherwise
+     */
     public function isVehicleNotAssigned()
     {
         return !$this->vehicle_uuid;
     }
 
+    /**
+     * Updates the position of the driver, creating a new Position record if
+     * the driver has moved more than 100 meters or if it's their first recorded position.
+     *
+     * @param Order|null $order The order to consider when updating the position (default: null)
+     * @return Position|null The created Position object, or null if no new position was created
+     */
     public function updatePosition(?Order $order = null): ?Position
     {
         $position = null;
@@ -481,7 +510,7 @@ class Driver extends Model
         }
 
         $isFirstPosition = !$lastPosition;
-        $isPast100Meters = $lastPosition && Utils::vincentyGreatCircleDistance($this->location, $lastPosition->coordinates) > 100;
+        $isPast100Meters = $lastPosition && FleetOpsUtils::vincentyGreatCircleDistance($this->location, $lastPosition->coordinates) > 100;
         $position = null;
 
         // create the first position

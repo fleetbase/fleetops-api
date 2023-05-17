@@ -1,7 +1,7 @@
 <?php
 
-use Fleetbase\Support\InternalConfig;
 use Illuminate\Support\Facades\Route;
+use PhpParser\Node\Expr\FuncCall;
 
 /*
 |--------------------------------------------------------------------------
@@ -14,31 +14,66 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::prefix(InternalConfig::get('api.routing.prefix', 'flb'))->namespace('Fleetbase\Http\Controllers')->group(
+Route::prefix(config('fleetops.api.routing.prefix', null))->namespace('Fleetbase\FleetOps\Http\Controllers')->group(
     function ($router) {
         /*
-    |--------------------------------------------------------------------------
-    | Internal FleetOps API Routes
-    |--------------------------------------------------------------------------
-    |
-    | Primary internal routes for console.
-    */
-        $router->prefix(InternalConfig::get('api.routing.internal_prefix', 'int'))->namespace('Internal')->group(
+        |--------------------------------------------------------------------------
+        | Internal FleetOps API Routes
+        |--------------------------------------------------------------------------
+        |
+        | Primary internal routes for console.
+        */
+        $router->prefix(config('fleetops.api.routing.internal_prefix', 'int'))->namespace('Internal')->group(
             function ($router) {
                 $router->group(
                     ['prefix' => 'v1', 'namespace' => 'v1', 'middleware' => ['fleetbase.protected']],
                     function ($router) {
-                        $router->fleetbaseRoutes('contacts');
+                        $router->fleetbaseRoutes(
+                            'contacts',
+                            function ($router, $controller) {
+                                $router->get('export', $controller('export'));
+                                $router->get('facilitators/{id}', $controller('getAsFacilitator'));
+                                $router->get('customers/{id}', $controller('getAsCustomer'));
+                                $router->delete('bulk-delete', $controller('bulkDelete'));
+                            }
+                        );
                         $router->fleetbaseRoutes(
                             'drivers',
                             function ($router, $controller) {
                                 $router->get('statuses', $controller('statuses'));
+                                $router->get('export', $controller('export'));
+                                $router->delete('bulk-delete', $controller('bulkDelete'));
                             }
                         );
                         $router->fleetbaseRoutes('entities');
-                        $router->fleetbaseRoutes('fleets');
-                        $router->fleetbaseRoutes('fuel-reports');
-                        $router->fleetbaseRoutes('integrated-vendors');
+                        $router->fleetbaseRoutes(
+                            'fleets',
+                            function ($router, $controller) {
+                                $router->get('export', $controller('export'));
+                                $router->delete('bulk-delete', $controller('bulkDelete'));
+                            }
+                        );
+                        $router->fleetbaseRoutes(
+                            'fuel-reports',
+                            function ($router, $controller) {
+                                $router->get('export', $controller('export'));
+                                $router->delete('bulk-delete', $controller('bulkDelete'));
+                            }
+                        );
+                        $router->fleetbaseRoutes(
+                            'issues',
+                            function ($router, $controller) {
+                                $router->get('export', $controller('export'));
+                                $router->delete('bulk-delete', $controller('bulkDelete'));
+                            }
+                        );
+                        $router->fleetbaseRoutes(
+                            'integrated-vendors',
+                            function ($router, $controller) {
+                                $router->get('supported', $controller('getSupported'));
+                                $router->delete('bulk-delete', $controller('bulkDelete'));
+                            }
+                        );
                         $router->fleetbaseRoutes(
                             'orders',
                             function ($router, $controller) {
@@ -63,24 +98,67 @@ Route::prefix(InternalConfig::get('api.routing.prefix', 'flb'))->namespace('Flee
                                 $router->get('search', $controller('search'))->middleware('cache.headers:private;max_age=3600');
                                 $router->get('lookup', $controller('geocode'))->middleware('cache.headers:private;max_age=3600');
                                 $router->get('export', $controller('export'));
-                                $router->delete('bulk-delete', $controller('bulk-delete'));
+                                $router->delete('bulk-delete', $controller('bulkDelete'));
                             }
                         );
                         $router->fleetbaseRoutes('proofs');
                         $router->fleetbaseRoutes('purchase-rates');
                         $router->fleetbaseRoutes('routes');
-                        $router->fleetbaseRoutes('service-areas');
-                        $router->fleetbaseRoutes('service-quotes');
-                        $router->fleetbaseRoutes('service-rates');
+                        $router->fleetbaseRoutes(
+                            'service-areas',
+                            function ($router, $controller) {
+                                $router->get('export', $controller('export'));
+                                $router->delete('bulk-delete', $controller('bulkDelete'));
+                            }
+                        );
+                        $router->fleetbaseRoutes('zones');
+                        $router->fleetbaseRoutes(
+                            'service-quotes',
+                            function ($router, $controller) {
+                                $router->post('preliminary', $controller('preliminaryQuery'));
+                            }
+                        );
+                        $router->fleetbaseRoutes(
+                            'service-rates',
+                            function ($router, $controller) {
+                                $router->get('for-route', $controller('getServicesForRoute'));
+                            }
+                        );
                         $router->fleetbaseRoutes('tracking-numbers');
                         $router->fleetbaseRoutes('tracking-statuses');
                         $router->fleetbaseRoutes(
                             'vehicles',
                             function ($router, $controller) {
                                 $router->get('statuses', $controller('statuses'));
+                                $router->get('avatars', $controller('avatars'));
+                                $router->get('export', $controller('export'));
+                                $router->delete('bulk-delete', $controller('bulkDelete'));
                             }
                         );
-                        $router->fleetbaseRoutes('vendors');
+                        $router->fleetbaseRoutes(
+                            'vendors',
+                            function ($router, $controller) {
+                                $router->get('statuses', $controller('statuses'));
+                                $router->get('export', $controller('export'));
+                                $router->get('facilitators/{id}', $controller('getAsFacilitator'));
+                                $router->get('customers/{id}', $controller('getAsCustomer'));
+                                $router->delete('bulk-delete', $controller('bulkDelete'));
+                            }
+                        );
+                        $router->group(
+                            ['prefix' => 'query'],
+                            function () use ($router) {
+                                $router->get('customers', 'MorphController@queryCustomersOrFacilitators');
+                                $router->get('facilitators', 'MorphController@queryCustomersOrFacilitators');
+                            }
+                        );
+                        $router->group(
+                            ['prefix' => 'geocoder'],
+                            function ($router) {
+                                $router->get('reverse', 'GeocoderController@reverse');
+                                $router->get('query', 'GeocoderController@geocode');
+                            }
+                        );
                         $router->group(
                             ['prefix' => 'fleet-ops'],
                             function ($router) {

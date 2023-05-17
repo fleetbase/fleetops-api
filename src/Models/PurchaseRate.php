@@ -1,14 +1,15 @@
 <?php
 
-namespace Fleetbase\Models;
+namespace Fleetbase\FleetOps\Models;
 
+use Fleetbase\Models\Model;
 use Fleetbase\Traits\HasUuid;
 use Fleetbase\Traits\HasPublicId;
 use Fleetbase\Traits\TracksApiCredential;
 use Fleetbase\Traits\SendsWebhooks;
 use Fleetbase\Traits\HasMetaAttributes;
 use Fleetbase\Traits\HasApiModelBehavior;
-use Fleetbase\Support\Utils;
+use Fleetbase\FleetOps\Support\Utils;
 use Fleetbase\Casts\Json;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
@@ -95,7 +96,7 @@ class PurchaseRate extends Model
      */
     public function transaction()
     {
-        return $this->belongsTo(Transaction::class);
+        return $this->belongsTo(\Fleetbase\Models\Transaction::class);
     }
 
     /**
@@ -115,7 +116,7 @@ class PurchaseRate extends Model
      */
     public function company()
     {
-        return $this->belongsTo(Company::class);
+        return $this->belongsTo(\Fleetbase\Models\Company::class);
     }
 
     /**
@@ -150,32 +151,32 @@ class PurchaseRate extends Model
 
     public function getAmountAttribute()
     {
-        return static::attributeFromCache($this, 'serviceQuote.amount');
+        return data_get($this, 'serviceQuote.amount');
     }
 
     public function getCurrencyAttribute()
     {
-        return static::attributeFromCache($this, 'serviceQuote.currency');
+        return data_get($this, 'serviceQuote.currency');
     }
 
     public function getServiceQuoteIdAttribute()
     {
-        return static::attributeFromCache($this, 'serviceQuote.public_id');
+        return data_get($this, 'serviceQuote.public_id');
     }
 
     public function getOrderIdAttribute()
     {
-        return static::attributeFromCache($this, 'order.public_id');
+        return data_get($this, 'order.public_id');
     }
 
     public function getCustomerIdAttribute()
     {
-        return static::attributeFromCache($this, 'customer.public_id');
+        return data_get($this, 'customer.public_id');
     }
 
     public function getTransactionIdAttribute()
     {
-        return static::attributeFromCache($this, 'transaction.public_id');
+        return data_get($this, 'transaction.public_id');
     }
 
     /**

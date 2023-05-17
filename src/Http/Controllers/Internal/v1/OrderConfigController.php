@@ -1,15 +1,15 @@
 <?php
 
-namespace Fleetbase\Http\Controllers\Internal\v1;
+namespace Fleetbase\FleetOps\Http\Controllers\Internal\v1;
 
 use Fleetbase\Http\Controllers\Controller;
 use Fleetbase\Models\Extension;
 use Fleetbase\Models\ExtensionInstall;
 use Fleetbase\Models\Category;
 use Fleetbase\Models\Type;
-use Fleetbase\Models\Order;
-use Fleetbase\Support\Api;
-use Fleetbase\Support\Utils;
+use Fleetbase\FleetOps\Support\Utils;
+use Fleetbase\FleetOps\Models\Order;
+use Fleetbase\FleetOps\Support\Flow;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
@@ -29,9 +29,14 @@ class OrderConfigController extends Controller
         $installedExtensions = [];
 
         // get all installed order configs
-        $installed = ExtensionInstall::where('company_uuid', session('company'))->whereHas('extension', function ($query) {
-            $query->where('meta_type', 'order_config');
-        })->with('extension')->get();
+        $installed = ExtensionInstall::where('company_uuid', session('company'))
+            ->whereHas(
+                'extension',
+                function ($query) {
+                    $query->where('meta_type', 'order_config');
+                }
+            )
+            ->with('extension')->get();
 
         // morph installed into extensions
         foreach ($installed as $install) {
@@ -54,7 +59,7 @@ class OrderConfigController extends Controller
 
         // if no installed configs always place default config
         if ($configs->isEmpty() && $key === 'default') {
-            $configs->push(Api::getDefaultOrderConfig());
+            $configs->push(Flow::getDefaultOrderConfig());
         }
 
         if ($single) {
@@ -121,27 +126,29 @@ class OrderConfigController extends Controller
         $description = $request->input('description');
         $tags = $request->input('tags', []);
 
-        $company = Api::getCompanySession();
+        $company = Flow::getCompanySession();
         $category = Category::where(['for' => 'extension', 'name' => 'Logistics'])->first();
         $type = Type::where(['for' => 'extension', 'key' => 'config'])->first();
 
-        $orderConfig = Extension::create([
-            'author_uuid' => session('company'),
-            'category_uuid' => $category->uuid,
-            'type_uuid' => $type->uuid,
-            'name' => $name,
-            'description' => $description,
-            'display_name' => $name,
-            'key' => Str::slug($name),
-            'tags' => $tags,
-            'namespace' => Extension::createNamespace($company->slug, 'order-config', $name),
-            'version' => '0.0.1',
-            'core_service' => 0,
-            'meta' => ['flow' => Api::getDefaultOrderFlow()],
-            'meta_type' => 'order_config',
-            'config' => [],
-            'status' => 'private'
-        ]);
+        $orderConfig = Extension::create(
+            [
+                'author_uuid' => session('company'),
+                'category_uuid' => $category->uuid,
+                'type_uuid' => $type->uuid,
+                'name' => $name,
+                'description' => $description,
+                'display_name' => $name,
+                'key' => Str::slug($name),
+                'tags' => $tags,
+                'namespace' => Extension::createNamespace($company->slug, 'order-config', $name),
+                'version' => '0.0.1',
+                'core_service' => 0,
+                'meta' => ['flow' => Flow::getDefaultOrderFlow()],
+                'meta_type' => 'order_config',
+                'config' => [],
+                'status' => 'private'
+            ]
+        );
 
         return response()->json($orderConfig);
     }
@@ -158,12 +165,15 @@ class OrderConfigController extends Controller
         $description = $request->input('description');
         $id = $request->input('id');
         $installed = $request->input('installed', false);
-        $company = Api::getCompanySession();
+        $company = Flow::getCompanySession();
 
         if (!$id) {
-            return response()->json([
-                'errors' => ['Extension attempted to clone not found']
-            ], 400);
+            return response()->json(
+                [
+                    'errors' => ['Extension attempted to clone not found']
+                ],
+                400
+            );
         }
 
         // if the extension is from installed
@@ -232,10 +242,10 @@ class OrderConfigController extends Controller
     /**
      * Pull all dynamically created meta fields throughout orders of a specific type
      *
-     * @param \Illuminate\Http\Request $request
+     * @param string $id
      * @return \Illuminate\Http\Response
      */
-    public function delete(string $id, Request $request)
+    public function delete(string $id)
     {
         $extension = Extension::where(['uuid' => $id, 'author_uuid' => session('company'), 'meta_type' => 'order_config'])->first();
 
@@ -253,8 +263,11 @@ class OrderConfigController extends Controller
             return response()->json(['status' => 'OK', 'deleted' => $installedExtension->uuid]);
         }
 
-        return response()->json([
-            'errors' => 'Unable to uninstall order configuration'
-        ], 400);
+        return response()->json(
+            [
+                'errors' => 'Unable to uninstall order configuration'
+            ],
+            400
+        );
     }
 }

@@ -1,7 +1,8 @@
 <?php
 
-namespace Fleetbase\Http\Filter;
+namespace Fleetbase\FleetOps\Http\Filter;
 
+use Fleetbase\Http\Filter\Filter;
 use Fleetbase\Support\Http;
 
 class OrderFilter extends Filter
@@ -9,6 +10,7 @@ class OrderFilter extends Filter
     public function queryForInternal()
     {
         $this->builder
+            ->where('company_uuid', $this->request->session()->get('company'))
             ->whereHas(
                 'payload',
                 function ($q) {
@@ -33,26 +35,98 @@ class OrderFilter extends Filter
             );
     }
 
-    public function unassigned()
+    public function unassigned(bool $unassigned)
     {
-        if ($this->request->boolean('unassigned')) {
-            $this->builder->where(function ($q) {
-                $q->whereNull('driver_assigned_uuid');
-                $q->whereNotIn('status', ['completed', 'canceled']);
-            });
+        if ($unassigned) {
+            $this->builder->where(
+                function ($q) {
+                    $q->whereNull('driver_assigned_uuid');
+                    $q->whereNotIn('status', ['completed', 'canceled']);
+                }
+            );
         }
     }
 
-    public function tracking($value)
+    public function tracking(string $tracking)
     {
-        $this->builder->whereHas('trackingNumber', function ($trackingNumberQuery) {
-            $trackingNumberQuery->stringWhere('tracking_number', $this->request->input('tracking'));
-        });
+        $this->builder->whereHas(
+            'trackingNumber',
+            function ($query) use ($tracking) {
+                $query->where('tracking_number', $tracking);
+            }
+        );
     }
 
-    public function sort($value)
+    public function active(bool $active = false)
     {
-        list($param, $direction) = Http::useSort($value);
+        if ($active) {
+            $this->builder->where(
+                function ($q) {
+                    $q->whereNotIn('status', ['created', 'dispatched', 'pending', 'canceled', 'completed']);
+                    $q->whereNotNull('driver_assigned_uuid');
+                }
+            );
+        }
+    }
+
+    public function customer(string $customer)
+    {
+        $this->builder->where('customer_uuid', $customer);
+    }
+
+    public function facilitator(string $facilitator)
+    {
+        $this->builder->where('facilitator_uuid', $facilitator);
+    }
+
+    public function payload(string $payload)
+    {
+        $this->builder->whereHas(
+            'payload',
+            function ($query) use ($payload) {
+                $query->where('public_id', $payload);
+            }
+        );
+    }
+
+    public function pickup(string $pickup)
+    {
+        $this->builder->whereHas(
+            'payload',
+            function ($query) use ($pickup) {
+                $query->where('pickup_uuid', $pickup);
+            }
+        );
+    }
+
+    public function dropoff(string $dropoff)
+    {
+        $this->builder->whereHas(
+            'payload',
+            function ($query) use ($dropoff) {
+                $query->where('dropoff_uuid', $dropoff);
+            }
+        );
+    }
+
+    public function return(string $return)
+    {
+        $this->builder->whereHas(
+            'payload',
+            function ($query) use ($return) {
+                $query->where('return_uuid', $return);
+            }
+        );
+    }
+
+    public function driver(string $driver)
+    {
+        $this->builder->where('driver_assigned_uuid', $driver);
+    }
+
+    public function sort(string $sort)
+    {
+        list($param, $direction) = Http::useSort($sort);
 
         switch ($param) {
             case 'tracking':

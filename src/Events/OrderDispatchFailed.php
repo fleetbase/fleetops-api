@@ -1,8 +1,9 @@
 <?php
 
-namespace Fleetbase\Events;
+namespace Fleetbase\FleetOps\Events;
 
-use Fleetbase\Models\Order;
+use Fleetbase\FleetOps\Models\Order;
+use Fleetbase\Events\ResourceLifecycleEvent;
 
 class OrderDispatchFailed extends ResourceLifecycleEvent
 {

@@ -1,11 +1,11 @@
 <?php
 
-namespace Fleetbase\Http\Requests;
+namespace Fleetbase\FleetOps\Http\Requests;
 
-
-use Illuminate\Validation\Rule;
+use Fleetbase\Http\Requests\FleetbaseRequest;
 use Fleetbase\Rules\ComputableAlgo;
-use Fleetbase\Support\Utils;
+use Fleetbase\FleetOps\Support\Utils;
+use Illuminate\Validation\Rule;
 
 class CreateServiceRateRequest extends FleetbaseRequest
 {

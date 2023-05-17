@@ -1,8 +1,9 @@
 <?php
 
-namespace Fleetbase\Models;
+namespace Fleetbase\FleetOps\Models;
 
-use Fleetbase\Support\Utils;
+use Fleetbase\Models\Model;
+use Fleetbase\FleetOps\Support\Utils;
 use Fleetbase\Traits\TracksApiCredential;
 use Fleetbase\Traits\HasUuid;
 

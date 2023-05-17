@@ -1,23 +1,21 @@
 <?php
 
-namespace Fleetbase\Http\Controllers\Internal\v1;
+namespace Fleetbase\FleetOps\Http\Controllers\Internal\v1;
 
-use Fleetbase\Http\Controllers\FleetbaseController;
-use Fleetbase\Models\Entity;
-use Fleetbase\Models\Payload;
-use Fleetbase\Models\Place;
-use Fleetbase\Models\ServiceQuote;
-use Fleetbase\Models\ServiceQuoteItem;
-use Fleetbase\Models\ServiceRate;
-use Fleetbase\Models\IntegratedVendor;
-use Fleetbase\Support\Resp;
-use Fleetbase\Support\Utils;
+use Fleetbase\FleetOps\Http\Controllers\FleetOpsController;
+use Fleetbase\FleetOps\Models\Entity;
+use Fleetbase\FleetOps\Models\Payload;
+use Fleetbase\FleetOps\Models\Place;
+use Fleetbase\FleetOps\Models\ServiceQuote;
+use Fleetbase\FleetOps\Models\ServiceQuoteItem;
+use Fleetbase\FleetOps\Models\ServiceRate;
+use Fleetbase\FleetOps\Models\IntegratedVendor;
+use Fleetbase\FleetOps\Support\Utils;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
-use Exception;
 
-class ServiceQuoteController extends FleetbaseController
+class ServiceQuoteController extends FleetOpsController
 {
     /**
      * The resource to query
@@ -64,7 +62,7 @@ class ServiceQuoteController extends FleetbaseController
             if ($integratedVendor) {
                 try {
                     $serviceQuotes = $integratedVendor->api()->setRequestId($requestId)->getQuoteFromPayload($payload, $serviceType, $scheduledAt, $isRouteOptimized);
-                } catch (Exception $e) {
+                } catch (\Exception $e) {
                     return response()->json([
                         'errors' => [$e->getMessage()]
                     ], 400);
@@ -130,7 +128,14 @@ class ServiceQuoteController extends FleetbaseController
         }
 
         // get all service rates
-        $serviceRates = ServiceRate::getServicableForPlaces($waypoints, $serviceType, $currency);
+        $serviceRates = ServiceRate::getServicableForPlaces(
+            $waypoints,
+            $serviceType,
+            $currency,
+            function ($query) use ($request) {
+                $query->where('company_uuid', $request->session()->get('company'));
+            }
+        );
         $serviceQuotes = collect();
 
         // calculate quotes
@@ -226,7 +231,7 @@ class ServiceQuoteController extends FleetbaseController
             if ($integratedVendor) {
                 try {
                     $serviceQuotes = $integratedVendor->api()->setRequestId($requestId)->getQuoteFromPreliminaryPayload($waypoints, $entities, $serviceType, $scheduledAt, $isRouteOptimized);
-                } catch (Exception $e) {
+                } catch (\Exception $e) {
                     return response()->json([
                         'errors' => [$e->getMessage()]
                     ], 400);
@@ -293,7 +298,14 @@ class ServiceQuoteController extends FleetbaseController
         }
 
         // get all service rates
-        $serviceRates = ServiceRate::getServicableForPlaces($waypoints, $serviceType, $currency);
+        $serviceRates = ServiceRate::getServicableForPlaces(
+            $waypoints,
+            $serviceType,
+            $currency,
+            function ($query) use ($request) {
+                $query->where('company_uuid', $request->session()->get('company'));
+            }
+        );
         $serviceQuotes = collect();
 
         // calculate quotes

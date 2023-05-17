@@ -1,10 +1,10 @@
 <?php
 
-namespace Fleetbase\Http\Resources\v1;
+namespace Fleetbase\FleetOps\Http\Resources\v1;
 
 use Fleetbase\Http\Resources\FleetbaseResource;
 use Fleetbase\Support\Http;
-use Fleetbase\Support\Utils;
+use Fleetbase\FleetOps\Support\Utils;
 use Illuminate\Support\Arr;
 
 class DeletedResource extends FleetbaseResource
@@ -18,7 +18,9 @@ class DeletedResource extends FleetbaseResource
     public function toArray($request)
     {
         $deleted = [
-            'id' => $this->public_id,
+            'id' => $this->when(Http::isInternalRequest(), $this->id, $this->public_id),
+            'uuid' => $this->when(Http::isInternalRequest(), $this->uuid),
+            'public_id' => $this->when(Http::isInternalRequest(), $this->public_id),
             'object' => $this->getObjectType(),
             'time' => $this->deleted_at,
             'deleted' => true,

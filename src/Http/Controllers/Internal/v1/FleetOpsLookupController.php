@@ -1,18 +1,24 @@
 <?php
 
-namespace Fleetbase\Http\Controllers\Internal\v1;
+namespace Fleetbase\FleetOps\Http\Controllers\Internal\v1;
 
 use Fleetbase\Http\Controllers\Controller;
-use Fleetbase\Models\Contact;
-use Fleetbase\Models\IntegratedVendor;
-use Fleetbase\Models\Vendor;
-use Fleetbase\Support\Utils;
+use Fleetbase\FleetOps\Models\Contact;
+use Fleetbase\FleetOps\Models\IntegratedVendor;
+use Fleetbase\FleetOps\Models\Vendor;
+use Fleetbase\FleetOps\Support\Utils;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Arr;
 
 class FleetOpsLookupController extends Controller
 {
+    /**
+     * Returns a collection of polymorphic resources as JSON.
+     *
+     * @param \Illuminate\Http\Request $request The HTTP request object.
+     * @return \Illuminate\Http\Response The JSON response with the polymorphic resources.
+     */
     public function polymorphs(Request $request)
     {
         $query = $request->or(['query', 'q']);

@@ -1,14 +1,15 @@
 <?php
 
-namespace Fleetbase\Models;
+namespace Fleetbase\FleetOps\Models;
 
-use Illuminate\Support\Carbon;
-use Fleetbase\Support\Utils;
-use Fleetbase\Traits\HasTrackingNumber;
+use Fleetbase\Models\Model;
+use Fleetbase\FleetOps\Support\Utils;
+use Fleetbase\FleetOps\Traits\HasTrackingNumber;
 use Fleetbase\Traits\HasUuid;
 use Fleetbase\Traits\HasPublicId;
 use Fleetbase\Traits\TracksApiCredential;
-use Barryvdh\DomPDF\Facade as PDF;
+use Illuminate\Support\Carbon;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class Waypoint extends Model
 {
@@ -68,7 +69,7 @@ class Waypoint extends Model
      */
     public function pdfLabel()
     {
-        return PDF::loadHTML($this->label());
+        return Pdf::loadHTML($this->label());
     }
 
     /**
@@ -139,7 +140,7 @@ class Waypoint extends Model
      */
     public function company()
     {
-        return $this->belongsTo(Company::class);
+        return $this->belongsTo(\Fleetbase\Models\Company::class);
     }
 
     /**
@@ -157,7 +158,7 @@ class Waypoint extends Model
      */
     public function getTrackingAttribute()
     {
-        return static::attributeFromCache($this, 'trackingNumber.tracking_number');
+        return data_get($this, 'trackingNumber.tracking_number');
     }
 
     /**
@@ -165,7 +166,7 @@ class Waypoint extends Model
      */
     public function getStatusAttribute()
     {
-        return static::attributeFromCache($this, 'trackingNumber.last_status');
+        return data_get($this, 'trackingNumber.last_status');
     }
 
     /**
@@ -173,7 +174,7 @@ class Waypoint extends Model
      */
     public function getStatusCodeAttribute()
     {
-        return static::attributeFromCache($this, 'trackingNumber.last_status_code');
+        return data_get($this, 'trackingNumber.last_status_code');
     }
 
     public static function insertGetUuid($values = [], ?Payload $payload = null)

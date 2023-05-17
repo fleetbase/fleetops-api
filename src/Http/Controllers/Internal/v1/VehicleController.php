@@ -1,18 +1,16 @@
 <?php
 
-namespace Fleetbase\Http\Controllers\Internal\v1;
+namespace Fleetbase\FleetOps\Http\Controllers\Internal\v1;
 
-use Fleetbase\Exports\VehicleExport;
-use Fleetbase\Http\Controllers\FleetbaseController;
+use Fleetbase\FleetOps\Http\Controllers\FleetOpsController;
+use Fleetbase\FleetOps\Exports\VehicleExport;
+use Fleetbase\FleetOps\Models\Vehicle;
 use Fleetbase\Http\Requests\ExportRequest;
-use Fleetbase\Models\Driver;
-use Fleetbase\Models\Vehicle;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Maatwebsite\Excel\Facades\Excel;
 
-class VehicleController extends FleetbaseController
+class VehicleController extends FleetOpsController
 {
     /**
      * The resource to query
@@ -20,62 +18,6 @@ class VehicleController extends FleetbaseController
      * @var string
      */
     public $resource = 'vehicle';
-
-    /**
-     * Creates a record with request payload
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function createRecord(Request $request)
-    {
-        return $this->model::createRecordFromRequest(
-            $request,
-            null,
-            function (&$request, &$vehicle) {
-                $driverId = $request->or(['driver_uuid', 'vehicle.driver_uuid', 'vehicle.driver.uuid']);
-
-                if ($driverId) {
-                    $driver = Driver::where('uuid', $driverId)->whereNull('deleted_at')->withoutGlobalScopes()->first();
-
-                    if ($driver) {
-                        // assign this vehicle to driver
-                        $driver->assignVehicle($vehicle);
-                        // set driver to vehicle
-                        $vehicle->setRelation('driver', $driver);
-                    }
-                }
-            }
-        );
-    }
-
-    /**
-     * Updates a record with request payload
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function updateRecord(Request $request, string $id)
-    {
-        return $this->model::updateRecordFromRequest(
-            $request,
-            null,
-            function (&$request, &$vehicle) {
-                $driverId = $request->or(['driver_uuid', 'vehicle.driver_uuid', 'vehicle.driver.uuid']);
-
-                if ($driverId) {
-                    $driver = Driver::where('uuid', $driverId)->whereNull('deleted_at')->withoutGlobalScopes()->first();
-
-                    if ($driver) {
-                        // assign this vehicle to driver
-                        $driver->assignVehicle($vehicle);
-                        // set driver to vehicle
-                        $vehicle->setRelation('driver', $driver);
-                    }
-                }
-            }
-        );
-    }
 
     /**
      * Get all status options for an vehicle
@@ -90,7 +32,8 @@ class VehicleController extends FleetbaseController
             ->distinct()
             ->get()
             ->pluck('status')
-            ->filter();
+            ->filter()
+            ->values();
 
         return response()->json($statuses);
     }
@@ -100,7 +43,7 @@ class VehicleController extends FleetbaseController
      *
      * @return \Illuminate\Http\Response
      */
-    public function getAvatarOptions()
+    public function avatars()
     {
         $options = Vehicle::getAvatarOptions();
 

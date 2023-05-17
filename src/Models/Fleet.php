@@ -1,7 +1,8 @@
 <?php
 
-namespace Fleetbase\Models;
+namespace Fleetbase\FleetOps\Models;
 
+use Fleetbase\Models\Model;
 use Fleetbase\Traits\HasApiModelBehavior;
 use Fleetbase\Traits\HasUuid;
 use Fleetbase\Traits\HasPublicId;
@@ -80,7 +81,7 @@ class Fleet extends Model
      *
      * @var array
      */
-    protected $fillable = ['_key', 'company_uuid', 'service_area_uuid', 'zone_uuid', 'image_uuid', 'name', 'color', 'task', 'status', 'slug'];
+    protected $fillable = ['_key', 'public_id', 'company_uuid', 'service_area_uuid', 'zone_uuid', 'image_uuid', 'name', 'color', 'task', 'status', 'slug'];
 
     /**
      * Dynamic attributes that are appended to object
@@ -101,7 +102,7 @@ class Fleet extends Model
      */
     public function photo()
     {
-        return $this->belongsTo(File::class, 'image_uuid', 'uuid');
+        return $this->belongsTo(\Fleetbase\Models\File::class, 'image_uuid', 'uuid');
     }
 
     /**
@@ -135,7 +136,7 @@ class Fleet extends Model
      */
     public function getPhotoUrlAttribute()
     {
-        return static::attributeFromCache($this, 'photo.s3url', 'https://s3.ap-northeast-2.amazonaws.com/fleetbase/public/default-fleet.png');
+        return data_get($this, 'photo.s3url', 'https://s3.ap-northeast-2.amazonaws.com/fleetbase/public/default-fleet.png');
     }
 
     /**

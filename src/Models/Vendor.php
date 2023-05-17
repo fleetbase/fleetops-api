@@ -1,9 +1,9 @@
 <?php
 
-namespace Fleetbase\Models;
+namespace Fleetbase\FleetOps\Models;
 
+use Fleetbase\Models\Model;
 use Illuminate\Notifications\Notifiable;
-use Fleetbase\Scopes\VendorScope;
 use Fleetbase\Casts\Json;
 use Fleetbase\Traits\HasUuid;
 use Fleetbase\Traits\HasPublicId;
@@ -129,17 +129,6 @@ class Vendor extends Model
     }
 
     /**
-     * The "booting" method of the model.
-     *
-     * @return void
-     */
-    protected static function boot()
-    {
-        parent::boot();
-        static::addGlobalScope(new VendorScope());
-    }
-
-    /**
      * The attributes excluded from the model's JSON form.
      *
      * @var array
@@ -147,7 +136,7 @@ class Vendor extends Model
     protected $hidden = ['place'];
 
     /**
-     * The place of the vendor
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function place()
     {
@@ -155,19 +144,19 @@ class Vendor extends Model
     }
 
     /**
-     * The fleetbase company instance the vendor represents
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function connectCompany()
     {
-        return $this->belongsTo(Company::class);
+        return $this->belongsTo(\Fleetbase\Models\Company::class);
     }
 
     /**
-     * The company which owns this vendor record.
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function company()
     {
-        return $this->belongsTo(Company::class);
+        return $this->belongsTo(\Fleetbase\Models\Company::class);
     }
 
     /**
@@ -175,7 +164,7 @@ class Vendor extends Model
      */
     public function logo()
     {
-        return $this->belongsTo(File::class);
+        return $this->belongsTo(\Fleetbase\Models\File::class);
     }
 
     /**
@@ -185,7 +174,7 @@ class Vendor extends Model
      */
     public function getLogoUrlAttribute()
     {
-        return static::attributeFromCache($this, 'logo.s3url', 'https://s3.ap-southeast-1.amazonaws.com/flb-assets/static/no-avatar.png');
+        return data_get($this, 'logo.s3url', 'https://s3.ap-southeast-1.amazonaws.com/flb-assets/static/no-avatar.png');
     }
 
     /**
@@ -195,7 +184,7 @@ class Vendor extends Model
      */
     public function getAddressAttribute()
     {
-        return static::attributeFromCache($this, 'place.address_html');
+        return data_get($this, 'place.address_html');
     }
 
     /**
@@ -205,7 +194,7 @@ class Vendor extends Model
      */
     public function getAddressStreetAttribute()
     {
-        return static::attributeFromCache($this, 'place.street1');
+        return data_get($this, 'place.street1');
     }
 
     /**
@@ -216,5 +205,16 @@ class Vendor extends Model
     public function routeNotificationForTwilio()
     {
         return $this->phone;
+    }
+
+    /**
+     * Set the vendor type or default to `vendor`
+     *
+     * @param string|null $type
+     * @return void
+     */
+    public function setTypeAttribute(?string $type)
+    {
+        $this->attributes['type'] = $type ?? 'vendor';
     }
 }

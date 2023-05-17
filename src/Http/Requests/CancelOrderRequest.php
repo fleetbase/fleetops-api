@@ -1,8 +1,9 @@
 <?php
 
-namespace Fleetbase\Http\Requests;
+namespace Fleetbase\FleetOps\Http\Requests;
 
-use Fleetbase\Support\Utils;
+use Fleetbase\Http\Requests\FleetbaseRequest;
+use Fleetbase\FleetOps\Support\Utils;
 
 class CancelOrderRequest extends FleetbaseRequest
 {

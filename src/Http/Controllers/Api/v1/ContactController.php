@@ -1,15 +1,14 @@
 <?php
 
-namespace Fleetbase\Http\Controllers\Api\v1;
+namespace Fleetbase\FleetOps\Http\Controllers\Api\v1;
 
 use Illuminate\Http\Request;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Fleetbase\Http\Controllers\Controller;
-use Fleetbase\Http\Requests\CreateContactRequest;
-use Fleetbase\Http\Requests\UpdateContactRequest;
-use Fleetbase\Http\Resources\v1\Contact as ContactResource;
-use Fleetbase\Http\Resources\v1\DeletedResource;
-use Fleetbase\Models\Contact;
+use Fleetbase\FleetOps\Models\Contact;
+use Fleetbase\FleetOps\Http\Requests\CreateContactRequest;
+use Fleetbase\FleetOps\Http\Requests\UpdateContactRequest;
+use Fleetbase\FleetOps\Http\Resources\v1\Contact as ContactResource;
+use Fleetbase\FleetOps\Http\Resources\v1\DeletedResource;
 
 class ContactController extends Controller
 {
@@ -49,7 +48,7 @@ class ContactController extends Controller
         // find for the contact
         try {
             $contact = Contact::findRecordOrFail($id);
-        } catch (ModelNotFoundException $exception) {
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $exception) {
             return response()->json(
                 [
                     'error' => 'Contact resource not found.',
@@ -77,7 +76,7 @@ class ContactController extends Controller
      */
     public function query(Request $request)
     {
-        $results = Contact::queryFromRequest($request);
+        $results = Contact::queryWithRequest($request);
 
         return ContactResource::collection($results);
     }
@@ -88,12 +87,12 @@ class ContactController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Fleetbase\Http\Resources\ContactCollection
      */
-    public function find($id, Request $request)
+    public function find($id)
     {
         // find for the contact
         try {
             $contact = Contact::findRecordOrFail($id);
-        } catch (ModelNotFoundException $exception) {
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $exception) {
             return response()->json(
                 [
                     'error' => 'Contact resource not found.',
@@ -112,12 +111,12 @@ class ContactController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Fleetbase\Http\Resources\ContactCollection
      */
-    public function delete($id, Request $request)
+    public function delete($id)
     {
         // find for the driver
         try {
             $contact = Contact::findRecordOrFail($id);
-        } catch (ModelNotFoundException $exception) {
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $exception) {
             return response()->json(
                 [
                     'error' => 'Contact resource not found.',

@@ -1,24 +1,24 @@
 <?php
 
-namespace Fleetbase\Models;
+namespace Fleetbase\FleetOps\Models;
 
+use Fleetbase\Models\Model;
+use Fleetbase\FleetOps\Traits\HasTrackingNumber;
+use Fleetbase\FleetOps\Support\Utils;
 use Fleetbase\Traits\HasApiModelBehavior;
-use Illuminate\Support\Carbon;
 use Fleetbase\Traits\HasInternalId;
 use Fleetbase\Traits\HasUuid;
-use Fleetbase\Traits\HasTrackingNumber;
 use Fleetbase\Casts\Json;
-use Fleetbase\Support\Utils;
-use PhpUnitsOfMeasure\PhysicalQuantity\Length;
-use PhpUnitsOfMeasure\PhysicalQuantity\Mass;
-use Illuminate\Support\Str;
-use Barryvdh\DomPDF\Facade as PDF;
 use Fleetbase\Casts\PolymorphicType;
-use Fleetbase\Models\Storefront\Product;
 use Fleetbase\Traits\HasMetaAttributes;
 use Fleetbase\Traits\HasPublicId;
 use Fleetbase\Traits\SendsWebhooks;
 use Fleetbase\Traits\TracksApiCredential;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Str;
+use PhpUnitsOfMeasure\PhysicalQuantity\Length;
+use PhpUnitsOfMeasure\PhysicalQuantity\Mass;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Milon\Barcode\Facades\DNS2DFacade as DNS2D;
 
 class Entity extends Model
@@ -53,6 +53,7 @@ class Entity extends Model
      */
     protected $fillable = [
         '_key',
+        'public_id',
         'payload_uuid',
         'company_uuid',
         'driver_assigned_uuid',
@@ -126,7 +127,7 @@ class Entity extends Model
      */
     public function pdfLabel()
     {
-        return PDF::loadHTML($this->label());
+        return Pdf::loadHTML($this->label());
     }
 
     /**
@@ -158,7 +159,7 @@ class Entity extends Model
      */
     public function photo()
     {
-        return $this->belongsTo(File::class);
+        return $this->belongsTo(\Fleetbase\Models\File::class);
     }
 
     /**
@@ -168,7 +169,7 @@ class Entity extends Model
      */
     public function files()
     {
-        return $this->hasMany(File::class);
+        return $this->hasMany(\Fleetbase\Models\File::class);
     }
 
     /**
@@ -216,7 +217,7 @@ class Entity extends Model
      */
     public function company()
     {
-        return $this->belongsTo(Company::class);
+        return $this->belongsTo(\Fleetbase\Models\Company::class);
     }
 
     /**
@@ -244,7 +245,7 @@ class Entity extends Model
      */
     public function getPhotoUrlAttribute()
     {
-        return static::attributeFromCache($this, 'photo.s3url', 'https://s3.ap-southeast-1.amazonaws.com/flb-assets/static/parcels/medium.png');
+        return data_get($this, 'photo.s3url', 'https://s3.ap-southeast-1.amazonaws.com/flb-assets/static/parcels/medium.png');
     }
 
     /**
@@ -336,7 +337,7 @@ class Entity extends Model
      */
     public function getTrackingAttribute()
     {
-        return static::attributeFromCache($this, 'trackingNumber.tracking_number');
+        return data_get($this, 'trackingNumber.tracking_number');
     }
 
     /**
@@ -344,7 +345,7 @@ class Entity extends Model
      */
     public function getStatusAttribute()
     {
-        return static::attributeFromCache($this, 'trackingNumber.last_status');
+        return data_get($this, 'trackingNumber.last_status');
     }
 
     public static function insertGetUuid($values = [], ?Payload $payload = null)
@@ -398,25 +399,6 @@ class Entity extends Model
         }
 
         return $result ? $uuid : false;
-    }
-
-    public static function fromStorefrontProduct(Product $product)
-    {
-        return new static([
-            'company_uuid' => session('company'),
-            'photo_uuid' => $product->primary_image_uuid,
-            'internal_id' => $product->public_id,
-            'name' => $product->name,
-            'description' => $product->description,
-            'currency' => $product->currency,
-            'sku' => $product->sku,
-            'price' => $product->price,
-            'sale_price' => $product->sale_price,
-            'meta' => [
-                'product_id' => $product->public_id,
-                'image_url' => $product->primary_image_url,
-            ]
-        ]);
     }
 
     public function setCustomer($model)

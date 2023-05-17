@@ -1,34 +1,31 @@
 <?php
 
-namespace Fleetbase\Http\Controllers\Api\v1;
+namespace Fleetbase\FleetOps\Http\Controllers\Api\v1;
 
-use Fleetbase\Events\OrderDispatchFailed;
-use Illuminate\Http\Request;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Fleetbase\Http\Controllers\Controller;
-use Fleetbase\Http\Requests\CreateOrderRequest;
-use Fleetbase\Http\Requests\UpdateOrderRequest;
-use Fleetbase\Http\Resources\v1\DeletedResource;
-use Fleetbase\Http\Resources\v1\Order as OrderResource;
-use Fleetbase\Http\Resources\v1\Proof as V1Proof;
-use Fleetbase\Models\Driver;
-use Fleetbase\Models\Entity;
+use Fleetbase\FleetOps\Events\OrderDispatchFailed;
+use Fleetbase\FleetOps\Events\OrderStarted;
+use Fleetbase\FleetOps\Http\Requests\CreateOrderRequest;
+use Fleetbase\FleetOps\Http\Requests\UpdateOrderRequest;
+use Fleetbase\FleetOps\Http\Resources\v1\Order as OrderResource;
+use Fleetbase\FleetOps\Http\Resources\v1\Proof as ProofResource;
+use Fleetbase\FleetOps\Models\Driver;
+use Fleetbase\FleetOps\Models\Entity;
+use Fleetbase\FleetOps\Models\Order;
+use Fleetbase\FleetOps\Models\Payload;
+use Fleetbase\FleetOps\Models\Place;
+use Fleetbase\FleetOps\Models\Proof;
+use Fleetbase\FleetOps\Models\Waypoint;
+use Fleetbase\FleetOps\Models\ServiceQuote;
+use Fleetbase\FleetOps\Support\Flow;
+use Fleetbase\FleetOps\Support\Utils;
+use Fleetbase\FleetOps\Http\Resources\v1\DeletedResource;
 use Fleetbase\Models\File;
-use Fleetbase\Models\Order;
-use Fleetbase\Models\Payload;
-use Fleetbase\Models\Proof;
-use Fleetbase\Models\Waypoint;
-use Fleetbase\Models\ServiceQuote;
-use Fleetbase\Notifications\StorefrontOrderEnroute;
-use Fleetbase\Support\Api;
-use Fleetbase\Support\Resp;
-use Fleetbase\Support\Utils;
+use Fleetbase\Models\Company;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
-use Fleetbase\Models\Company;
-use Fleetbase\Models\Place;
-use Exception;
+use Illuminate\Http\Request;
 
 class OrderController extends Controller
 {
@@ -55,8 +52,8 @@ class OrderController extends Controller
             // create order with integrated vendor, then resume fleetbase order creation
             try {
                 $integratedVendorOrder = $serviceQuote->integratedVendor->api()->createOrderFromServiceQuote($serviceQuote, $request);
-            } catch (Exception $e) {
-                return Resp::error($e->getMessage());
+            } catch (\Exception $e) {
+                return response()->error($e->getMessage());
             }
         }
 
@@ -154,7 +151,7 @@ class OrderController extends Controller
         }
 
         if (!isset($input['payload_uuid'])) {
-            return Resp::error('Attempted to attach invalid payload to order.');
+            return response()->error('Attempted to attach invalid payload to order.');
         }
 
         // create the order
@@ -201,7 +198,7 @@ class OrderController extends Controller
         // find for the order
         try {
             $order = Order::findRecordOrFail($id);
-        } catch (ModelNotFoundException $exception) {
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $exception) {
             return response()->json(
                 [
                     'error' => 'Order resource not found.',
@@ -327,7 +324,7 @@ class OrderController extends Controller
      */
     public function query(Request $request)
     {
-        $results = Order::queryFromRequest($request, function (&$query, $request, &$filters) {
+        $results = Order::queryWithRequest($request, function (&$query, $request, &$filters) {
             if ($request->has('payload')) {
                 $query->whereHas('payload', function ($q) use ($request) {
                     $q->where('public_id', $request->input('payload'));
@@ -521,7 +518,7 @@ class OrderController extends Controller
         // find for the order
         try {
             $order = Order::findRecordOrFail($id);
-        } catch (ModelNotFoundException $exception) {
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $exception) {
             return response()->json(
                 [
                     'error' => 'Order resource not found.',
@@ -545,7 +542,7 @@ class OrderController extends Controller
         // find for the driver
         try {
             $order = Order::findRecordOrFail($id);
-        } catch (ModelNotFoundException $exception) {
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $exception) {
             return response()->json(
                 [
                     'error' => 'Order resource not found.',
@@ -572,7 +569,7 @@ class OrderController extends Controller
         // find the order
         try {
             $order = Order::findRecordOrFail($id);
-        } catch (ModelNotFoundException $exception) {
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $exception) {
             return response()->json(
                 [
                     'error' => 'Order resource not found.',
@@ -604,7 +601,7 @@ class OrderController extends Controller
     {
         try {
             $order = Order::findRecordOrFail($id);
-        } catch (ModelNotFoundException $exception) {
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $exception) {
             return response()->json(
                 [
                     'error' => 'Order resource not found.',
@@ -614,11 +611,11 @@ class OrderController extends Controller
         }
 
         if (!$order->hasDriverAssigned && !$order->adhoc) {
-            return Resp::error('No driver assigned to dispatch!');
+            return response()->error('No driver assigned to dispatch!');
         }
 
         if ($order->dispatched) {
-            return Resp::error('Order has already been dispatched!');
+            return response()->error('Order has already been dispatched!');
         }
 
         $order->dispatch();
@@ -642,7 +639,7 @@ class OrderController extends Controller
             $order = Order::findRecordOrFail($id, ['payload.waypoints'], [], function (&$query) {
                 $query->disableCache();
             });
-        } catch (ModelNotFoundException $exception) {
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $exception) {
             return response()->json(
                 [
                     'error' => 'Order resource not found.',
@@ -652,7 +649,7 @@ class OrderController extends Controller
         }
 
         if ($order->started) {
-            return Resp::error('Order has already started.');
+            return response()->error('Order has already started.');
         }
 
         // if the order is adhoc and the parameter of `assign` is set with a valid driver id, assign the driver and continue
@@ -667,15 +664,15 @@ class OrderController extends Controller
         $payload = Payload::where('uuid', $order->payload_uuid)->withoutGlobalScopes()->with(['waypoints', 'waypointMarkers', 'entities'])->first();
 
         if ($order->adhoc && !$driver) {
-            return Resp::error('You must send driver to accept adhoc order.');
+            return response()->error('You must send driver to accept adhoc order.');
         }
 
         if (!$driver) {
-            return Resp::error('No driver assigned to order.');
+            return response()->error('No driver assigned to order.');
         }
 
         // get the next order activity
-        $flow = $activity = Api::getNextActivity($order);
+        $flow = $activity = Flow::getNextActivity($order);
 
         // order is not dispatched if next activity code is dispatch or order is not flagged as dispatched
         $isNotDispatched = $activity['code'] === 'dispatched' || $order->isNotDispatched;
@@ -683,18 +680,21 @@ class OrderController extends Controller
         // if order is not dispatched yet $activity['code'] === 'dispatched' || $order->dispatched === true 
         // and not skipping throw order not dispatched error
         if ($isNotDispatched && !$skipDispatch) {
-            return Resp::error('Order has not been dispatched yet and cannot be started.');
+            return response()->error('Order has not been dispatched yet and cannot be started.');
         }
 
         // if we're going to skip the dispatch get the next activity status and flow and continue
         if ($isNotDispatched && $skipDispatch) {
-            $flow = $activity = Api::getAfterNextActivity($order);
+            $flow = $activity = Flow::getAfterNextActivity($order);
         }
 
         // set order to started
         $order->started = true;
         $order->started_at = now();
         $order->save();
+
+        // trigger start event
+        event(new OrderStarted($order));
 
         // set order as drivers current order
         $driver->current_job_uuid = $order->uuid;
@@ -706,12 +706,6 @@ class OrderController extends Controller
         // set first destination for payload
         $payload->setFirstWaypoint($activity, $location);
         $order->setRelation('payload', $payload);
-
-        // if storefront order / notify customer driver has started and is en-route
-        if ($order->hasMeta('storefront_id')) {
-            $order->load(['customer']);
-            $order->customer->notify(new StorefrontOrderEnroute($order));
-        }
 
         // update order activity
         $updateActivityRequest = new Request(['activity' => $flow]);
@@ -732,7 +726,7 @@ class OrderController extends Controller
         $skipDispatch = $request->or(['skip_dispatch', 'skipDispatch'], false);
         $proof = $request->input('proof', null);
 
-        /** @var \Fleetbase\Models\Order $order */
+        /** @var \Fleetbase\FleetOps\Models\Order $order */
         $order = ($order instanceof Order) ? $order : Order::withoutGlobalScopes()
             ->where('public_id', $order)
             ->whereNull('deleted_at')
@@ -741,7 +735,7 @@ class OrderController extends Controller
             ->first();
 
         if (!$order) {
-            return Resp::error('No resource not found.');
+            return response()->error('No resource not found.');
         }
 
         // if orser is created trigger started flag
@@ -750,11 +744,11 @@ class OrderController extends Controller
             $order->started_at = now();
         }
 
-        $activity = $request->input('activity', Api::getNextActivity($order));
+        $activity = $request->input('activity', Flow::getNextActivity($order));
 
         // if we're going to skip the dispatch get the next activity status and flow and continue
         if (is_array($activity) && $activity['code'] === 'dispatched' && $skipDispatch) {
-            $activity = Api::getAfterNextActivity($order);
+            $activity = Flow::getAfterNextActivity($order);
         }
 
         // handle pickup/dropoff order activity update as normal
@@ -764,7 +758,7 @@ class OrderController extends Controller
             if (!$order->hasDriverAssigned && !$order->adhoc) {
                 event(new OrderDispatchFailed($order, 'No driver assigned for order to dispatch to.'));
 
-                return Resp::error('No driver assigned for order to dispatch to.');
+                return response()->error('No driver assigned for order to dispatch to.');
             }
 
             $order->dispatch();
@@ -838,7 +832,7 @@ class OrderController extends Controller
 
         try {
             $order = Order::findRecordOrFail($id, ['payload']);
-        } catch (ModelNotFoundException $exception) {
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $exception) {
             return response()->json(
                 [
                     'error' => 'Order resource not found.',
@@ -857,11 +851,11 @@ class OrderController extends Controller
                 $q->orWhere('public_id', $waypointId);
             })->withoutGlobalScopes()->first();
 
-            $activity = Api::getOrderWaypointFlow($order, $waypoint);
+            $activity = Flow::getOrderWaypointFlow($order, $waypoint);
             return response()->json($activity);
         }
 
-        $activity = Api::getOrderFlow($order);
+        $activity = Flow::getOrderFlow($order);
 
         return response()->json($activity);
     }
@@ -876,7 +870,7 @@ class OrderController extends Controller
     {
         try {
             $order = Order::findRecordOrFail($id);
-        } catch (ModelNotFoundException $exception) {
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $exception) {
             return response()->json(
                 [
                     'error' => 'Order resource not found.',
@@ -892,7 +886,7 @@ class OrderController extends Controller
 
         // if not completed respond with error
         if (!$isCompleted) {
-            return Resp::error('Not all waypoints completed for order.');
+            return response()->error('Not all waypoints completed for order.');
         }
 
         $activity = [
@@ -927,7 +921,7 @@ class OrderController extends Controller
     {
         try {
             $order = Order::findRecordOrFail($id);
-        } catch (ModelNotFoundException $exception) {
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $exception) {
             return response()->json(
                 [
                     'error' => 'Order resource not found.',
@@ -952,7 +946,7 @@ class OrderController extends Controller
     {
         try {
             $order = Order::findRecordOrFail($id);
-        } catch (ModelNotFoundException $exception) {
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $exception) {
             return response()->json(
                 [
                     'error' => 'Order resource not found.',
@@ -964,7 +958,7 @@ class OrderController extends Controller
         $place = $order->payload->waypoints->firstWhere('public_id', $placeId);
 
         if (!$place) {
-            return Resp::error('Place resource is not a valid destination.');
+            return response()->error('Place resource is not a valid destination.');
         }
 
         $order->payload->update(['current_waypoint_uuid' => $place->uuid]);
@@ -983,7 +977,7 @@ class OrderController extends Controller
     {
         try {
             $order = Order::findRecordOrFail($id);
-        } catch (ModelNotFoundException $exception) {
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $exception) {
             return response()->json(
                 [
                     'error' => 'Order resource not found.',
@@ -1014,7 +1008,7 @@ class OrderController extends Controller
 
         try {
             $order = Order::findRecordOrFail($id);
-        } catch (ModelNotFoundException $exception) {
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $exception) {
             return response()->json(
                 [
                     'error' => 'Order resource not found.',
@@ -1024,7 +1018,7 @@ class OrderController extends Controller
         }
 
         if (!$code) {
-            return Resp::error('No QR code data to capture.');
+            return response()->error('No QR code data to capture.');
         }
 
         $subject = $type === null ? $order : null;
@@ -1049,7 +1043,7 @@ class OrderController extends Controller
         }
 
         if (!$subject) {
-            return Resp::error('Unable to capture QR code data.');
+            return response()->error('Unable to capture QR code data.');
         }
 
         // validate
@@ -1065,10 +1059,10 @@ class OrderController extends Controller
                 'data' => $data
             ]);
 
-            return new V1Proof($proof);
+            return new ProofResource($proof);
         }
 
-        return Resp::error('Unable to validate QR code data.');
+        return response()->error('Unable to validate QR code data.');
     }
 
     /**
@@ -1087,7 +1081,7 @@ class OrderController extends Controller
 
         try {
             $order = Order::findRecordOrFail($id);
-        } catch (ModelNotFoundException $exception) {
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $exception) {
             return response()->json(
                 [
                     'error' => 'Order resource not found.',
@@ -1097,7 +1091,7 @@ class OrderController extends Controller
         }
 
         if (!$signature) {
-            return Resp::error('No signature data to capture.');
+            return response()->error('No signature data to capture.');
         }
 
         $subject = $type === null ? $order : null;
@@ -1122,7 +1116,7 @@ class OrderController extends Controller
         }
 
         if (!$subject) {
-            return Resp::error('Unable to capture signature data.');
+            return response()->error('Unable to capture signature data.');
         }
 
         // create proof instance

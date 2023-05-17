@@ -1,7 +1,5 @@
 <?php
 
-namespace Fleetbase\Http\Requests;
-
-
+namespace Fleetbase\FleetOps\Http\Requests;
 
 class UpdateZoneRequest extends CreateZoneRequest {}

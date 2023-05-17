@@ -1,34 +1,26 @@
 <?php
 
-namespace Fleetbase\Models;
+namespace Fleetbase\FleetOps\Models;
 
-use Brick\Geo\IO\GeoJSONReader;
-use Brick\Geo\Point as GeoPoint;
+use Fleetbase\Models\Model;
 use Illuminate\Support\Carbon;
-use Fleetbase\Scopes\PlaceScope;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+use Fleetbase\FleetOps\Support\Utils;
 use Fleetbase\Traits\HasUuid;
 use Fleetbase\Traits\HasPublicId;
 use Fleetbase\Traits\TracksApiCredential;
 use Fleetbase\Traits\HasApiModelBehavior;
-use Fleetbase\Traits\SendsWebhooks;
-use Fleetbase\Support\Utils;
-use Fleetbase\Support\Resp;
-use Fleetbase\Casts\Json;
-use Fleetbase\Casts\Point as SpatialPointCast;
 use Fleetbase\Traits\HasMetaAttributes;
-use Illuminate\Database\QueryException;
-use Geocoder\Laravel\Facades\Geocoder;
-use Geocoder\Provider\GoogleMaps\Model\GoogleAddress;
-use Grimzy\LaravelMysqlSpatial\Eloquent\SpatialExpression;
+use Fleetbase\Traits\SendsWebhooks;
+use Fleetbase\Casts\Json;
+use Fleetbase\FleetOps\Casts\Point;
+use Fleetbase\Traits\Searchable;
 use Grimzy\LaravelMysqlSpatial\Eloquent\SpatialTrait;
-use Grimzy\LaravelMysqlSpatial\Types\Point;
-use Illuminate\Support\Facades\DB;
-// use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 
 class Place extends Model
 {
-    use HasUuid, HasPublicId, HasApiModelBehavior, SendsWebhooks, TracksApiCredential, SpatialTrait, HasMetaAttributes;
+    use HasUuid, HasPublicId, HasApiModelBehavior, Searchable, SendsWebhooks, TracksApiCredential, SpatialTrait, HasMetaAttributes;
 
     /**
      * The database table used by the model.
@@ -36,14 +28,6 @@ class Place extends Model
      * @var string
      */
     protected $table = 'places';
-
-    // /**
-    //  * Overwrite table to include databse name
-    //  */
-    // public function __construct()
-    // {
-    //     $this->table = DB::connection($this->conntaction)->getDatabaseName() . '.' . $this->getTable();
-    // }
 
     /**
      * The type of public Id to generate
@@ -57,7 +41,7 @@ class Place extends Model
      *
      * @var array
      */
-    protected $searchableColumns = ['name', 'country', 'city', 'postal_code'];
+    protected $searchableColumns = ['name', 'street1', 'street2', 'country', 'province', 'district', 'city', 'postal_code', 'phone'];
 
     /**
      * The attributes that are spatial columns.
@@ -89,8 +73,6 @@ class Place extends Model
         'building',
         'security_access_code',
         'country',
-        // 'latitude',
-        // 'longitude',
         'location',
         'meta',
         'phone'
@@ -101,7 +83,7 @@ class Place extends Model
      *
      * @var array
      */
-    protected $appends = ['country_name', 'owner_is_vendor', 'owner_is_contact', 'address', 'address_html', 'owner_name'];
+    protected $appends = ['country_name', 'address', 'address_html'];
 
     /**
      * The attributes excluded from the model's JSON form.
@@ -111,13 +93,9 @@ class Place extends Model
     protected $hidden = [
         'id',
         '_key',
-        // 'company_uuid',
         'connect_company_uuid',
         'owner_uuid',
         'owner_type',
-        'latitude',
-        'longitude',
-        'owner'
     ];
 
     /**
@@ -127,7 +105,7 @@ class Place extends Model
      */
     protected $casts = [
         'meta' => Json::class,
-        'location' => SpatialPointCast::class,
+        'location' => Point::class,
     ];
 
     /**
@@ -138,204 +116,125 @@ class Place extends Model
     protected $filterParams = ['vendor', 'contact'];
 
     /**
-     * The "booting" method of the model.
-     *
-     * @return void
-     */
-    protected static function boot()
-    {
-        parent::boot();
-        static::addGlobalScope(new PlaceScope());
-    }
-
-    /**
-     * Get all data on the country the place exists in
-     *
-     * @var array
-     */
-    public function getCountryDataAttribute()
-    {
-        return [];
-        // if (Utils::isEmpty($this->uuid)) {
-        //     return Utils::getCountryData($this->country);
-        // }
-
-        // return static::attributeFromCache($this, 'country_data', function () {
-        //     return Utils::getCountryData($this->country);
-        // });
-    }
-
-    /**
-     * returns the full country name
-     * @return string
-     */
-    public function getCountryNameAttribute()
-    {
-        if (Utils::isEmpty($this->uuid)) {
-            return Utils::get($this, 'country_data.name.common');
-        }
-
-        return static::attributeFromCache($this, 'country_data.name.common');
-    }
-
-    /**
      * @return \Illuminate\Database\Eloquent\Relations\MorphTo
      */
     public function owner()
     {
-        return $this->morphTo(__FILE__, 'owner_type', 'owner_uuid')->withDefault([
-            'name' => 'N/A'
-        ]);
+        return $this->morphTo(__FILE__, 'owner_type', 'owner_uuid')->withDefault(
+            [
+                'name' => 'N/A'
+            ]
+        );
     }
 
     /**
-     * The full place address as a string
-     *
-     * @var string
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
-    public function getAddressString($useHtml = false)
+    public function company()
     {
-        return $this->toAddressString($useHtml);
+        return $this->belongsTo(\Fleetbase\Models\Comany::class);
     }
 
     /**
-     * The vendor's address as an HTML string
+     * Get the country data for the model instance.
      *
-     * @return string
+     * @return array
      */
-    public function getAddressHtmlAttribute()
+    public function getCountryDataAttribute(): array
     {
-        return $this->getAddressString(true);
+        return $this->fromCache(
+            'country_data',
+            function () {
+                if (empty($this->country)) {
+                    return [];
+                }
+                
+                return Utils::getCountryData($this->country);
+            }
+        );
     }
 
     /**
-     * The vendor's address as an string
+     * Returns the full country name.
      *
-     * @return string
+     * @return string|null
      */
-    public function getAddressAttribute()
+    public function getCountryNameAttribute(): ?string
     {
-        return $this->getAddressString();
+        return data_get($this, 'country_data.name.common');
     }
 
     /**
-     * The vendor of this address if any
+     * Returns a Point instance from the location of the model.
      *
-     * @return string
+     * @return \Grimzy\LaravelMysqlSpatial\Types\Point
      */
-    public function getOwnerNameAttribute()
+    public function getLocationAsPoint(): \Grimzy\LaravelMysqlSpatial\Types\Point
     {
-        return null;
-        // return static::attributeFromCache($this, 'owner.name');
-        // return $this->owner ? $this->owner->name : null;
+        return Utils::getPointFromCoordinates($this->location);
     }
 
     /**
-     * True of the contact is a vendor `customer_is_vendor`
+     * Fills empty address attributes with Google address attributes.
      *
-     * @var boolean
+     * @param \Geocoder\Provider\GoogleMaps\Model\GoogleAddress $address
+     * @return \Fleetbase\FleetOps\Models\Place $this
      */
-    public function getOwnerIsVendorAttribute()
-    {
-        return $this->owner_type === 'Fleetbase\\Models\\Vendor';
-    }
-
-    /**
-     * True of the customer is a contact `customer_is_contact`
-     *
-     * @var boolean
-     */
-    public function getOwnerIsContactAttribute()
-    {
-        return $this->owner_type === 'Fleetbase\\Models\\Contact';
-    }
-
-    /**
-     * Returns a geos applicable Point instance from the location.
-     *
-     * @return Brick\Geo\Point
-     */
-    public function getLocationAsPoint()
-    {
-        if ($this->location instanceof Point) {
-            $json = $this->location->toJson();
-            $reader = new GeoJSONReader();
-
-            return $reader->read($json);
-        }
-
-        if ($this->location instanceof SpatialExpression) {
-            $point = $this->location->getSpatialValue();
-
-            return GeoPoint::fromText($point);
-        }
-
-        $json = (new Point(0, 0))->toJson();
-        $reader = new GeoJSONReader();
-
-        return $reader->read($json);
-    }
-
-    /**
-     * Fills empty address attributes with google address attributes.
-     *
-     * @param GoogleAddress $address
-     * @return void
-     */
-    public function fillWithGoogleAddress(GoogleAddress $address)
+    public function fillWithGoogleAddress(\Geocoder\Provider\GoogleMaps\Model\GoogleAddress $address): Place
     {
         $formattedAddress = $address->getFormattedAddress();
 
-        if (Utils::isEmpty($this->street1) && $address) {
+        if (empty($this->street1) && $address) {
             $streetAddress = trim($address->getStreetAddress() ?? $address->getStreetNumber() . ' ' . $address->getStreetName());
 
             if (empty($streetAddress) && $formattedAddress) {
                 // fallback use `formattedAddress`
-                $streetAddress = collect(explode(',', $formattedAddress))->take(2)->join(',');
+                $streetAddress = explode(',', $formattedAddress, 3);
+                $streetAddress = isset($streetAddress[2]) ? trim($streetAddress[0] . ', ' . $streetAddress[1]) : $formattedAddress;
             }
 
             $this->setAttribute('street1', $streetAddress);
         }
 
-        if (Utils::isEmpty($this->postal_code) && $address) {
+        if (empty($this->postal_code) && $address) {
             $this->setAttribute('postal_code', $address->getPostalCode());
         }
 
-        if (Utils::isEmpty($this->neighborhood) && $address) {
+        if (empty($this->neighborhood) && $address) {
             $this->setAttribute('neighborhood', $address->getNeighborhood());
         }
 
-        if (Utils::isEmpty($this->city) && $address) {
+        if (empty($this->city) && $address) {
             $this->setAttribute('city', $address->getLocality());
         }
 
-        if (Utils::isEmpty($this->building) && $address) {
+        if (empty($this->building) && $address) {
             $this->setAttribute('building', $address->getStreetNumber());
         }
 
-        if (Utils::isEmpty($this->country) && $address) {
+        if (empty($this->country) && $address) {
             $this->setAttribute('country', $address->getCountry()->getCode());
         }
 
         if ($coordinates = $address->getCoordinates()) {
-            // $this->setAttribute('location', new Point($coordinates->getLongitude(), $coordinates->getLatitude()));
-            $this->setAttribute('location', new Point($coordinates->getLatitude(), $coordinates->getLongitude()));
+            $this->setAttribute('location', new \Grimzy\LaravelMysqlSpatial\Types\Point($coordinates->getLatitude(), $coordinates->getLongitude()));
         }
 
         return $this;
     }
 
     /**
-     * Fills empty address attributes with google address attributes.
+     * Returns an array of address attributes using Google address object.
      *
-     * @param GoogleAddress $address
-     * @return void
+     * @param \Geocoder\Provider\GoogleMaps\Model\GoogleAddress|null $address
+     * 
+     * @return array
      */
-    public static function getGoogleAddressArray(?GoogleAddress $address)
+    public static function getGoogleAddressArray(?\Geocoder\Provider\GoogleMaps\Model\GoogleAddress $address): array
     {
         $attributes = [];
 
-        if (!$address instanceof GoogleAddress) {
+        if (!$address instanceof \Geocoder\Provider\GoogleMaps\Model\GoogleAddress) {
             return $attributes;
         }
 
@@ -348,59 +247,72 @@ class Place extends Model
         $attributes['city'] = $address->getLocality();
         $attributes['building'] = $address->getStreetNumber();
         $attributes['country'] = $address->getCountry()->getCode();
-        // $attributes['location'] = new Point($coordinates->getLongitude(), $coordinates->getLatitude());
-        $attributes['location'] = new Point($coordinates->getLatitude(), $coordinates->getLongitude());
+        $attributes['location'] = new \Grimzy\LaravelMysqlSpatial\Types\Point($coordinates->getLatitude(), $coordinates->getLongitude());
 
         return $attributes;
     }
 
-    public static function createFromGoogleAddress(GoogleAddress $address, $saveInstance = false)
+
+    /**
+     * Create a new Place instance from a Google Address instance and optionally save it to the database.
+     *
+     * @param \Geocoder\Provider\GoogleMaps\Model\GoogleAddress $address
+     * @param bool $saveInstance
+     * @return \Fleetbase\FleetOps\Models\Place
+     */
+    public static function createFromGoogleAddress(\Geocoder\Provider\GoogleMaps\Model\GoogleAddress $address, bool $saveInstance = false): Place
     {
-        $instance = new Place();
-        $instance->fillWithGoogleAddress($address);
-        $addressString = $instance->getAddressString();
+        $instance = (new static)->fillWithGoogleAddress($address);
 
         if ($saveInstance) {
-            try {
-                $instance->save();
-            } catch (QueryException $e) {
-                return Resp::error(app()->environment('production') ? 'Failed to create place: ' . $addressString : Utils::sqlExceptionString($e));
-            }
+            $instance->save();
         }
 
         return $instance;
     }
 
-    public static function insertFromGoogleAddress(GoogleAddress $address)
+    /**
+     * Inserts a new Place record into the database with attributes from a Google Maps address.
+     *
+     * @param \Geocoder\Provider\GoogleMaps\Model\GoogleAddress $address
+     *
+     * @return string The UUID of the new record
+     */
+    public static function insertFromGoogleAddress(\Geocoder\Provider\GoogleMaps\Model\GoogleAddress $address)
     {
         $values = static::getGoogleAddressArray($address);
 
         return static::insertGetUuid($values);
     }
 
-    public static function createFromGeocodingLookup(string $address, $saveInstance = false)
+    /**
+     * Create a new Place instance from a geocoding lookup.
+     *
+     * @param string $address
+     * @param bool $saveInstance
+     *
+     * @return Place
+     */
+    public static function createFromGeocodingLookup(string $address, $saveInstance = false): Place
     {
-        $results = Geocoder::geocode($address)->get();
+        $results = \Geocoder\Laravel\Facades\Geocoder::geocode($address)->get();
 
-        if (!$results->count() === 0 || !$results->first()) {
+        if ($results->isEmpty() || !$results->first()) {
             return (new static())->newInstance(['street1' => $address]);
         }
 
         return static::createFromGoogleAddress($results->first(), $saveInstance);
     }
 
-
-    public static function insertFromGeocodingLookup(string $address)
-    {
-        $results = Geocoder::geocode($address)->get();
-
-        if (!$results->count() === 0 || !$results->first()) {
-            return static::insertGetId(['street1' => $address]);
-        }
-
-        return static::insertFromGoogleAddress($results->first());
-    }
-
+    /**
+     * Creates a new Place instance from given coordinates
+     *
+     * @param mixed $coordinates
+     * @param array $attributes
+     * @param bool $saveInstance
+     *
+     * @return Place|false
+     */
     public static function createFromCoordinates($coordinates, $attributes = [], $saveInstance = false)
     {
         $instance = new Place();
@@ -408,47 +320,47 @@ class Place extends Model
         $latitude = Utils::getLatitudeFromCoordinates($coordinates);
         $longitude = Utils::getLongitudeFromCoordinates($coordinates);
 
-        $instance->setAttribute('location', new Point($latitude, $longitude));
+        $instance->setAttribute('location', new \Grimzy\LaravelMysqlSpatial\Types\Point($latitude, $longitude));
         $instance->fill($attributes);
 
-        $results = Geocoder::reverse($latitude, $longitude)->get();
+        $results = \Geocoder\Laravel\Facades\Geocoder::reverse($latitude, $longitude)->get();
 
-        if ($results->count() === 0) {
+        if ($results->isEmpty()) {
             return false;
         }
 
         $instance->fillWithGoogleAddress($results->first());
-        $addressString = $instance->getAddressString();
 
         if ($saveInstance) {
-            try {
-                $instance->save();
-            } catch (QueryException $e) {
-                return Resp::error(app()->environment('production') ? 'Failed to create place: ' . $addressString : Utils::sqlExceptionString($e));
-            }
+            $instance->save();
         }
 
         return $instance;
     }
 
+    /**
+     * Inserts a new place into the database using latitude and longitude coordinates.
+     *
+     * @param \Grimzy\LaravelMysqlSpatial\Types\Point|string|array $coordinates The coordinates to use for the new place.
+     *
+     * @return mixed Returns the UUID of the new place on success or false on failure.
+     */
     public static function insertFromCoordinates($coordinates)
     {
         $attributes = [];
 
-        if ($coordinates instanceof Point) {
-            /** @var \Grimzy\LaravelMysqlSpatial\Types\Point $coordinates */
+        if ($coordinates instanceof \Grimzy\LaravelMysqlSpatial\Types\Point) {
             $attributes['location'] = $coordinates;
-
             $latitude = $coordinates->getLat();
             $longitude = $coordinates->getLng();
         } else {
             $latitude = Utils::getLatitudeFromCoordinates($coordinates);
             $longitude = Utils::getLongitudeFromCoordinates($coordinates);
 
-            $attributes['location'] = new Point($latitude, $longitude);
+            $attributes['location'] = new \Grimzy\LaravelMysqlSpatial\Types\Point($latitude, $longitude);
         }
 
-        $results = Geocoder::reverse($latitude, $longitude)->get();
+        $results = \Geocoder\Laravel\Facades\Geocoder::reverse($latitude, $longitude)->get();
 
         if (!$results->count() === 0) {
             return false;
@@ -460,51 +372,80 @@ class Place extends Model
         return static::insertGetUuid($values);
     }
 
+
+    /**
+     * Creates a Place object from mixed input.
+     *
+     * @param mixed $place
+     * @param array $attributes
+     * @param bool $saveInstance
+     *
+     * @return \App\Models\Place|false
+     */
     public static function createFromMixed($place, $attributes = [], $saveInstance = true)
     {
-        if (gettype($place) === 'string') {
+        // If $place is a string
+        if (is_string($place)) {
+            // Check if $place is a valid public_id, return matching Place object if found
             if (Utils::isPublicId($place)) {
                 return Place::where('public_id', $place)->first();
             }
 
+            // Check if $place is a valid uuid, return matching Place object if found
             if (Str::isUuid($place)) {
                 return Place::where('uuid', $place)->first();
             }
 
-            // ATTEMPT TO FIND BY ADDRESS OR NAME
-            $resolvedFromSearch = static::query()->where('company_uuid', session('company'))->where(function ($q) use ($place) {
-                $q->where('street1', $place);
-                $q->orWhere('name', $place);
-            })->first();
+            // Attempt to find by address or name
+            $resolvedFromSearch = static::query()
+                ->where('company_uuid', session('company'))
+                ->where(function ($q) use ($place) {
+                    $q->where('street1', $place);
+                    $q->orWhere('name', $place);
+                })
+                ->first();
 
             if ($resolvedFromSearch) {
                 return $resolvedFromSearch;
             }
 
-            return Place::createFromGeocodingLookup($place, $saveInstance);
-        } elseif ($place instanceof Point) {
-            return Place::insertFromCoordinates($place, true);
-        } elseif (Utils::isCoordinates($place)) {
-            return Place::insertFromCoordinates($place, true);
-        } elseif (gettype($place) === 'array') {
+            // Return a new Place object created from a geocoding lookup
+            return static::createFromGeocodingLookup($place, $saveInstance);
+        }
+        // If $place is an array of coordinates
+        elseif (Utils::isCoordinates($place)) {
+            return static::insertFromCoordinates($place, true);
+        }
+        // If $place is an array
+        elseif (is_array($place)) {
+            // If $place is an array of coordinates, create a new Place object
             if (Utils::isCoordinates($place)) {
-                return Place::createFromCoordinates($place, $attributes, $saveInstance);
+                return static::createFromCoordinates($place, $attributes, $saveInstance);
             }
 
-            if (isset($place['uuid']) && Str::isUuid($place['uuid'])) {
-                $existingPlace = Place::where('uuid', $place['uuid'])->first();
-
-                if ($existingPlace) {
-                    return $existingPlace;
-                }
+            // If $place has a valid uuid and a matching Place object exists, return the uuid
+            if (isset($place['uuid']) && Str::isUuid($place['uuid']) && Place::where('uuid', $place['uuid'])->exists()) {
+                return $place['uuid'];
             }
 
+            // Otherwise, create a new Place object with the given attributes
             return Place::create($place);
-        } elseif ($place instanceof GoogleAddress) {
+        }
+        // If $place is a GoogleAddress object
+        elseif ($place instanceof \Geocoder\Provider\GoogleMaps\Model\GoogleAddress) {
             return static::createFromGoogleAddress($place, $saveInstance);
         }
+
+        return false;
     }
 
+    /**
+     * Inserts a new place into the database from mixed data.
+     *
+     * @param mixed $place The data to use to create the new place.
+     *
+     * @return string|bool The UUID of the newly created place or false if the place was not created.
+     */
     public static function insertFromMixed($place)
     {
         if (gettype($place) === 'string') {
@@ -517,11 +458,11 @@ class Place extends Model
             }
 
             return Place::insertFromGeocodingLookup($place);
-        } elseif ($place instanceof Point) {
+        } elseif ($place instanceof \Grimzy\LaravelMysqlSpatial\Types\Point) {
             return Place::insertFromCoordinates($place, true);
         } elseif (Utils::isCoordinates($place)) {
             return Place::insertFromCoordinates($place, true);
-        } elseif (gettype($place) === 'array') {
+        } elseif (is_array($place)) {
             if (Utils::isCoordinates($place)) {
                 return Place::insertFromCoordinates($place, true);
             }
@@ -533,11 +474,17 @@ class Place extends Model
             $values = $place;
 
             return static::insertGetUuid($values);
-        } elseif ($place instanceof GoogleAddress) {
+        } elseif ($place instanceof \Geocoder\Provider\GoogleMaps\Model\GoogleAddress) {
             return static::insertFromGoogleAddress($place);
         }
     }
 
+    /**
+     * Inserts a new row into the database and returns the UUID of the inserted row
+     *
+     * @param array $values Associative array of values to be inserted
+     * @return string|false Returns the UUID of the inserted row if successful, false otherwise
+     */
     public static function insertGetUuid($values = [])
     {
         $instance = new static();
@@ -554,7 +501,7 @@ class Place extends Model
         $values['public_id'] = static::generatePublicId('place');
         $values['created_at'] = Carbon::now()->toDateTimeString();
         $values['company_uuid'] = session('company');
-        $values['_key'] = session('api_key') ?? 'console';
+        $values['_key'] = session('api_key', 'console');
 
         if (isset($values['location'])) {
             $values['location'] = Utils::parsePointToWkt($values['location']);
@@ -586,98 +533,112 @@ class Place extends Model
         return $result ? $uuid : false;
     }
 
-    public static function createFromImportRow($row, $importId, $country = null)
+    /**
+     * Create a new Place instance from an import row.
+     *
+     * @param array $row The import row to create a Place from.
+     * @param int $importId The ID of the import the row is associated with.
+     * @param string|null $country An optional country to append to the address if it doesn't already contain it.
+     * @return Place|null The newly created Place instance, or null if no valid address could be found.
+     */
+    public static function createFromImportRow($row, $importId, $country = null): ?Place
     {
-        $streetNumberAliases = ['street_number', 'number', 'house_number', 'st_number'];
-        $street2Aliases = ['street2', 'unit', 'unit_number'];
-        $cityAliases = ['city', 'town'];
-        $neighborhoodAliases = ['neighborhood', 'district'];
-        $stateAliases = ['state', 'province'];
-        $postalCodeAliases = ['postal_code', 'postal', 'zip', 'zip_code'];
-        $addressAliases = ['street1', 'address', 'street', 'street_address'];
-        $phoneNumberAliases = ['phone', 'mobile', 'phone_number', 'number', 'cell', 'cell_phone', 'mobile_number', 'contact_number'];
-        $itemsAliases = ['items', 'entities', 'packages', 'passengers', 'products', 'services'];
+        $addressFields = [
+            'street_number' => ['alias' => ['number', 'house_number', 'st_number']],
+            'street2' => ['alias' => ['unit', 'unit_number']],
+            'city' => ['alias' => ['town']],
+            'neighborhood' => ['alias' => ['district']],
+            'province' => ['alias' => ['state']],
+            'postal_code' => ['alias' => ['postal', 'zip', 'zip_code']],
+            'phone' => ['alias' => ['phone', 'mobile', 'phone_number', 'number', 'cell', 'cell_phone', 'mobile_number', 'contact_number']]
+        ];
+        $address = '';
 
-        $streetNumber = Utils::or($row, $streetNumberAliases);
-        $street2 = Utils::or($row, $street2Aliases);
-        $city = Utils::or($row, $cityAliases);
-        $neighborhood = Utils::or($row, $neighborhoodAliases);
-        $state = Utils::or($row, $stateAliases);
-        $postalCode = Utils::or($row, $postalCodeAliases);
-        $phoneNumber = Utils::or($row, $phoneNumberAliases);
-        $address = Utils::or($row, $addressAliases);
-
-        if ($streetNumber && !Str::contains($address, $streetNumber)) {
-            $address = $streetNumber . ' ' . $address;
+        foreach ($addressFields as $field => $options) {
+            if ($field === 'phone') {
+                continue;
+            }
+            $value = Utils::or($row, $options['alias']);
+            if ($value) {
+                $address .= $value . ' ';
+            }
         }
 
-        if ($street2 && !Str::contains($address, $street2)) {
-            $address = $address . ' ' . $street2;
-        }
-
-        if ($neighborhood && !Str::contains($address, $neighborhood)) {
-            $address = $address . ' ' . $neighborhood;
-        }
-
-        if ($city && !Str::contains($address, $city)) {
-            $address = $address . ' ' . $city;
-        }
-
-        if ($state && !Str::contains($address, $state)) {
-            $address = $address . ' ' . $state;
-        }
-
-        if ($postalCode && !Str::contains($address, $postalCode)) {
-            $address = $address . ' ' . $postalCode;
-        }
-
-        if ($country && !Str::contains($address, $country)) {
-            $address = $address . ' ' . $country;
-        }
+        $address = rtrim($address);
 
         if (!$address) {
-            return false;
+            return null;
         }
 
         $place = Place::createFromGeocodingLookup($address, false);
 
-        if (empty($place->street2)) {
-            $place->street2 = $street2;
+        foreach ($addressFields as $field => $options) {
+            if (empty($place->{$field})) {
+                $value = Utils::or($row, $options['alias']);
+                if ($value) {
+                    $place->{$field} = $value;
+                }
+            }
         }
 
-        if (empty($place->neighborhood)) {
-            $place->neighborhood = $neighborhood;
+        if ($country && !Str::contains($address, $country)) {
+            $address .= ' ' . $country;
         }
 
-        if (empty($place->province)) {
-            $place->province = $state;
-        }
+        // set the phone number if found
+        $place->phone = Utils::or($row, $addressFields['phone']['alias']);
 
-        if (empty($place->city)) {
-            $place->city = $city;
-        }
-
-        if (empty($place->postal_code)) {
-            $place->postal_code = $postalCode;
-        }
-
-        // get meta
-        $meta = collect($row)->except(['name', ...$streetNumberAliases, ...$street2Aliases, ...$cityAliases, ...$neighborhoodAliases, ...$stateAliases, ...$postalCodeAliases, ...$addressAliases, ...$phoneNumberAliases, ...$itemsAliases])->toArray();
-
+        // set meta data
+        $meta = collect($row)->except(['name', ...$addressFields['street_number']['alias'], ...$addressFields['street2']['alias'], ...$addressFields['city']['alias'], ...$addressFields['neighborhood']['alias'], ...$addressFields['province']['alias'], ...$addressFields['postal_code']['alias'], ...$addressFields['phone']['alias']])->toArray();
         $place->setMetas($meta);
-        $place->phone = $phoneNumber;
+
+        // set the import id
         $place->setAttribute('_import_id', $importId);
 
         return $place;
     }
 
+    /**
+     * Returns a formatted string representation of the address for this Place instance.
+     *
+     * @param array $except An optional array of address components to exclude from the returned string.
+     * @param bool $useHtml Whether to format the returned string as HTML.
+     * @return string The formatted address string.
+     */
     public function toAddressString($except = [], $useHtml = false)
     {
         return Utils::getAddressStringForPlace($this, $useHtml, $except);
     }
 
-    public function isMissing($part)
+    /**
+     * Get the full place address as a string.
+     *
+     * @param bool $useHtml Whether to use HTML formatting for the address string.
+     * 
+     * @return string The full address as a string.
+     */
+    public function getAddressString($useHtml = false)
     {
-        return !isset($this->{$part});
+        return $this->toAddressString($useHtml);
+    }
+
+    /**
+     * Get the vendor's address as an HTML string.
+     *
+     * @return string The vendor's address as an HTML string.
+     */
+    public function getAddressHtmlAttribute()
+    {
+        return $this->getAddressString(true);
+    }
+
+    /**
+     * Get the vendor's address as a string.
+     *
+     * @return string The vendor's address as a string.
+     */
+    public function getAddressAttribute()
+    {
+        return $this->getAddressString();
     }
 }

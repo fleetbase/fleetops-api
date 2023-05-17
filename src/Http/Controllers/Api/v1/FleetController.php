@@ -1,16 +1,15 @@
 <?php
 
-namespace Fleetbase\Http\Controllers\Api\v1;
+namespace Fleetbase\FleetOps\Http\Controllers\Api\v1;
 
 use Illuminate\Http\Request;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Fleetbase\Http\Controllers\Controller;
-use Fleetbase\Http\Requests\CreateFleetRequest;
-use Fleetbase\Http\Requests\UpdateFleetRequest;
-use Fleetbase\Http\Resources\v1\DeletedResource;
-use Fleetbase\Http\Resources\v1\Fleet as FleetResource;
-use Fleetbase\Models\Fleet;
-use Fleetbase\Support\Utils;
+use Fleetbase\FleetOps\Http\Requests\CreateFleetRequest;
+use Fleetbase\FleetOps\Http\Requests\UpdateFleetRequest;
+use Fleetbase\FleetOps\Http\Resources\v1\DeletedResource;
+use Fleetbase\FleetOps\Http\Resources\v1\Fleet as FleetResource;
+use Fleetbase\FleetOps\Models\Fleet;
+use Fleetbase\FleetOps\Support\Utils;
 
 class FleetController extends Controller
 {
@@ -55,7 +54,7 @@ class FleetController extends Controller
         // find for the fleet
         try {
             $fleet = Fleet::findRecordOrFail($id);
-        } catch (ModelNotFoundException $exception) {
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $exception) {
             return response()->json(
                 [
                     'error' => 'Fleet resource not found.',
@@ -90,7 +89,7 @@ class FleetController extends Controller
      */
     public function query(Request $request)
     {
-        $results = Fleet::queryFromRequest($request);
+        $results = Fleet::queryWithRequest($request);
 
         return FleetResource::collection($results);
     }
@@ -106,7 +105,7 @@ class FleetController extends Controller
         // find for the fleet
         try {
             $fleet = Fleet::findRecordOrFail($id);
-        } catch (ModelNotFoundException $exception) {
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $exception) {
             return response()->json(
                 [
                     'error' => 'Fleet resource not found.',
@@ -130,7 +129,7 @@ class FleetController extends Controller
         // find for the driver
         try {
             $fleet = Fleet::findRecordOrFail($id);
-        } catch (ModelNotFoundException $exception) {
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $exception) {
             return response()->json(
                 [
                     'error' => 'Fleet resource not found.',

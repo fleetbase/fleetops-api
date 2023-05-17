@@ -1,9 +1,10 @@
 <?php
 
-namespace Fleetbase\Http\Resources\v1;
+namespace Fleetbase\FleetOps\Http\Resources\v1;
 
 use Fleetbase\Http\Resources\FleetbaseResource;
-use Fleetbase\Support\Utils;
+use Fleetbase\FleetOps\Support\Utils;
+use Fleetbase\Support\Http;
 
 class ServiceRate extends FleetbaseResource
 {
@@ -16,9 +17,13 @@ class ServiceRate extends FleetbaseResource
     public function toArray($request)
     {
         return [
-            'id' => $this->public_id,
-            'service_area' => new ServiceArea($this->serviceArea),
-            'zone' => new Zone($this->zone),
+            'id' => $this->when(Http::isInternalRequest(), $this->id, $this->public_id),
+            'uuid' => $this->when(Http::isInternalRequest(), $this->uuid),
+            'public_id' => $this->when(Http::isInternalRequest(), $this->public_id),
+            'service_area' => $this->whenLoaded('serviceArea', new ServiceArea($this->serviceArea)),
+            'service_area_name' => $this->when(Http::isInternalRequest(), data_get($this, 'serviceArea.name')),
+            'zone' => $this->whenLoaded('zone', new Zone($this->zone)),
+            'zone_name' => $this->when(Http::isInternalRequest(), data_get($this, 'zone.name')),
             'service_name' => $this->service_name,
             'service_type' => $this->service_type,
             'base_fee' => $this->base_fee,

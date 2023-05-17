@@ -1,7 +1,8 @@
 <?php
 
-namespace Fleetbase\Models;
+namespace Fleetbase\FleetOps\Models;
 
+use Fleetbase\Models\Model;
 use Fleetbase\Casts\Json;
 use Fleetbase\Traits\HasUuid;
 use Fleetbase\Traits\TracksApiCredential;
@@ -71,7 +72,7 @@ class Route extends Model
      */
     public function getPayloadAttribute()
     {
-        return static::attributeFromCache($this, 'order.payload');
+        return data_get($this, 'order.payload');
     }
 
     /**
@@ -81,7 +82,7 @@ class Route extends Model
      */
     public function getDriverAttribute()
     {
-        return static::attributeFromCache($this, 'order.driverAssigned');
+        return data_get($this, 'order.driverAssigned');
     }
 
     /**
@@ -91,7 +92,7 @@ class Route extends Model
      */
     public function getOrderStatusAttribute()
     {
-        return static::attributeFromCache($this, 'order.status');
+        return data_get($this, 'order.status');
     }
 
     /**
@@ -101,7 +102,7 @@ class Route extends Model
      */
     public function getOrderPublicIdAttribute()
     {
-        return static::attributeFromCache($this, 'order.public_id');
+        return data_get($this, 'order.public_id');
     }
 
     /**
@@ -111,7 +112,7 @@ class Route extends Model
      */
     public function getOrderInternalIdAttribute()
     {
-        return static::attributeFromCache($this, 'order.internal_id');
+        return data_get($this, 'order.internal_id');
     }
 
     /**
@@ -121,6 +122,6 @@ class Route extends Model
      */
     public function getOrderDispatchedAtAttribute()
     {
-        return static::attributeFromCache($this, 'order.dispatched_at');
+        return data_get($this, 'order.dispatched_at');
     }
 }

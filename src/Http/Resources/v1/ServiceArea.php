@@ -1,11 +1,9 @@
 <?php
 
-namespace Fleetbase\Http\Resources\v1;
+namespace Fleetbase\FleetOps\Http\Resources\v1;
 
 use Fleetbase\Http\Resources\FleetbaseResource;
 use Fleetbase\Support\Http;
-use Grimzy\LaravelMysqlSpatial\Types\Point;
-use Illuminate\Support\Arr;
 
 class ServiceArea extends FleetbaseResource
 {
@@ -17,21 +15,19 @@ class ServiceArea extends FleetbaseResource
      */
     public function toArray($request)
     {
-        $serviceArea = [
-            'id' => $this->public_id,
+        return [
+            'id' => $this->when(Http::isInternalRequest(), $this->id, $this->public_id),
+            'uuid' => $this->when(Http::isInternalRequest(), $this->uuid),
+            'public_id' => $this->when(Http::isInternalRequest(), $this->public_id),
             'name' => $this->name,
             'type' => $this->type,
-            'location' => $this->location ?? new Point(0, 0),
+            'location' => $this->location,
+            'border' => $this->border,
+            'zones' => $this->whenLoaded('zones', Zone::collection($this->zones)),
             'status' => $this->status,
             'updated_at' => $this->updated_at,
             'created_at' => $this->created_at,
         ];
-
-        if (Http::isInternalRequest()) {
-            $serviceArea = Arr::insertAfterKey($serviceArea, ['uuid' => $this->uuid, 'public_id' => $this->public_id], 'id');
-        }
-
-        return $serviceArea;
     }
 
     /**
@@ -45,7 +41,8 @@ class ServiceArea extends FleetbaseResource
             'id' => $this->public_id,
             'name' => $this->name,
             'type' => $this->type,
-            'location' => $this->location ?? new Point(0, 0),
+            'location' => $this->location,
+            'border' => $this->border,
             'status' => $this->status,
             'updated_at' => $this->updated_at,
             'created_at' => $this->created_at,

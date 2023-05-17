@@ -1,7 +1,8 @@
 <?php
 
-namespace Fleetbase\Models;
+namespace Fleetbase\FleetOps\Models;
 
+use Fleetbase\Models\Model;
 use Fleetbase\Casts\Json;
 use Fleetbase\Traits\Expirable;
 use Fleetbase\Traits\HasMetaAttributes;
@@ -9,9 +10,10 @@ use Fleetbase\Traits\HasUuid;
 use Fleetbase\Traits\HasPublicId;
 use Fleetbase\Traits\SendsWebhooks;
 use Fleetbase\Traits\TracksApiCredential;
-use Fleetbase\Support\Lalamove;
-use Fleetbase\Support\Utils;
+use Fleetbase\FleetOps\Integrations\Lalamove\Lalamove;
+use Fleetbase\FleetOps\Support\Utils;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class ServiceQuote extends Model
 {
@@ -98,7 +100,7 @@ class ServiceQuote extends Model
      */
     public function company()
     {
-        return $this->belongsTo(Company::class);
+        return $this->belongsTo(\Fleetbase\Models\Company::class);
     }
 
     /**
@@ -132,7 +134,7 @@ class ServiceQuote extends Model
      */
     public function getServiceRateNameAttribute()
     {
-        return static::attributeFromCache($this->serviceRate(), 'service_name');
+        return data_get($this, 'serviceRate.service_name');
     }
 
     public function fromIntegratedVendor()
@@ -147,7 +149,7 @@ class ServiceQuote extends Model
 
     /**
      * @param \Illuminate\Http\Request $request
-     * @return \Fleetbase\Models\ServiceQuote|null
+     * @return \Fleetbase\FleetOps\Models\ServiceQuote|null
      */
     public static function resolveFromRequest(Request $request): ?ServiceQuote
     {
@@ -157,7 +159,7 @@ class ServiceQuote extends Model
             return null;
         }
 
-        if (Utils::isUuid($serviceQuote)) {
+        if (Str::isUuid($serviceQuote)) {
             $serviceQuote = static::where('uuid', $serviceQuote)->first();
         }
 
@@ -166,5 +168,41 @@ class ServiceQuote extends Model
         }
 
         return $serviceQuote;
+    }
+
+    /**
+     * Get the plural name of this model, either from the `pluralName` property or by inflecting the table name.
+     *
+     * @return string The plural name of this model.
+     */
+    public function getPluralName(): string
+    {
+        if (isset($this->pluralName)) {
+            return $this->pluralName;
+        }
+
+        if (isset($this->payloadKey)) {
+            return Str::plural($this->payloadKey);
+        }
+
+        return Str::plural($this->getTable());
+    }
+
+    /**
+     * Get the singular name of this model, either from the `singularName` property or by inflecting the table name.
+     *
+     * @return string The singular name of this model.
+     */
+    public function getSingularName(): string
+    {
+        if (isset($this->singularName)) {
+            return $this->singularName;
+        }
+
+        if (isset($this->payloadKey)) {
+            return Str::singular($this->payloadKey);
+        }
+
+        return Str::singular($this->getTable());
     }
 }

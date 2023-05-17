@@ -1,12 +1,14 @@
 <?php
 
-namespace Fleetbase\Http\Controllers\Internal\v1;
+namespace Fleetbase\FleetOps\Http\Controllers\Internal\v1;
 
-use Fleetbase\Http\Controllers\FleetbaseController;
-use Fleetbase\Support\Geo;
-use Illuminate\Http\Request;
+use Fleetbase\FleetOps\Http\Controllers\FleetOpsController;
+use Fleetbase\FleetOps\Exports\ServiceAreaExport;
+use Fleetbase\Http\Requests\ExportRequest;
+use Illuminate\Support\Str;
+use Maatwebsite\Excel\Facades\Excel;
 
-class ServiceAreaController extends FleetbaseController
+class ServiceAreaController extends FleetOpsController
 {
     /**
      * The resource to query
@@ -16,15 +18,16 @@ class ServiceAreaController extends FleetbaseController
     public $resource = 'service_area';
 
     /**
-     * Creates a record with request payload
+     * Export the fleets to excel or csv
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param  \Illuminate\Http\Request  $query
      * @return \Illuminate\Http\Response
      */
-    public function createRecord(Request $request)
+    public static function export(ExportRequest $request)
     {
-        return $this->model::createRecordFromRequest($request, function (&$request, &$input) {
-            // $input['border'] = Geo::polygonFor($input['country']);
-        });
+        $format = $request->input('format', 'xlsx');
+        $fileName = trim(Str::slug('service-areas-' . date('Y-m-d-H:i')) . '.' . $format);
+
+        return Excel::download(new ServiceAreaExport(), $fileName);
     }
 }

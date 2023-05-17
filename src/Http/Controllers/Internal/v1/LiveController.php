@@ -1,12 +1,12 @@
 <?php
 
-namespace Fleetbase\Http\Controllers\Internal\v1;
+namespace Fleetbase\FleetOps\Http\Controllers\Internal\v1;
 
 use Fleetbase\Http\Controllers\Controller;
-use Fleetbase\Http\Resources\Internal\v1\Order as OrderResource;
-use Fleetbase\Models\Order;
-use Fleetbase\Models\Driver;
-use Fleetbase\Models\Route;
+use Fleetbase\FleetOps\Http\Resources\v1\Order as OrderResource;
+use Fleetbase\FleetOps\Models\Order;
+use Fleetbase\FleetOps\Models\Driver;
+use Fleetbase\FleetOps\Models\Route;
 
 class LiveController extends Controller
 {

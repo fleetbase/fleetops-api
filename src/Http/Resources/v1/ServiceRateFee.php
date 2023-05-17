@@ -1,8 +1,9 @@
 <?php
 
-namespace Fleetbase\Http\Resources\v1;
+namespace Fleetbase\FleetOps\Http\Resources\v1;
 
 use Fleetbase\Http\Resources\FleetbaseResource;
+use Fleetbase\Support\Http;
 
 class ServiceRateFee extends FleetbaseResource
 {
@@ -15,6 +16,8 @@ class ServiceRateFee extends FleetbaseResource
     public function toArray($request)
     {
         return [
+            'id' => $this->when(Http::isInternalRequest(), $this->id),
+            'uuid' => $this->when(Http::isInternalRequest(), $this->uuid),
             'fee' => $this->fee,
             'currency' => $this->currency,
             'size' => $this->size,

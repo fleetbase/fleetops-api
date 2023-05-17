@@ -1,6 +1,8 @@
 <?php
 
-namespace Fleetbase\Http\Requests;
+namespace Fleetbase\FleetOps\Http\Requests;
+
+use Fleetbase\Http\Requests\FleetbaseRequest;
 
 class CreateContactRequest extends FleetbaseRequest
 {
@@ -11,7 +13,7 @@ class CreateContactRequest extends FleetbaseRequest
      */
     public function authorize()
     {
-        return session('storefront_key') || request()->session()->has('api_credential');
+        return request()->session()->has('storefront_key') || request()->session()->has('api_credential');
     }
 
     /**

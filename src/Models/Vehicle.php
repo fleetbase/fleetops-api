@@ -1,12 +1,13 @@
 <?php
 
-namespace Fleetbase\Models;
+namespace Fleetbase\FleetOps\Models;
 
+use Fleetbase\Models\Model;
 use Fleetbase\Traits\HasUuid;
 use Fleetbase\Traits\HasPublicId;
 use Fleetbase\Traits\TracksApiCredential;
 use Fleetbase\Traits\Searchable;
-use Fleetbase\Support\Utils;
+use Fleetbase\FleetOps\Support\Utils;
 use Fleetbase\Casts\Json;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Sluggable\SlugOptions;
@@ -219,7 +220,7 @@ class Vehicle extends Model
      */
     public function photo()
     {
-        return $this->belongsTo(File::class);
+        return $this->belongsTo(\Fleetbase\Models\File::class);
     }
 
     /**
@@ -227,7 +228,7 @@ class Vehicle extends Model
      */
     public function getPhotoUrlAttribute()
     {
-        return static::attributeFromCache($this, 'photo.s3url', 'https://s3.ap-southeast-1.amazonaws.com/flb-assets/static/vehicle-placeholder.png');
+        return data_get($this, 'photo.s3url', 'https://s3.ap-southeast-1.amazonaws.com/flb-assets/static/vehicle-placeholder.png');
     }
 
     /**
@@ -263,7 +264,7 @@ class Vehicle extends Model
      */
     public function getDriverNameAttribute()
     {
-        return static::attributeFromCache($this, 'driver.name');
+        return data_get($this, 'driver.name');
     }
 
     /**
@@ -271,7 +272,7 @@ class Vehicle extends Model
      */
     public function getDriverIdAttribute()
     {
-        return static::attributeFromCache($this, 'driver.public_id');
+        return data_get($this, 'driver.public_id');
     }
 
     /**
@@ -279,7 +280,7 @@ class Vehicle extends Model
      */
     public function getDriverUuidAttribute()
     {
-        return static::attributeFromCache($this, 'driver.uuid');
+        return data_get($this, 'driver.uuid');
     }
 
     /**
@@ -287,7 +288,7 @@ class Vehicle extends Model
      */
     public function getVendorIdAttribute()
     {
-        return static::attributeFromCache($this, 'vendor.public_id');
+        return data_get($this, 'vendor.public_id');
     }
 
     /**
@@ -295,7 +296,7 @@ class Vehicle extends Model
      */
     public function getVendorNameAttribute()
     {
-        return static::attributeFromCache($this, 'vendor.name');
+        return data_get($this, 'vendor.name');
     }
 
     /**

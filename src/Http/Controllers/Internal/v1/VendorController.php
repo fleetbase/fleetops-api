@@ -1,17 +1,17 @@
 <?php
 
-namespace Fleetbase\Http\Controllers\Internal\v1;
+namespace Fleetbase\FleetOps\Http\Controllers\Internal\v1;
 
-use Fleetbase\Exports\VendorExport;
-use Fleetbase\Http\Controllers\FleetbaseController;
-use Fleetbase\Http\Requests\BulkActionRequest;
+use Fleetbase\FleetOps\Http\Controllers\FleetOpsController;
+use Fleetbase\FleetOps\Exports\VendorExport;
+use Fleetbase\FleetOps\Models\Vendor;
+use Fleetbase\Http\Requests\Internal\BulkDeleteRequest;
 use Fleetbase\Http\Requests\ExportRequest;
-use Fleetbase\Models\Vendor;
-use Fleetbase\Support\Resp;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Maatwebsite\Excel\Facades\Excel;
 
-class VendorController extends FleetbaseController
+class VendorController extends FleetOpsController
 {
     /**
      * The resource to query
@@ -27,7 +27,7 @@ class VendorController extends FleetbaseController
      */
     public function getAsFacilitator($id)
     {
-        $vendor = Vendor::where('uuid', $id)->first();
+        $vendor = Vendor::where('uuid', $id)->withTrashed()->first();
 
         if (!$vendor) {
             return response()->error('Facilitator not found.');
@@ -45,7 +45,7 @@ class VendorController extends FleetbaseController
      */
     public function getAsCustomer($id)
     {
-        $vendor = Vendor::where('uuid', $id)->first();
+        $vendor = Vendor::where('uuid', $id)->withTrashed()->first();
 
         if (!$vendor) {
             return response()->error('Customer not found.');
@@ -73,10 +73,10 @@ class VendorController extends FleetbaseController
     /**
      * Bulk delete resources.
      *
-     * @param  Fleetbase\Http\Requests\BulkActionRequest  $request
+     * @param  \Fleetbase\Http\Requests\Internal\BulkDeleteRequest $request
      * @return \Illuminate\Http\Response
      */
-    public function bulkDelete(BulkActionRequest $request)
+    public function bulkDelete(BulkDeleteRequest $request)
     {
         $ids = $request->input('ids', []);
 
@@ -99,5 +99,24 @@ class VendorController extends FleetbaseController
             ],
             200
         );
+    }
+
+    /**
+     * Get all status options for an vehicle
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function statuses()
+    {
+        $statuses = DB::table('vendors')
+            ->select('status')
+            ->where('company_uuid', session('company'))
+            ->distinct()
+            ->get()
+            ->pluck('status')
+            ->filter()
+            ->values();
+
+        return response()->json($statuses);
     }
 }

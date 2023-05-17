@@ -1,6 +1,5 @@
 <?php
 
-namespace Fleetbase\Http\Requests;
-
+namespace Fleetbase\FleetOps\Http\Requests;
 
 class UpdateDriverRequest extends CreateDriverRequest {}

@@ -1,15 +1,15 @@
 <?php
 
-namespace Fleetbase\Models;
+namespace Fleetbase\FleetOps\Models;
 
+use Fleetbase\Models\Model;
+use Fleetbase\FleetOps\Support\Utils;
 use Fleetbase\Casts\Json;
 use Fleetbase\Traits\HasUuid;
 use Fleetbase\Traits\HasPublicId;
 use Fleetbase\Traits\HasApiModelBehavior;
-use Fleetbase\Support\IntegratedVendors;
-use Fleetbase\Support\Utils;
-use Fleetbase\Support\Resp;
-use Fleetbase\Exceptions\IntegratedVendorException;
+use Fleetbase\FleetOps\Support\IntegratedVendors;
+use Fleetbase\FleetOps\Exceptions\IntegratedVendorException;
 
 class IntegratedVendor extends Model
 {
@@ -58,6 +58,7 @@ class IntegratedVendor extends Model
         'webhook_url',
         'provider',
         'sandbox',
+        'options',
         'credentials'
     ];
 
@@ -81,7 +82,8 @@ class IntegratedVendor extends Model
      * @var array
      */
     protected $casts = [
-        'credentials' => Json::class
+        'credentials' => Json::class,
+        'options' => Json::class,
     ];
 
     /**
@@ -102,7 +104,6 @@ class IntegratedVendor extends Model
                         $provider->callback('onCreated');
                     } catch (IntegratedVendorException $e) {
                         $model->delete();
-                        Resp::error($e->getMessage());
                     }
                 }
             }
@@ -134,7 +135,7 @@ class IntegratedVendor extends Model
      */
     public function createdBy()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(\Fleetbase\Models\User::class);
     }
 
     /**
@@ -142,7 +143,7 @@ class IntegratedVendor extends Model
      */
     public function company()
     {
-        return $this->belongsTo(Company::class);
+        return $this->belongsTo(\Fleetbase\Models\Company::class);
     }
 
     public function setWebhookUrlAttribute($webhookUrl = null)
