@@ -49,17 +49,19 @@ class OrderConfigController extends Controller
         // create array of configs
         $configs = collect([...$installedExtensions, ...$authored]);
 
+        // if no installed configs always place default config
+        if ($configs->isEmpty()) {
+            $configs = $configs->merge(Flow::getAllDefaultOrderConfigs());
+        }
+
+        // filter by key
         if ($key) {
             $configs = $configs->where('key', $key);
         }
 
+        // filter by namespace
         if ($namespace) {
             $configs = $configs->where('namespace', $namespace);
-        }
-
-        // if no installed configs always place default config
-        if ($configs->isEmpty() && $key === 'default') {
-            $configs->push(Flow::getDefaultOrderConfig());
         }
 
         if ($single) {
