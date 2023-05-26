@@ -574,7 +574,7 @@ class Flow
         return new Extension([
             'id' => -1,
             'uuid' => Str::uuid(),
-            'author_uuid' => session('company'),
+            'author_uuid' => $company->uuid,
             'name' => $name,
             'description' => $description,
             'display_name' => $name,
@@ -587,5 +587,55 @@ class Flow
             'config' => [],
             'status' => 'private'
         ]);
+    }
+
+    public static function getAllDefaultOrderConfigs(): \Illuminate\Support\Collection
+    {
+        /** @var \Illuminate\Support\Collection $extensions */
+        $extensions = collect();
+        $company = static::getCompanySession();
+        $orderConfigs = config('api.types.order', []);
+        $thirdPartyOrderConfigs = Utils::fromFleetbaseExtensions('order-config');
+
+        // make sure order configs is array
+        if (!is_array($orderConfigs)) {
+            $orderConfigs = [];
+        }
+
+        if (!empty($thirdPartyOrderConfigs)) {
+            foreach ($thirdPartyOrderConfigs as $orderConfigProvider) {
+                $resolvedOrderConfigProvider = app($orderConfigProvider);
+
+                if (is_object($resolvedOrderConfigProvider) && method_exists($resolvedOrderConfigProvider, 'get')) {
+                    $orderConfigs = array_merge($orderConfigs, $resolvedOrderConfigProvider->get());
+                }
+            }
+        }
+
+        // convert order configs to local extensions
+        foreach ($orderConfigs as $index => $orderConfig) {
+            $extensions->push(
+                new Extension(
+                    [
+                        'id' => $index,
+                        'uuid' => Str::uuid(),
+                        'author_uuid' => $company->uuid,
+                        'name' => data_get($orderConfig, 'name'),
+                        'description' => data_get($orderConfig, 'description'),
+                        'display_name' => data_get($orderConfig, 'name'),
+                        'key' => data_get($orderConfig, 'key'),
+                        'namespace' => Extension::createNamespace($company->slug, 'order-config', data_get($orderConfig, 'name')),
+                        'version' => '0.0.1',
+                        'core_service' => 0,
+                        'meta' => data_get($orderConfig, 'meta'),
+                        'meta_type' => 'order_config',
+                        'config' => [],
+                        'status' => 'private'
+                    ]
+                )
+            );
+        }
+
+        return $extensions;
     }
 }
