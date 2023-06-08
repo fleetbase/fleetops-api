@@ -73,7 +73,7 @@ class PlaceController extends FleetOpsController
 
         if ($geo && $searchQuery) {
             $httpClient = new Client();
-            $provider = new \Geocoder\Provider\GoogleMaps\GoogleMaps($httpClient, null, env('GOOGLE_MAPS_API_KEY'));
+            $provider = new \Geocoder\Provider\GoogleMaps\GoogleMaps($httpClient, null, config('services.google_maps.api_key', env('GOOGLE_MAPS_API_KEY')));
             $geocoder = new \Geocoder\StatefulGeocoder($provider, 'en');
 
             if ($latitude && $longitude) {
