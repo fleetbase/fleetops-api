@@ -93,20 +93,6 @@ class DriverLocationChanged implements ShouldBroadcast
     public $speed;
 
     /**
-     * The name of the queue connection to use when broadcasting the event.
-     *
-     * @var string
-     */
-    public $connection = 'events';
-
-    /**
-     * The name of the queue to use when broadcasting the event.
-     *
-     * @var string
-     */
-    public string $queue = 'events';
-
-    /**
      * Create a new event instance.
      *
      * @return void
