@@ -246,7 +246,20 @@ class Metrics
         return $this->set('drivers_online', $data);
     }
 
-    public function customers(?callable $callback = null): Metrics
+    public function totalDrivers(?callable $callback = null): Metrics
+    {
+        $query = Driver::where('company_uuid', $this->company->uuid);
+
+        if (is_callable($callback)) {
+            $callback($query);
+        }
+
+        $data = $query->count();
+
+        return $this->set('total_drivers', $data);
+    }
+
+    public function totalCustomers(?callable $callback = null): Metrics
     {
         $query = Contact::where('company_uuid', $this->company->uuid)
             ->where('type', 'customer');
@@ -257,7 +270,7 @@ class Metrics
 
         $data = $query->count();
 
-        return $this->set('customers', $data);
+        return $this->set('total_customers', $data);
     }
 
     public function openIssues(?callable $callback = null): Metrics
