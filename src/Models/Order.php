@@ -113,6 +113,7 @@ class Order extends Model
      * @var array
      */
     protected $filterParams = [
+        'service_quote_uuid',
         'unassigned',
         'pod_required',
         'started',

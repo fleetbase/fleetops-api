@@ -30,7 +30,7 @@ class GeocoderController extends Controller
         }
 
         // get results
-        $results = Geocoder::reverse($coordinates->getLat(), $coordinates->getLng());
+        $results = Geocoder::reverse($coordinates->getLat(), $coordinates->getLng())->get();
 
         if ($results->count()) {
             if ($single) {
