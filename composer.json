@@ -1,6 +1,6 @@
 {
     "name": "fleetbase/fleetops-api",
-    "version": "1.0.3-alpha",
+    "version": "1.0.4-alpha",
     "description": "FleetOps TMS and Last-Mile Operations System",
     "keywords": [
         "fleetops",
