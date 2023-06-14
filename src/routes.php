@@ -86,7 +86,7 @@ Route::prefix(config('fleetops.api.routing.prefix', null))->namespace('Fleetbase
                                 $router->patch('update-activity/{id}', $controller('updateActivity'));
                                 $router->patch('bulk-cancel', $controller('bulkCancel'));
                                 $router->patch('cancel', $controller('cancel'));
-                                $router->patch('dispatch', $controller('_dispatch'));
+                                $router->patch('dispatch', $controller('dispatchOrder'));
                                 $router->patch('start', $controller('start'));
                                 $router->delete('bulk-delete', $controller('bulkDelete'));
                             }

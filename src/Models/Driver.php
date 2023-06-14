@@ -109,6 +109,9 @@ class Driver extends Model
      * @var array
      */
     protected $appends = [
+        'current_job_id',
+        'vehicle_id',
+        'vendor_id',
         'photo_url',
         'name',
         'phone',
@@ -387,6 +390,14 @@ class Driver extends Model
     public function getVendorNameAttribute()
     {
         return data_get($this, 'vendor.name');
+    }
+
+    /**
+     * Get drivers photo URL attribute.
+     */
+    public function getPhotoAttribute()
+    {
+        return data_get($this, 'user.avatar');
     }
 
     /**

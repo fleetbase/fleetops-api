@@ -15,21 +15,24 @@ class Fleet extends FleetbaseResource
      */
     public function toArray($request)
     {
-        return [
-            'id' => $this->when(Http::isInternalRequest(), $this->id, $this->public_id),
-            'uuid' => $this->when(Http::isInternalRequest(), $this->uuid),
-            'public_id' => $this->when(Http::isInternalRequest(), $this->public_id),
-            'name' => $this->name,
-            'task' => $this->task ?? null,
-            'status' => $this->status ?? null,
-            'drivers_count' => $this->when(Http::isInternalRequest(), $this->drivers_count),
-            'drivers_online_count' => $this->when(Http::isInternalRequest(), $this->drivers_online_count),
-            'service_area' => $this->whenLoaded('serviceArea', new ServiceArea($this->serviceArea)),
-            'zone' => $this->whenLoaded('zone', new Zone($this->zone)),
-            'drivers' => $this->whenLoaded('drivers', Driver::collection($this->drivers()->without(['driverAssigned'])->with(Http::isInternalRequest() ? ['jobs'] : [])->get())),
-            'updated_at' => $this->updated_at,
-            'created_at' => $this->created_at,
-        ];
+        return array_merge(
+            $this->getInternalIds(),
+            [
+                'id' => $this->when(Http::isInternalRequest(), $this->id, $this->public_id),
+                'uuid' => $this->when(Http::isInternalRequest(), $this->uuid),
+                'public_id' => $this->when(Http::isInternalRequest(), $this->public_id),
+                'name' => $this->name,
+                'task' => $this->task ?? null,
+                'status' => $this->status ?? null,
+                'drivers_count' => $this->when(Http::isInternalRequest(), $this->drivers_count),
+                'drivers_online_count' => $this->when(Http::isInternalRequest(), $this->drivers_online_count),
+                'service_area' => $this->whenLoaded('serviceArea', new ServiceArea($this->serviceArea)),
+                'zone' => $this->whenLoaded('zone', new Zone($this->zone)),
+                'drivers' => $this->whenLoaded('drivers', Driver::collection($this->drivers()->without(['driverAssigned'])->with(Http::isInternalRequest() ? ['jobs'] : [])->get())),
+                'updated_at' => $this->updated_at,
+                'created_at' => $this->created_at,
+            ]
+        );
     }
 
     /**

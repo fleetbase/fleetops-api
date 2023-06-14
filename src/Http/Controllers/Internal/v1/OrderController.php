@@ -129,7 +129,7 @@ class OrderController extends FleetOpsController
         $info = Utils::lookupIp();
         $files = $request->input('files');
         $files = File::whereIn('uuid', $files)->get();
-        $country = $request->input('country', Utils::or($info, ['country_name', 'region']) ?? 'Singapore');
+        $country = $request->input('country', Utils::or($info, ['country_name', 'region'], 'Singapore'));
 
         $validFileTypes = ['csv', 'tsv', 'xls', 'xlsx'];
         $imports = collect();
@@ -283,7 +283,7 @@ class OrderController extends FleetOpsController
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function _dispatch(Request $request)
+    public function dispatchOrder(Request $request)
     {
         /** 
          * @var \Fleetbase\Models\Order 

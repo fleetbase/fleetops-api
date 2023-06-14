@@ -3,6 +3,7 @@
 namespace Fleetbase\FleetOps\Http\Resources\Internal\v1;
 
 use Illuminate\Http\Resources\Json\JsonResource;
+use Fleetbase\FleetOps\Http\Resources\v1\Place;
 
 class Waypoint extends JsonResource
 {
