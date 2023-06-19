@@ -28,7 +28,7 @@ class CreateDriverRequest extends FleetbaseRequest
         $isCreating = $this->isMethod('POST');
 
         return [
-            'name' => [Rule::requiredIf($this->isMethod('POST'))],
+            'name' => [Rule::requiredIf($isCreating)],
             'email' => ['nullable', 'email', $isCreating ? Rule::unique('users')->whereNull('deleted_at') : null],
             'password' => 'nullable|string',
             'phone' => ['nullable', $isCreating ? Rule::unique('users')->whereNull('deleted_at') : null],
