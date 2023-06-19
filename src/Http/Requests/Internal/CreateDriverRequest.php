@@ -2,7 +2,7 @@
 
 namespace Fleetbase\FleetOps\Http\Requests\Internal;
 
-use Fleetbase\Http\Requests\CreateDriverRequest as CreateDriverApiRequest;
+use Fleetbase\FleetOps\Http\Requests\CreateDriverRequest as CreateDriverApiRequest;
 use Illuminate\Validation\Rule;
 
 class CreateDriverRequest extends CreateDriverApiRequest
@@ -14,7 +14,7 @@ class CreateDriverRequest extends CreateDriverApiRequest
      */
     public function authorize()
     {
-        return session('company');
+        return request()->session()->has('company');
     }
 
     /**

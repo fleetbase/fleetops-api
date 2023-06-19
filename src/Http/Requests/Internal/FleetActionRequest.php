@@ -13,7 +13,7 @@ class FleetActionRequest extends FleetbaseRequest
      */
     public function authorize()
     {
-        return session('company');
+        return request()->session()->has('company');
     }
 
     /**

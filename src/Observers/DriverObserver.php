@@ -31,6 +31,6 @@ class DriverObserver
     public function deleted(Driver $driver)
     {
         // if the driver is deleted, delete their user account assosciated as well
-        User::where('uuid', $driver->user_uuid)->delete();
+        User::where(['uuid' => $driver->user_uuid, 'type' => 'driver'])->delete();
     }
 }
