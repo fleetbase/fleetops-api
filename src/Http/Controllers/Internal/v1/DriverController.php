@@ -6,6 +6,7 @@ use Fleetbase\FleetOps\Http\Controllers\FleetOpsController;
 use Fleetbase\FleetOps\Exports\DriverExport;
 use Fleetbase\FleetOps\Http\Requests\Internal\CreateDriverRequest;
 use Fleetbase\FleetOps\Http\Requests\Internal\UpdateDriverRequest;
+use Fleetbase\Exceptions\FleetbaseRequestValidationException;
 use Fleetbase\FleetOps\Models\Driver;
 use Fleetbase\FleetOps\Support\Utils;
 use Fleetbase\Http\Requests\ExportRequest;
@@ -51,7 +52,6 @@ class DriverController extends FleetOpsController
 			// outside organization: invite to join organization AS DRIVER
 			if ($validator->errors()->hasAny(['phone', 'email'])) {
 				// get existing user
-				// $existingUser = User::where('phone', $input['phone'])->orWhere('email', $input['email'])->first();
 				$existingUser = User::where(
 					function ($q) use ($input) {
 						if (!empty($input['phone'])) {
@@ -110,56 +110,65 @@ class DriverController extends FleetOpsController
 			return $createDriverRequest->responseWithErrors($validator);
 		}
 
-		return $this->model->createRecordFromRequest(
-			$request,
-			function (&$request, &$input) {
-				$input = collect($input);
+		try {
+			$record = $this->model->createRecordFromRequest(
+				$request,
+				function (&$request, &$input) {
+					$input = collect($input);
 
-				$userInput = $input
-					->only(['name', 'password', 'email', 'phone'])
-					->filter()
-					->toArray();
+					$userInput = $input
+						->only(['name', 'password', 'email', 'phone', 'status'])
+						->filter()
+						->toArray();
 
-				$input = $input
-					->except(['name', 'password', 'email', 'phone', 'location', 'meta'])
-					->filter()
-					->toArray();
+					$input = $input
+						->except(['name', 'password', 'email', 'phone', 'location', 'meta'])
+						->filter()
+						->toArray();
 
-				if (!isset($input['password'])) {
-					$input['password'] = $userInput['phone'] ?? Str::random(14);
+					if (!isset($input['password'])) {
+						$input['password'] = $userInput['phone'] ?? Str::random(14);
+					}
+
+					$userInput['company_uuid'] = session('company');
+					$userInput['type'] = 'driver';
+
+					$user = User::create($userInput);
+
+					// send invitation to user
+					$invitation = Invite::create([
+						'company_uuid' => session('company'),
+						'created_by_uuid' => session('user'),
+						'subject_uuid' => session('company'),
+						'subject_type' => Utils::getMutationType('company'),
+						'protocol' => 'email',
+						'recipients' => [$user->email],
+						'reason' => 'join_company'
+					]);
+
+					// notify user
+					$user->notify(new UserInvited($invitation));
+
+					$input['user_uuid'] = $user->uuid;
+					$input['slug'] = $user->slug;
+
+					if ($request->missing('location')) {
+						$input['location'] = new Point(0, 0);
+					}
+				},
+				function ($request, &$driver) {
+					$driver->load(['user']);
 				}
-
-				$userInput['company_uuid'] = session('company');
-				$userInput['type'] = 'driver';
-				// $userInput['']
-
-				$user = User::create($userInput);
-
-				// send invitation to user
-				$invitation = Invite::create([
-					'company_uuid' => session('company'),
-					'created_by_uuid' => session('user'),
-					'subject_uuid' => session('company'),
-					'subject_type' => Utils::getMutationType('company'),
-					'protocol' => 'email',
-					'recipients' => [$user->email],
-					'reason' => 'join_company'
-				]);
-
-				// notify user
-				$user->notify(new UserInvited($invitation));
-
-				$input['user_uuid'] = $user->uuid;
-				$input['slug'] = $user->slug;
-
-				if ($request->missing('location')) {
-					$input['location'] = new Point(0, 0);
-				}
-			},
-			function ($request, &$driver) {
-				$driver->load(['user']);
-			}
-		);
+			);
+			
+			return ['driver' => new $this->resource($record)];
+		} catch (\Exception $e) {
+			return response()->error($e->getMessage());
+		} catch (\Illuminate\Database\QueryException $e) {
+			return response()->error($e->getMessage());
+		} catch (FleetbaseRequestValidationException $e) {
+			return response()->error($e->getErrors());
+		}
 	}
 
 	/**
@@ -184,29 +193,40 @@ class DriverController extends FleetOpsController
 			return $updateDriverRequest->responseWithErrors($validator);
 		}
 
-		return $this->model::updateRecordFromRequest(
-			$request,
-			function (&$request, &$driver, &$input) {
-				$driver->load(['user']);
-				$input = collect($input);
-				$userInput = $input->only(['name', 'password', 'email', 'phone'])->toArray();
-				$input = $input->except(['name', 'password', 'email', 'phone', 'location', 'meta'])->toArray();
+		try {
+			$record = $this->model->updateRecordFromRequest(
+				$request,
+				$id,
+				function (&$request, &$driver, &$input) {
+					$driver->load(['user']);
+					$input = collect($input);
+					$userInput = $input->only(['name', 'password', 'email', 'phone'])->toArray();
+					$input = $input->except(['name', 'password', 'email', 'phone', 'location', 'meta'])->toArray();
 
-				$driver->user->update($userInput);
-				$driver->flushAttributesCache();
+					$driver->user->update($userInput);
+					$driver->flushAttributesCache();
 
-				$input['slug'] = $driver->user->slug;
-			},
-			function ($request, &$driver) {
-				$driver->load(['user']);
+					$input['slug'] = $driver->user->slug;
+				},
+				function ($request, &$driver) {
+					$driver->load(['user']);
 
-				if ($driver->user) {
-					$driver->user->setHidden(['driver']);
+					if ($driver->user) {
+						$driver->user->setHidden(['driver']);
+					}
+
+					$driver->setHidden(['user']);
 				}
+			);
 
-				$driver->setHidden(['user']);
-			}
-		);
+			return ['driver' => new $this->resource($record)];
+		} catch (\Exception $e) {
+			return response()->error($e->getMessage());
+		} catch (\Illuminate\Database\QueryException $e) {
+			return response()->error($e->getMessage());
+		} catch (FleetbaseRequestValidationException $e) {
+			return response()->error($e->getErrors());
+		}
 	}
 
 	/**
