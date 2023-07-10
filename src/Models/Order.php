@@ -574,7 +574,7 @@ class Order extends Model
     /**
      * Set the order type attribute, which defaults to `default`
      *
-     * @param string $status
+     * @param string $type
      * @return void
      */
     public function setTypeAttribute(?string $type = null): void

@@ -55,7 +55,7 @@ class ResolvedIntegratedVendor
 
     public static function logo(string $code): string
     {
-        return Utils::assetFromS3('integrated-vendors/' . $code . '.png');
+        return Utils::assetFromFleetbase('integrated-vendors/' . $code . '.png');
     }
 
     public function setIntegratedVendor(IntegratedVendor $vendor)

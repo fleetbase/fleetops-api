@@ -74,6 +74,13 @@ class Vendor extends Model
     protected $appends = ['address', 'address_street', 'logo_url'];
 
     /**
+     * Filterable params.
+     *
+     * @var array
+     */
+    protected $filterParams = ['customer_type', 'facilitator_type', 'photo_url'];
+
+    /**
      * The attributes that should be cast to native types.
      *
      * @var array
@@ -174,7 +181,7 @@ class Vendor extends Model
      */
     public function getLogoUrlAttribute()
     {
-        return data_get($this, 'logo.s3url', 'https://s3.ap-southeast-1.amazonaws.com/flb-assets/static/no-avatar.png');
+        return data_get($this, 'logo.url', 'https://s3.ap-southeast-1.amazonaws.com/flb-assets/static/no-avatar.png');
     }
 
     /**
@@ -216,5 +223,16 @@ class Vendor extends Model
     public function setTypeAttribute(?string $type)
     {
         $this->attributes['type'] = $type ?? 'vendor';
+    }
+
+    /**
+     * Set the vendor default status
+     *
+     * @param string|null $status
+     * @return void
+     */
+    public function setStatusAttribute(?string $status = 'active')
+    {
+        $this->attributes['status'] = $status ?? 'active';
     }
 }
