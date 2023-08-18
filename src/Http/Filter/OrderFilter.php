@@ -79,6 +79,11 @@ class OrderFilter extends Filter
         $this->builder->where('facilitator_uuid', $facilitator);
     }
 
+    public function type(string $type)
+    {
+        $this->builder->where('type', $type);
+    }
+
     public function payload(string $payload)
     {
         $this->builder->whereHas(
