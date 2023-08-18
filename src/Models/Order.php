@@ -132,7 +132,8 @@ class Order extends Model
         'driver',
         'entity_status',
         'created_by',
-        'updated_by'
+        'updated_by',
+        'layout'
     ];
 
     /**
