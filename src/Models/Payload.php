@@ -402,18 +402,40 @@ class Payload extends Model
     }
 
     /**
-     * Get the payload dropoff point or the current waypoint.
+     * Get the payload pickup point or the first waypoint.
      *
-     * @return \Fleetbase\Models\Place
+     * @return \Fleetbase\Models\Place|null
      */
-    public function getDropoffOrLastWaypoint()
+    public function getDropoffOrLastWaypoint(): ?Place
     {
-        if ($this->dropoff_uuid) {
-            return $this->load('dropoff')->dropoff;
+        $this->load(['dropoff', 'waypoints']);
+
+        if ($this->dropoff instanceof Place) {
+            return $this->dropoff;
         }
 
         if ($this->waypoints()->count()) {
-            return $this->load('waypoints')->waypoints->last();
+            return $this->waypoints->first();
+        }
+
+        return null;
+    }
+
+    /**
+     * Get the payload pickup point or the first waypoint.
+     *
+     * @return \Fleetbase\Models\Place|null
+     */
+    public function getPickupOrFirstWaypoint(): ?Place
+    {
+        $this->load(['pickup', 'waypoints']);
+
+        if ($this->pickup instanceof Place) {
+            return $this->pickup;
+        }
+
+        if ($this->waypoints()->count()) {
+            return $this->waypoints->last();
         }
 
         return null;
@@ -422,24 +444,29 @@ class Payload extends Model
     /**
      * Get the payload pickup point or the current waypoint.
      *
-     * @return \Fleetbase\Models\Place
+     * @return \Fleetbase\Models\Place|null
      */
-    public function getPickupOrCurrentWaypoint()
+    public function getPickupOrCurrentWaypoint(): ?Place
     {
-        if ($this->pickup_uuid) {
-            return $this->load('pickup')->pickup;
+        $this->load(['pickup', 'dropoff', 'waypoints']);
+
+        if ($this->pickup instanceof Place) {
+            return $this->pickup;
         }
 
+        // special case where starting point is drivers current location
+        // this special case can be set in order meta `pickup_is_driver_location`
+        // this will start the order at the current location of the driver
         if ($this->hasMeta('pickup_is_driver_location')) {
             // if should use the driver location attempt to use dropoff
-            if ($this->dropoff_uuid) {
-                return $this->load('dropoff')->dropoff;
+            if ($this->dropoff instanceof Place) {
+                return $this->dropoff;
             }
         }
 
+        // use the current waypoint
+        // if the current waypoint isn't found fallback to first waypoint
         if ($this->waypoints()->count()) {
-            $this->load('waypoints');
-
             $destination = null;
 
             if ($this->current_waypoint_uuid) {
@@ -456,14 +483,14 @@ class Payload extends Model
         return null;
     }
 
-    public function getPickupRegion()
+    public function getPickupRegion(): string
     {
         $pickup = $this->getPickupOrCurrentWaypoint();
 
         return $pickup->country ?? $pickup->province ?? $pickup->district ?? 'SG';
     }
 
-    public function getCountryCode()
+    public function getCountryCode(): string
     {
         $start = $this->getPickupOrCurrentWaypoint();
 

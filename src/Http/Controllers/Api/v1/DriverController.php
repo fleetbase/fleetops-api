@@ -11,6 +11,10 @@ use Fleetbase\FleetOps\Http\Resources\v1\Driver as DriverResource;
 use Fleetbase\FleetOps\Support\Utils;
 use Fleetbase\FleetOps\Support\Flow;
 use Fleetbase\FleetOps\Models\Driver;
+use Fleetbase\FleetOps\Http\Requests\DriverSimulationRequest;
+use Fleetbase\FleetOps\Jobs\SimulateDrivingRoute;
+use Fleetbase\FleetOps\Models\Order;
+use Fleetbase\FleetOps\Support\OSRM;
 use Fleetbase\Http\Requests\SwitchOrganizationRequest;
 use Fleetbase\Http\Resources\Organization;
 use Fleetbase\Models\Company;
@@ -25,6 +29,7 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Carbon;
 use Grimzy\LaravelMysqlSpatial\Types\Point;
 use Geocoder\Laravel\Facades\Geocoder;
+use Illuminate\Support\Arr;
 
 class DriverController extends Controller
 {
@@ -560,5 +565,124 @@ class DriverController extends Controller
         Auth::setSession($driver->user);
 
         return new Organization($company);
+    }
+
+    /**
+     * This route can help to simulate certain actions for a driver.
+     *      Actions:
+     *          - Drive
+     *          - Order
+     *
+     * @param  string  $id
+     * @param \Fleetbase\Http\Requests\DriverSimulationRequest $request
+     * @return \Illuminate\Http\Response
+     */
+    public function simulate(string $id, DriverSimulationRequest $request)
+    {
+        $action = $request->input('action', 'drive');
+        $start = $request->input('start');
+        $end = $request->input('end');
+        $order = $request->input('order');
+
+        try {
+            /** @var \Fleetbase\FleetOps\Models\Driver $driver */
+            $driver = Driver::findRecordOrFail($id, ['user']);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $exception) {
+            return response()->json(
+                [
+                    'error' => 'Driver resource not found.',
+                ],
+                404
+            );
+        }
+
+        if ($action === 'order') {
+            try {
+                /** @var \Fleetbase\FleetOps\Models\Order $order */
+                $order = Order::findRecordOrFail($id, ['payload']);
+            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $exception) {
+                return response()->json(
+                    [
+                        'error' => 'Order resource not found.',
+                    ],
+                    404
+                );
+            }
+
+            return $this->simulateDrivingForOrder($driver, $order);
+        }
+
+        return $this->simulateDrivingForRoute($driver, $start, $end);
+    }
+
+    /**
+     * Simulates a driving route for a given driver between a start and end point.
+     *
+     * @param Driver $driver The driver for whom the route is being simulated.
+     * @param mixed $start The starting point of the route, can be a Point object or other representation.
+     * @param mixed $end The ending point of the route, can be a Point object or other representation.
+     * @return \Illuminate\Http\JsonResponse The response containing the route information.
+     *
+     * @throws \Exception If there is an error in resolving the points or interacting with the OSRM API.
+     */
+    public function simulateDrivingForRoute(Driver $driver, $start, $end)
+    {
+        // Resolve Point's from start/end
+        $start = Utils::getPointFromMixed($start);
+        $end = Utils::getPointFromMixed($end);
+
+        // Send points to OSRM
+        $route = OSRM::getRoute($start, $end);
+
+        // Create simulation events
+        if (isset($route['code']) && $route['code'] === 'Ok') {
+            // Get the route geometry to decode
+            $routeGeometry = data_get($route, 'routes.0.geometry');
+
+            // Decode the waypoints if needed
+            $waypoints = OSRM::decodePolyline($routeGeometry);
+
+            // Dispatch the job for each waypoint
+            SimulateDrivingRoute::dispatchIf(Arr::first($waypoints) instanceof Point, $driver, $waypoints);
+        }
+
+        return response()->json($route);
+    }
+
+    /**
+     * Simulates a driving route for a given driver based on an order's pickup and dropoff waypoints.
+     *
+     * @param Driver $driver The driver for whom the route is being simulated.
+     * @param Order $order The order containing the pickup and dropoff waypoints.
+     * @return \Illuminate\Http\JsonResponse The response containing the route information.
+     *
+     * @throws \Exception If there is an error in resolving the points, validating the waypoints, or interacting with the OSRM API.
+     */
+    public function simulateDrivingForOrder(Driver $driver, Order $order)
+    {
+        // Get the order Pickup and Dropoff Waypoints
+        $pickup = $order->payload->getPickupOrFirstWaypoint();
+        $dropoff = $order->payload->getDropoffOrLastWaypoint();
+
+        // Convert order Pickup/Dropoff Place Waypoint's to Point's
+        $start = Utils::getPointFromMixed($pickup);
+        $end = Utils::getPointFromMixed($dropoff);
+
+        // Send points to OSRM
+        $route = OSRM::getRoute($start, $end);
+
+        // Create simulation events
+        if (isset($route['code']) && $route['code'] === 'Ok') {
+            // Get the route geometry to decode
+            $routeGeometry = data_get($route, 'routes.0.geometry');
+
+            // Decode the waypoints if needed
+            $waypoints = OSRM::decodePolyline($routeGeometry);
+
+            // Dispatch the job for each waypoint
+            SimulateDrivingRoute::dispatchIf(Arr::first($waypoints) instanceof Point, $driver, $waypoints);
+        }
+
+        return response()->json($route);
     }
 }

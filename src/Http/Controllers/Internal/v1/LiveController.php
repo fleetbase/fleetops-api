@@ -2,11 +2,14 @@
 
 namespace Fleetbase\FleetOps\Http\Controllers\Internal\v1;
 
+use Fleetbase\FleetOps\Http\Filter\PlaceFilter;
 use Fleetbase\Http\Controllers\Controller;
 use Fleetbase\FleetOps\Http\Resources\v1\Order as OrderResource;
 use Fleetbase\FleetOps\Models\Order;
 use Fleetbase\FleetOps\Models\Driver;
+use Fleetbase\FleetOps\Models\Place;
 use Fleetbase\FleetOps\Models\Route;
+use Illuminate\Http\Request;
 
 class LiveController extends Controller
 {
@@ -65,5 +68,15 @@ class LiveController extends Controller
             ->get();
 
         return response()->json($drivers);
+    }
+
+    public function places(Request $request)
+    {
+        // query places
+        $places = Place::where(['company_uuid' => session('company')])
+            ->filter(new PlaceFilter($request))
+            ->get();
+
+        return response()->json($places);
     }
 }

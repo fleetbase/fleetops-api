@@ -250,11 +250,34 @@ class Utils extends FleetbaseUtils
         if (is_string($coordinates)) {
             $coords = [];
 
+            if (Str::startsWith($coordinates, 'place_')) {
+                $resolvedPlace = \Fleetbase\FleetOps\Models\Place::where('public_id', $coordinates)->first();
+                if ($resolvedPlace instanceof \Fleetbase\FleetOps\Models\Place) {
+                    return static::getPointFromMixed($resolvedPlace);
+                }
+            }
+
+            if (Str::isUuid($coordinates)) {
+                $resolvedPlace = \Fleetbase\FleetOps\Models\Place::where('uuid', $coordinates)->first();
+                if ($resolvedPlace instanceof \Fleetbase\FleetOps\Models\Place) {
+                    return static::getPointFromMixed($resolvedPlace);
+                }
+            }
+
             if (Str::startsWith($coordinates, 'POINT(')) {
                 $coordinates = Str::replaceFirst('POINT(', '', $coordinates);
                 $coordinates = Str::replace(')', '', $coordinates);
                 $coords = explode(' ', $coordinates);
                 $coords = array_reverse($coords);
+                $coordinates = null;
+            }
+
+            if (preg_match('/LatLng\(([^,]+),\s*([^)]+)\)/', $coordinates, $matches)) {
+                $coords = [
+                    floatval($matches[1]),
+                    floatval($matches[2]),
+                ];
+
                 $coordinates = null;
             }
 
@@ -272,6 +295,11 @@ class Utils extends FleetbaseUtils
 
             $latitude = $coords[0];
             $longitude = $coords[1];
+        }
+
+        // if longitude and latitude is invalide throw exception
+        if ($latitude === null && $longitude === null) {
+            throw new \Exception('Attempted to resolve Point from invalid location.');
         }
 
         return new \Grimzy\LaravelMysqlSpatial\Types\Point((float) $latitude, (float) $longitude);
@@ -308,11 +336,34 @@ class Utils extends FleetbaseUtils
         if (is_string($coordinates)) {
             $coords = [];
 
+            if (Str::startsWith($coordinates, 'place_')) {
+                $resolvedPlace = \Fleetbase\FleetOps\Models\Place::where('public_id', $coordinates)->first();
+                if ($resolvedPlace instanceof \Fleetbase\FleetOps\Models\Place) {
+                    return static::getCoordinateFromCoordinates($resolvedPlace);
+                }
+            }
+
+            if (Str::isUuid($coordinates)) {
+                $resolvedPlace = \Fleetbase\FleetOps\Models\Place::where('uuid', $coordinates)->first();
+                if ($resolvedPlace instanceof \Fleetbase\FleetOps\Models\Place) {
+                    return static::getCoordinateFromCoordinates($resolvedPlace);
+                }
+            }
+
             if (Str::startsWith($coordinates, 'POINT(')) {
                 $coordinates = Str::replaceFirst('POINT(', '', $coordinates);
                 $coordinates = Str::replace(')', '', $coordinates);
                 $coords = explode(' ', $coordinates);
                 $coords = array_reverse($coords);
+                $coordinates = null;
+            }
+
+            if (preg_match('/LatLng\(([^,]+),\s*([^)]+)\)/', $coordinates, $matches)) {
+                $coords = [
+                    floatval($matches[1]),
+                    floatval($matches[2]),
+                ];
+
                 $coordinates = null;
             }
 
@@ -875,5 +926,70 @@ class Utils extends FleetbaseUtils
     public static function getModelClassName($table, $namespaceSegments = '\\Fleetbase\\FleetOps\\'): string
     {
         return parent::getModelClassName($table, $namespaceSegments);
+    }
+
+    /**
+     * Determines if the given variable is a valid GeoJSON.
+     *
+     * This function accepts a GeoJSON string, array, or object and checks for the required
+     * GeoJSON properties: 'type' and either 'coordinates' or 'geometries', depending on the type.
+     *
+     * @param string|array|object $geoJson The GeoJSON input, which can be a JSON string, an array, or an object.
+     * @return bool Returns true if the input is valid GeoJSON, false otherwise.
+     *
+     * @example
+     * $geoJsonString = '{"type":"Point","coordinates":[106.9338169,47.9131423]}';
+     * isGeoJson($geoJsonString); // true
+     */
+    public static function isGeoJson($geoJson)
+    {
+        // If the input is a JSON string, decode it
+        if (is_string($geoJson) && static::isJson($geoJson)) {
+            $geoJson = json_decode($geoJson, true);
+        }
+
+        // Check if the input is an array or an object
+        if (is_array($geoJson) || is_object($geoJson)) {
+            // Convert to array if it's an object
+            if (is_object($geoJson)) {
+                $geoJson = (array) $geoJson;
+            }
+
+            // Check for required GeoJSON properties: 'type' and 'coordinates' or 'geometries'
+            if (isset($geoJson['type'])) {
+                if ($geoJson['type'] === 'GeometryCollection' && isset($geoJson['geometries'])) {
+                    return true;
+                } elseif (in_array($geoJson['type'], ['Point', 'MultiPoint', 'LineString', 'MultiLineString', 'Polygon', 'MultiPolygon']) && isset($geoJson['coordinates'])) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Creates a SpatialExpression object from a valid GeoJSON input.
+     *
+     * @param mixed $geoJson The GeoJSON input, which can be an array, object, or JSON string representing a valid GeoJSON object.
+     * @return \Grimzy\LaravelMysqlSpatial\Eloquent\SpatialExpression|null Returns a SpatialExpression object if the input is a valid GeoJSON, or null if the input is not valid.
+     * @throws \InvalidArgumentException If the input is not a valid GeoJSON object.
+     */
+    public static function createSpatialExpressionFromGeoJson($geoJson): ?\Grimzy\LaravelMysqlSpatial\Eloquent\SpatialExpression
+    {
+        if (!static::isGeoJson($geoJson)) {
+            return null;
+        }
+
+        if (is_string($geoJson) && static::isJson($geoJson)) {
+            $geoJson = json_decode($geoJson, true);
+        }
+
+        // Convert the value to JSON and create a Geometry object
+        $json = json_encode($geoJson);
+        $geo = \Grimzy\LaravelMysqlSpatial\Types\Geometry::fromJson($json);
+
+        // Return a new SpatialExpression object
+        return new \Grimzy\LaravelMysqlSpatial\Eloquent\SpatialExpression($geo);
     }
 }

@@ -3,6 +3,7 @@
 namespace Fleetbase\FleetOps\Events;
 
 use Fleetbase\FleetOps\Models\Driver;
+use Grimzy\LaravelMysqlSpatial\Types\Point;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
@@ -10,7 +11,15 @@ use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Carbon;
 
-class DriverLocationChanged implements ShouldBroadcast
+/**
+ * Event class for when a driver's simulated location changes.
+ *
+ * This event is broadcasted to multiple channels and includes details
+ * about the driver's location, speed, heading, and other attributes.
+ *
+ * @package Fleetbase\FleetOps\Events
+ */
+class DriverSimulatedLocationChanged implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
@@ -96,7 +105,7 @@ class DriverLocationChanged implements ShouldBroadcast
      *
      * @return void
      */
-    public function __construct(Driver $driver)
+    public function __construct(Driver $driver, Point $location, ?int $speed = null, ?int $heading = null)
     {
         $this->eventId = uniqid('event_');
         $this->sentAt = Carbon::now()->toDateTimeString();
@@ -105,10 +114,12 @@ class DriverLocationChanged implements ShouldBroadcast
         $this->driverInternalId = $driver->internal_id;
         $this->driverName = $driver->name;
         $this->driverPhone = $driver->phone;
-        $this->location = $driver->location;
         $this->altitude = $driver->altitude;
-        $this->heading = $driver->heading;
-        $this->speed = $driver->speed;
+
+        // can be set in simulation
+        $this->heading = $heading ?? $driver->heading;
+        $this->speed = $speed ?? $driver->speed;
+        $this->location = $location;
     }
 
     /**
@@ -133,7 +144,7 @@ class DriverLocationChanged implements ShouldBroadcast
      */
     public function broadcastAs()
     {
-        return 'driver.location_changed';
+        return 'driver.simulated_location_changed';
     }
 
     /**

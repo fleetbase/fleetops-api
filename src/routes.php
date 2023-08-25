@@ -32,6 +32,7 @@ Route::prefix(config('fleetops.api.routing.prefix', null))->namespace('Fleetbase
                     $router->post('login-with-sms', 'DriverController@loginWithPhone');
                     $router->post('verify-code', 'DriverController@verifyCode');
                     $router->post('login', 'DriverController@login');
+                    $router->post('{id}/simulate', 'DriverController@simulate');
                     $router->post('{id}/track', 'DriverController@track');
                     $router->post('{id}/register-device', 'DriverController@registerDevice');
                     $router->post('{id}/switch-organization', 'DriverController@switchOrganization');
@@ -348,6 +349,7 @@ Route::prefix(config('fleetops.api.routing.prefix', null))->namespace('Fleetbase
                                         $router->get('routes', 'LiveController@routes');
                                         $router->get('orders', 'LiveController@orders');
                                         $router->get('drivers', 'LiveController@drivers');
+                                        $router->get('places', 'LiveController@places');
                                     }
                                 );
                                 $router->group(

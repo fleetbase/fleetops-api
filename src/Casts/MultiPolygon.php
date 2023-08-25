@@ -5,7 +5,6 @@ namespace Fleetbase\FleetOps\Casts;
 use Fleetbase\FleetOps\Support\Utils;
 use Illuminate\Contracts\Database\Eloquent\CastsAttributes;
 use Grimzy\LaravelMysqlSpatial\Types\MultiPolygon as MultiPolygonType;
-use Grimzy\LaravelMysqlSpatial\Types\Geometry;
 use Grimzy\LaravelMysqlSpatial\Types\GeometryInterface;
 use Grimzy\LaravelMysqlSpatial\Eloquent\SpatialExpression;
 
@@ -42,24 +41,14 @@ class MultiPolygon implements CastsAttributes
             return new SpatialExpression($value);
         }
 
-        if (Utils::isJson($value)) {
-            $json = json_encode($value);
-            $geo = Geometry::fromJson($json);
-
-            return new SpatialExpression($geo);
-        }
-
-        if (is_array($value) && isset($value['type'])) {
-            $json = json_encode($value);
-            $geo = Geometry::fromJson($json);
-
-            return new SpatialExpression($geo);
+        if (Utils::isGeoJson($value)) {
+            return Utils::createSpatialExpressionFromGeoJson($value);
         }
 
         if ($value instanceof SpatialExpression) {
             return $value;
         }
 
-        return null;
+        return new SpatialExpression(new MultiPolygonType([]));
     }
 }
