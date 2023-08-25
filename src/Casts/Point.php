@@ -5,7 +5,6 @@ namespace Fleetbase\FleetOps\Casts;
 use Fleetbase\FleetOps\Support\Utils;
 use Illuminate\Contracts\Database\Eloquent\CastsAttributes;
 use Grimzy\LaravelMysqlSpatial\Types\GeometryInterface;
-use Grimzy\LaravelMysqlSpatial\Types\Geometry;
 use Grimzy\LaravelMysqlSpatial\Eloquent\SpatialExpression;
 use Illuminate\Database\Query\Expression;
 
@@ -50,19 +49,8 @@ class Point implements CastsAttributes
             return new SpatialExpression($value);
         }
 
-        if (Utils::isJson($value)) {
-            $json = json_encode($value);
-            $geo = Geometry::fromJson($json);
-
-            return $this->set($model, $key, $geo, $attributes);
-        }
-
-        if (is_array($value) && isset($value['type'])) {
-            $value = static::coordinatesBboxToFloat($value);
-            $json = json_encode($value);
-            $geo = Geometry::fromJson($json);
-
-            return $this->set($model, $key, $geo, $attributes);
+        if (Utils::isGeoJson($value)) {
+            return Utils::createSpatialExpressionFromGeoJson($value);
         }
 
         if (Utils::isCoordinates($value)) {

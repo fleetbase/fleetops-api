@@ -491,7 +491,7 @@ class Driver extends Model
      * the driver has moved more than 100 meters or if it's their first recorded position.
      *
      * @param Order|null $order The order to consider when updating the position (default: null)
-     * @return Position|null The created Position object, or null if no new position was created
+     * @return \Fleetbase\FleetOps\Models\Position|null The created Position object, or null if no new position was created
      */
     public function updatePosition(?Order $order = null): ?Position
     {
@@ -503,7 +503,7 @@ class Driver extends Model
         $destination = $currentOrder ? $currentOrder->payload->getPickupOrCurrentWaypoint() : null;
 
         $positionData = [
-            'company_uuid' => session('company'),
+            'company_uuid' => session('company', $this->company_uuid),
             'subject_uuid' => $this->uuid,
             'subject_type' => Utils::getMutationType($this),
             'coordinates' => $this->location,
@@ -521,11 +521,11 @@ class Driver extends Model
         }
 
         $isFirstPosition = !$lastPosition;
-        $isPast100Meters = $lastPosition && FleetOpsUtils::vincentyGreatCircleDistance($this->location, $lastPosition->coordinates) > 100;
+        $isPast50Meters = $lastPosition && FleetOpsUtils::vincentyGreatCircleDistance($this->location, $lastPosition->coordinates) > 50;
         $position = null;
 
         // create the first position
-        if ($isFirstPosition || $isPast100Meters) {
+        if ($isFirstPosition || $isPast50Meters) {
             $position = Position::create($positionData);
         }
 

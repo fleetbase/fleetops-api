@@ -235,10 +235,10 @@ class PlaceController extends Controller
     public function search(Request $request)
     {
         $searchQuery = strtolower($request->input('query'));
-        $limit = $request->input('limit') ?? 10;
-        $geo = $request->input('geo') ?? false;
-        $latitude = $request->input('latitude') ?? false;
-        $longitude = $request->input('longitude') ?? false;
+        $limit = $request->input('limit', 10);
+        $geo = $request->input('geo', false);
+        $latitude = $request->input('latitude', false);
+        $longitude = $request->input('longitude', false);
 
         $results = DB::table('places')
             ->where('company_uuid', session('company'))

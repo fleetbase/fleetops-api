@@ -76,27 +76,39 @@ class PlaceController extends FleetOpsController
             $provider = new \Geocoder\Provider\GoogleMaps\GoogleMaps($httpClient, null, config('services.google_maps.api_key', env('GOOGLE_MAPS_API_KEY')));
             $geocoder = new \Geocoder\StatefulGeocoder($provider, 'en');
 
-            if ($latitude && $longitude) {
-                $geoResults = $geocoder->geocodeQuery(
-                    GeocodeQuery::create($searchQuery)
-                        ->withData('mode', GoogleMapsPlaces::GEOCODE_MODE_SEARCH)
-                        ->withData('location', "$latitude, $longitude")
-                );
+            try {
+                if ($latitude && $longitude) {
+                    $geoResults = $geocoder->geocodeQuery(
+                        GeocodeQuery::create($searchQuery)
+                            ->withData('mode', GoogleMapsPlaces::GEOCODE_MODE_SEARCH)
+                            ->withData('location', "$latitude, $longitude")
+                    );
 
-                $geoResults = collect($geoResults->all());
-            } else {
-                $geoResults = Geocoder::geocode($searchQuery)->get();
+                    $geoResults = collect($geoResults->all());
+                } else {
+                    $geoResults = Geocoder::geocode($searchQuery)->get();
+                }
+
+                $geoResults = $geoResults
+                    ->map(
+                        function ($googleAddress) {
+                            return Place::createFromGoogleAddress($googleAddress);
+                        }
+                    )
+                    ->values();
+
+                $results = $results->merge($geoResults);
+            } catch (\Geocoder\Exception\InvalidServerResponse $e) {
+                return response()->error($e->getMessage());
+            } catch (\Geocoder\Exception\InvalidArgument $e) {
+                return response()->error($e->getMessage());
+            } catch (\Geocoder\Exception\InvalidCredentials $e) {
+                return response()->error($e->getMessage());
+            } catch (\Geocoder\Exception\Exception $e) {
+                return response()->error($e->getMessage());
+            } catch (\Exception $e) {
+                return response()->error($e->getMessage());
             }
-
-            $geoResults = $geoResults
-                ->map(
-                    function ($googleAddress) {
-                        return Place::createFromGoogleAddress($googleAddress);
-                    }
-                )
-                ->values();
-
-            $results = $results->merge($geoResults);
         }
 
         $results = $results
@@ -124,16 +136,28 @@ class PlaceController extends FleetOpsController
         $provider = new \Geocoder\Provider\GoogleMaps\GoogleMaps($httpClient, null, env('GOOGLE_MAPS_API_KEY'));
         $geocoder = new \Geocoder\StatefulGeocoder($provider, 'en');
 
-        if ($latitude && $longitude) {
-            $geoResults = $geocoder->geocodeQuery(
-                GeocodeQuery::create($searchQuery)
-                    ->withData('mode', GoogleMapsPlaces::GEOCODE_MODE_SEARCH)
-                    ->withData('location', "$latitude, $longitude")
-            );
+        try {
+            if ($latitude && $longitude) {
+                $geoResults = $geocoder->geocodeQuery(
+                    GeocodeQuery::create($searchQuery)
+                        ->withData('mode', GoogleMapsPlaces::GEOCODE_MODE_SEARCH)
+                        ->withData('location', "$latitude, $longitude")
+                );
 
-            $geoResults = collect($geoResults->all());
-        } else {
-            $geoResults = Geocoder::geocode($searchQuery)->get();
+                $geoResults = collect($geoResults->all());
+            } else {
+                $geoResults = Geocoder::geocode($searchQuery)->get();
+            }
+        } catch (\Geocoder\Exception\InvalidServerResponse $e) {
+            return response()->error($e->getMessage());
+        } catch (\Geocoder\Exception\InvalidArgument $e) {
+            return response()->error($e->getMessage());
+        } catch (\Geocoder\Exception\InvalidCredentials $e) {
+            return response()->error($e->getMessage());
+        } catch (\Geocoder\Exception\Exception $e) {
+            return response()->error($e->getMessage());
+        } catch (\Exception $e) {
+            return response()->error($e->getMessage());
         }
 
         return $geoResults
