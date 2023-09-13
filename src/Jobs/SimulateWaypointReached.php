@@ -30,15 +30,35 @@ class SimulateWaypointReached implements ShouldQueue
     public Point $waypoint;
 
     /**
+     * @var array Additional data.
+     */
+    public array $additionalData = [];
+
+    /**
+     * The number of seconds the job can run before timing out.
+     *
+     * @var int
+     */
+    public $timeout = 60 * 15;
+
+    /**
+     * The number of times the job may be attempted.
+     *
+     * @var int
+     */
+    public $tries = 20;
+
+    /**
      * Create a new job instance.
      *
      * @param Driver $driver The driver for whom the waypoint is being simulated.
      * @param mixed $waypoint The waypoint that the driver is simulated to have reached.
      */
-    public function __construct(Driver $driver, Point $waypoint)
+    public function __construct(Driver $driver, Point $waypoint, array $additionalData = [])
     {
         $this->driver = $driver;
         $this->waypoint = $waypoint;
+        $this->additionalData = $additionalData;
     }
 
     /**
@@ -49,6 +69,10 @@ class SimulateWaypointReached implements ShouldQueue
      */
     public function handle(): void
     {
-        event(new DriverSimulatedLocationChanged($this->driver, $this->waypoint));
+        if (data_get($this->waypoint, 'heading')) {
+            $this->additionalData['heading'] = data_get($this->waypoint, 'heading');
+        }
+
+        event(new DriverSimulatedLocationChanged($this->driver, $this->waypoint, $this->additionalData));
     }
 }

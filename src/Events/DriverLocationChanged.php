@@ -92,14 +92,22 @@ class DriverLocationChanged implements ShouldBroadcast
     public $speed;
 
     /**
+     * Optional, additional data.
+     *
+     * @var array
+     */
+    public $additionalData = [];
+
+    /**
      * Create a new event instance.
      *
      * @return void
      */
-    public function __construct(Driver $driver)
+    public function __construct(Driver $driver, array $additionalData = [])
     {
         $this->eventId = uniqid('event_');
         $this->sentAt = Carbon::now()->toDateTimeString();
+        $this->additionalData = $additionalData;
         $this->driverUuid = $driver->uuid;
         $this->driverId = $driver->public_id;
         $this->driverInternalId = $driver->internal_id;
@@ -156,7 +164,8 @@ class DriverLocationChanged implements ShouldBroadcast
                 'location' => $this->location,
                 'altitude' => $this->altitude,
                 'heading' => $this->heading,
-                'speed' => $this->speed
+                'speed' => $this->speed,
+                'additionalData' => $this->additionalData
             ],
         ];
     }

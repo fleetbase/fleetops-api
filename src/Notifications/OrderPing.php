@@ -6,7 +6,9 @@ use Fleetbase\FleetOps\Models\Order;
 use Fleetbase\FleetOps\Http\Resources\v1\Order as OrderResource;
 use Fleetbase\FleetOps\Support\Utils;
 use Fleetbase\Events\ResourceLifecycleEvent;
+use Illuminate\Broadcasting\Channel;
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\BroadcastMessage;
 use Illuminate\Notifications\Notification;
 use NotificationChannels\Fcm\FcmChannel;
@@ -19,16 +21,23 @@ use NotificationChannels\Fcm\Resources\AndroidNotification;
 use NotificationChannels\Fcm\Resources\ApnsConfig;
 use NotificationChannels\Fcm\Resources\ApnsFcmOptions;
 
-class OrderPing extends Notification
+class OrderPing extends Notification implements ShouldQueue
 {
     use Queueable;
 
     /**
      * The order instance this notification is for.
      *
-     * @var \Fleetbase\Models\Order
+     * @var \Fleetbase\FleetOps\Models\Order
      */
-    public $order;
+    public Order $order;
+
+    /**
+     * Distance of order pickup from driver.
+     *
+     * @var int
+     */
+    public $distance;
 
     /**
      * Create a new notification instance.
@@ -60,6 +69,22 @@ class OrderPing extends Notification
     public function broadcastType()
     {
         return 'order.ping';
+    }
+
+     /**
+     * Get the channels the event should broadcast on.
+     *
+     * @return \Illuminate\Broadcasting\Channel|array
+     */
+    public function broadcastOn()
+    {
+        return [
+            new Channel('company.' . session('company', data_get($this->order, 'company.uuid'))),
+            new Channel('company.' . data_get($this->order, 'company.public_id')),
+            new Channel('api.' . session('api_credential')),
+            new Channel('order.' . $this->order->uuid),
+            new Channel('order.' . $this->order->public_id)
+        ];
     }
 
     /**

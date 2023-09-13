@@ -15,12 +15,7 @@ class PayloadObserver
     public function created(Payload $payload)
     {
         // load the order
-        $order = $payload->load('order')->order;
-
-        if ($order) {
-            $order->setRelation('payload', $payload);
-            $order->setDistanceAndTime();
-        }
+        $payload->updateOrderDistanceAndTime();
     }
     /**
      * Handle the Payload "updating" event.
@@ -30,8 +25,7 @@ class PayloadObserver
      */
     public function updating(Payload $payload)
     {
-        $waypoints = request()->array('paylad.waypoints');
+        $waypoints = request()->array('payload.waypoints');
         $payload->updateWaypoints($waypoints);
-        $payload->flushOrderCache();
     }
 }

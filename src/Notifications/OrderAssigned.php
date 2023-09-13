@@ -5,6 +5,7 @@ namespace Fleetbase\FleetOps\Notifications;
 use Fleetbase\FleetOps\Models\Order;
 use Fleetbase\FleetOps\Support\Utils;
 use Illuminate\Bus\Queueable;
+use Illuminate\Broadcasting\Channel;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
@@ -47,7 +48,23 @@ class OrderAssigned extends Notification implements ShouldQueue
      */
     public function via($notifiable)
     {
-        return ['mail', FcmChannel::class, ApnChannel::class];
+        return ['broadcast', 'mail', FcmChannel::class, ApnChannel::class];
+    }
+
+     /**
+     * Get the channels the event should broadcast on.
+     *
+     * @return \Illuminate\Broadcasting\Channel|array
+     */
+    public function broadcastOn()
+    {
+        return [
+            new Channel('company.' . session('company', data_get($this->order, 'company.uuid'))),
+            new Channel('company.' . data_get($this->order, 'company.public_id')),
+            new Channel('api.' . session('api_credential')),
+            new Channel('order.' . $this->order->uuid),
+            new Channel('order.' . $this->order->public_id)
+        ];
     }
 
     /**

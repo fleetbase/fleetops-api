@@ -309,7 +309,7 @@ class ServiceRate extends Model
      */
     public function hasZone(): bool
     {
-        return $this->loadMissing('zone')->relationLoaded('zone');
+        return $this->loadMissing('zone')->zone instanceof Zone;
     }
 
     /**
@@ -319,7 +319,7 @@ class ServiceRate extends Model
      */
     public function hasServiceArea(): bool
     {
-        return $this->loadMissing('serviceArea')->relationLoaded('serviceArea');
+        return $this->loadMissing('serviceArea')->serviceArea instanceof ServiceArea;
     }
 
     /**
@@ -561,10 +561,11 @@ class ServiceRate extends Model
     public function quoteFromPreliminaryData($entities = [], $waypoints = [], ?int $totalDistance = 0, ?int $totalTime = 0, ?bool $isCashOnDelivery = false)
     {
         $lines = collect();
-        $subTotal = $this->base_fee ?? 0;
+        $subTotal = data_get($this, 'base_fee', 0);
 
         $lines->push([
             'details' => 'Base Fee',
+            'raw_amount' => $subTotal,
             'amount' => Utils::numbersOnly($subTotal),
             'formatted_amount' => Utils::moneyFormat($subTotal, $this->currency),
             'currency' => $this->currency,
@@ -579,6 +580,7 @@ class ServiceRate extends Model
 
                 $lines->push([
                     'details' => 'Service Fee',
+                    'raw_amount' => $distanceFee->fee,
                     'amount' => Utils::numbersOnly($distanceFee->fee),
                     'formatted_amount' => Utils::moneyFormat($distanceFee->fee, $this->currency),
                     'currency' => $this->currency,

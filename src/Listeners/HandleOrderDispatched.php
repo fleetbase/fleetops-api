@@ -60,7 +60,7 @@ class HandleOrderDispatched implements ShouldQueue
             $order->load(['company']);
 
             $pickup = $order->getPickupLocation();
-            $distance = $order->getAdhocDistance(); 
+            $distance = $order->getAdhocDistance();
 
             if (!Utils::isPoint($pickup)) {
                 return;
@@ -100,7 +100,7 @@ class HandleOrderDispatched implements ShouldQueue
 
         try {
             $driver->notify(new OrderDispatchedNotification($order));
-        } catch(\Exception $exception) {
+        } catch (\Exception $exception) {
             // silently fail notifying driver for now
         }
     }

@@ -9,6 +9,7 @@ use Fleetbase\Models\Company;
 use Fleetbase\Models\Extension;
 use Fleetbase\Models\ExtensionInstall;
 use Fleetbase\FleetOps\Support\Utils;
+use Fleetbase\Models\User;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
@@ -53,7 +54,7 @@ class Flow
 
         // if no installed configs always place default config
         if ($configs->isEmpty()) {
-            $configs->push(static::getDefaultOrderConfig());
+            $configs = $configs->merge(Flow::getAllDefaultOrderConfigs());
         }
 
         return $configs;
@@ -87,7 +88,7 @@ class Flow
 
         // if no installed configs always place default config
         if ($configs->isEmpty()) {
-            $configs->push(static::getDefaultOrderConfig());
+            $configs = $configs->merge(Flow::getAllDefaultOrderConfigs());
         }
 
         return $configs;
@@ -121,7 +122,7 @@ class Flow
 
         // if no installed configs always place default config
         if ($configs->isEmpty()) {
-            $configs->push(static::getDefaultOrderConfig());
+            $configs = $configs->merge(Flow::getAllDefaultOrderConfigs());
         }
 
         return $configs;
@@ -558,6 +559,11 @@ class Flow
     public static function getCompanySession()
     {
         return Company::currentSession();
+    }
+
+    public static function getCompanySessionForUser(User $user)
+    {
+        return Company::where('uuid', $user->company_uuid)->first();
     }
 
     public static function getDefaultOrderFlow()

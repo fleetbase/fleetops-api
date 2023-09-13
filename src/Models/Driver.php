@@ -316,20 +316,14 @@ class Driver extends Model
     }
 
     /**
-     * The channels the user receives notification broadcasts on.
+     * The channels the driver receives notification broadcasts on.
      *
+     * @param \Illuminate\Notifications\Notification $notification
      * @return array
      */
-    public function receivesBroadcastNotificationsOn()
+    public function receivesBroadcastNotificationsOn($notification)
     {
-        $channels = [new Channel('driver.' . $this->public_id), new Channel('driver.' . $this->uuid)];
-
-        if (isset($this->company)) {
-            $channels[] = new Channel('company.' . $this->company->uuid);
-            $channels[] = new Channel('company.' . $this->company->public_id);
-        }
-
-        return $channels;
+        return new Channel('driver.' . $this->public_id);
     }
 
     /**

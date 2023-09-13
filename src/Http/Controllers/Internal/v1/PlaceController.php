@@ -7,15 +7,10 @@ use Fleetbase\Http\Requests\Internal\BulkDeleteRequest;
 use Fleetbase\Http\Requests\ExportRequest;
 use Fleetbase\FleetOps\Exports\PlaceExport;
 use Fleetbase\FleetOps\Models\Place;
-use Fleetbase\FleetOps\Support\Utils as FleetOpsUtils;
-use Fleetbase\FleetOps\Support\Utils;
+use Fleetbase\FleetOps\Support\Geocoding;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
-use Geocoder\Laravel\Facades\Geocoder;
-use Geocoder\Provider\GoogleMapsPlaces\GoogleMapsPlaces;
-use Geocoder\Query\GeocodeQuery;
-use Http\Adapter\Guzzle7\Client;
+use Grimzy\LaravelMysqlSpatial\Types\Point;
 use Maatwebsite\Excel\Facades\Excel;
 
 class PlaceController extends FleetOpsController
@@ -35,87 +30,52 @@ class PlaceController extends FleetOpsController
      */
     public function search(Request $request)
     {
-        $searchQuery = strtolower($request->input('query'));
-        $limit = $request->input('limit', 10);
-        $geo = $request->boolean('geo', false);
+        $searchQuery = $request->searchQuery();
+        $limit = $request->input('limit', 30);
+        $geo = $request->boolean('geo');
         $latitude = $request->input('latitude');
         $longitude = $request->input('longitude');
 
-        $results = DB::table('places')
-            ->where('company_uuid', session('company'))
+        $query = Place::where('company_uuid', session('company'))
             ->whereNull('deleted_at')
-            ->where(
-                function ($q) use ($searchQuery) {
-                    if (Utils::notEmpty($searchQuery)) {
-                        $q->orWhere(DB::raw('lower(name)'), 'like', '%' . $searchQuery . '%');
-                        $q->orWhere(DB::raw('lower(street1)'), 'like', '%' . $searchQuery . '%');
-                        $q->orWhere(DB::raw('lower(street2)'), 'like', '%' . $searchQuery . '%');
-                        $q->orWhere(DB::raw('lower(country)'), 'like', '%' . $searchQuery . '%');
-                        $q->orWhere(DB::raw('lower(province)'), 'like', '%' . $searchQuery . '%');
-                        $q->orWhere(DB::raw('lower(postal_code)'), 'like', '%' . $searchQuery . '%');
-                    }
-                }
-            )
-            ->limit($limit)
-            ->orderBy('name', 'desc')
-            ->get()
-            ->map(
-                function ($place) {
-                    $place = (array) $place;
-                    $place['location'] = FleetOpsUtils::mysqlPointAsGeometry($place['location']);
-                    $place = new Place($place);
-                    $place->address = $place->toAddressString();
+            ->search($searchQuery);
 
-                    return $place;
-                }
-            )
-            ->values();
-
-        if ($geo && $searchQuery) {
-            $httpClient = new Client();
-            $provider = new \Geocoder\Provider\GoogleMaps\GoogleMaps($httpClient, null, config('services.google_maps.api_key', env('GOOGLE_MAPS_API_KEY')));
-            $geocoder = new \Geocoder\StatefulGeocoder($provider, 'en');
-
-            try {
-                if ($latitude && $longitude) {
-                    $geoResults = $geocoder->geocodeQuery(
-                        GeocodeQuery::create($searchQuery)
-                            ->withData('mode', GoogleMapsPlaces::GEOCODE_MODE_SEARCH)
-                            ->withData('location', "$latitude, $longitude")
-                    );
-
-                    $geoResults = collect($geoResults->all());
-                } else {
-                    $geoResults = Geocoder::geocode($searchQuery)->get();
-                }
-
-                $geoResults = $geoResults
-                    ->map(
-                        function ($googleAddress) {
-                            return Place::createFromGoogleAddress($googleAddress);
-                        }
-                    )
-                    ->values();
-
-                $results = $results->merge($geoResults);
-            } catch (\Geocoder\Exception\InvalidServerResponse $e) {
-                return response()->error($e->getMessage());
-            } catch (\Geocoder\Exception\InvalidArgument $e) {
-                return response()->error($e->getMessage());
-            } catch (\Geocoder\Exception\InvalidCredentials $e) {
-                return response()->error($e->getMessage());
-            } catch (\Geocoder\Exception\Exception $e) {
-                return response()->error($e->getMessage());
-            } catch (\Exception $e) {
-                return response()->error($e->getMessage());
-            }
+        if ($latitude && $longitude) {
+            $point = new Point($latitude, $longitude);
+            $query->orderByDistanceSphere('location', $point, 'asc');
+        } else {
+            $query->orderBy('name', 'desc');
         }
 
-        $results = $results
-            ->unique('street1')
-            ->sortBy('updated_at')
-            ->values()
-            ->toArray();
+        if ($limit) {
+            $query->limit($limit);
+        }
+
+        $results = $query->get();
+
+        if ($geo) {
+            if ($searchQuery) {
+                try {
+                    $geocodingResults = Geocoding::query($searchQuery, $latitude, $longitude);
+
+                    foreach ($geocodingResults as $result) {
+                        $results->push($result);
+                    }
+                } catch (\Throwable $e) {
+                    return response()->error($e->getMessage());
+                }
+            } else if ($latitude && $longitude) {
+                try {
+                    $geocodingResults = Geocoding::reverseFromCoordinates($latitude, $longitude, $searchQuery);
+
+                    foreach ($geocodingResults as $result) {
+                        $results->push($result);
+                    }
+                } catch (\Throwable $e) {
+                    return response()->error($e->getMessage());
+                }
+            }
+        }
 
         return response()->json($results);
     }
@@ -128,45 +88,34 @@ class PlaceController extends FleetOpsController
      */
     public function geocode(ExportRequest $request)
     {
-        $searchQuery = urldecode(strtolower($request->input('query')));
-        $latitude = $request->input('latitude') ?? false;
-        $longitude = $request->input('longitude') ?? false;
+        $searchQuery = $request->searchQuery();
+        $latitude = $request->input('latitude', false);
+        $longitude = $request->input('longitude', false);
+        $results = collect();
 
-        $httpClient = new Client();
-        $provider = new \Geocoder\Provider\GoogleMaps\GoogleMaps($httpClient, null, env('GOOGLE_MAPS_API_KEY'));
-        $geocoder = new \Geocoder\StatefulGeocoder($provider, 'en');
-
-        try {
-            if ($latitude && $longitude) {
-                $geoResults = $geocoder->geocodeQuery(
-                    GeocodeQuery::create($searchQuery)
-                        ->withData('mode', GoogleMapsPlaces::GEOCODE_MODE_SEARCH)
-                        ->withData('location', "$latitude, $longitude")
-                );
-
-                $geoResults = collect($geoResults->all());
-            } else {
-                $geoResults = Geocoder::geocode($searchQuery)->get();
+        if ($searchQuery) {
+            try {
+                $geocodingResults = Geocoding::query($searchQuery, $latitude, $longitude);
+                
+                foreach ($geocodingResults as $result) {
+                    $results->push($result);
+                }
+            } catch (\Throwable $e) {
+                return response()->error($e->getMessage());
             }
-        } catch (\Geocoder\Exception\InvalidServerResponse $e) {
-            return response()->error($e->getMessage());
-        } catch (\Geocoder\Exception\InvalidArgument $e) {
-            return response()->error($e->getMessage());
-        } catch (\Geocoder\Exception\InvalidCredentials $e) {
-            return response()->error($e->getMessage());
-        } catch (\Geocoder\Exception\Exception $e) {
-            return response()->error($e->getMessage());
-        } catch (\Exception $e) {
-            return response()->error($e->getMessage());
+        } else if ($latitude && $longitude) {
+            try {
+                $geocodingResults = Geocoding::reverseFromCoordinates($latitude, $longitude, $searchQuery);
+
+                foreach ($geocodingResults as $result) {
+                    $results->push($result);
+                }
+            } catch (\Throwable $e) {
+                return response()->error($e->getMessage());
+            }
         }
 
-        return $geoResults
-            ->map(
-                function ($googleAddress) {
-                    return Place::createFromGoogleAddress($googleAddress);
-                }
-            )
-            ->values();
+        return response()->json($results);
     }
 
     /**

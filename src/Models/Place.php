@@ -113,7 +113,7 @@ class Place extends Model
      *
      * @var array
      */
-    protected $filterParams = ['vendor', 'contact'];
+    protected $filterParams = ['vendor', 'contact', 'vendor_uuid', 'vendor_name'];
 
     /**
      * @return \Illuminate\Database\Eloquent\Relations\MorphTo
@@ -132,7 +132,7 @@ class Place extends Model
      */
     public function company()
     {
-        return $this->belongsTo(\Fleetbase\Models\Comany::class);
+        return $this->belongsTo(\Fleetbase\Models\Company::class);
     }
 
     /**
@@ -148,7 +148,7 @@ class Place extends Model
                 if (empty($this->country)) {
                     return [];
                 }
-                
+
                 return Utils::getCountryData($this->country);
             }
         );
@@ -241,6 +241,7 @@ class Place extends Model
         $stretAddress = $address->getStreetAddress() ?? $address->getStreetNumber() . ' ' . $address->getStreetName();
         $coordinates = $address->getCoordinates();
 
+        $attributes['name'] = $stretAddress;
         $attributes['street1'] = $stretAddress;
         $attributes['postal_code'] = $address->getPostalCode();
         $attributes['neighborhood'] = $address->getNeighborhood();
@@ -349,15 +350,16 @@ class Place extends Model
     {
         $attributes = [];
 
+        $point = Utils::getPointFromMixed($coordinates);
+
         if ($coordinates instanceof \Grimzy\LaravelMysqlSpatial\Types\Point) {
             $attributes['location'] = $coordinates;
             $latitude = $coordinates->getLat();
             $longitude = $coordinates->getLng();
-        } else {
-            $latitude = Utils::getLatitudeFromCoordinates($coordinates);
-            $longitude = Utils::getLongitudeFromCoordinates($coordinates);
-
-            $attributes['location'] = new \Grimzy\LaravelMysqlSpatial\Types\Point($latitude, $longitude);
+        } else if ($point instanceof \Grimzy\LaravelMysqlSpatial\Types\Point) {
+            $attributes['location'] = $point;
+            $latitude = $point->getLat();
+            $longitude = $point->getLng();
         }
 
         $results = \Geocoder\Laravel\Facades\Geocoder::reverse($latitude, $longitude)->get();
@@ -413,13 +415,13 @@ class Place extends Model
             return static::createFromGeocodingLookup($place, $saveInstance);
         }
         // If $place is an array of coordinates
-        elseif (Utils::isCoordinates($place)) {
+        else if (Utils::isCoordinatesStrict($place)) {
             return static::insertFromCoordinates($place, true);
         }
         // If $place is an array
-        elseif (is_array($place)) {
+        else if (is_array($place)) {
             // If $place is an array of coordinates, create a new Place object
-            if (Utils::isCoordinates($place)) {
+            if (Utils::isCoordinatesStrict($place)) {
                 return static::createFromCoordinates($place, $attributes, $saveInstance);
             }
 
@@ -448,35 +450,59 @@ class Place extends Model
      */
     public static function insertFromMixed($place)
     {
-        if (gettype($place) === 'string') {
+        if (Utils::isCoordinatesStrict($place)) {
+            // create a place from coordinates using reverse loopup
+            return Place::insertFromCoordinates($place, true);
+        } else if (is_string($place)) {
             if (Utils::isPublicId($place)) {
-                return Place::where('public_id', $place)->first();
+                $resolvedPlace = Place::where('public_id', $place)->first();
+
+                if ($resolvedPlace) {
+                    return $resolvedPlace->uuid;
+                }
             }
 
             if (Str::isUuid($place)) {
-                return Place::where('uuid', $place)->first();
+                $resolvedPlace = Place::where('uuid', $place)->first();
+
+                if ($resolvedPlace) {
+                    return $resolvedPlace->uuid;
+                }
             }
 
             return Place::insertFromGeocodingLookup($place);
-        } elseif ($place instanceof \Grimzy\LaravelMysqlSpatial\Types\Point) {
-            return Place::insertFromCoordinates($place, true);
-        } elseif (Utils::isCoordinates($place)) {
-            return Place::insertFromCoordinates($place, true);
-        } elseif (is_array($place)) {
-            if (Utils::isCoordinates($place)) {
-                return Place::insertFromCoordinates($place, true);
+        } else if (is_array($place) || is_object($place)) {
+            // if place already exists just return uuid
+            if (static::isValidPlaceUuid(data_get($place, 'uuid'))) {
+                return data_get($place, 'uuid');
             }
 
-            if (isset($place['uuid']) && Str::isUuid($place['uuid']) && Place::where('uuid', $place['uuid'])->exists()) {
-                return $place['uuid'];
+            // if place already exists using `public_id` then resolve and return uuid
+            if (static::isValidPlacePublicId(data_get($place, 'public_id'))) {
+                $resolvedPlace = static::where('public_id', data_get($place, 'public_id'))->first();
+
+                if ($resolvedPlace) {
+                    return $resolvedPlace->uuid;
+                }
             }
 
             $values = $place;
 
-            return static::insertGetUuid($values);
+            // create a new place
+            return static::insertGetUuid((array) $values);
         } elseif ($place instanceof \Geocoder\Provider\GoogleMaps\Model\GoogleAddress) {
             return static::insertFromGoogleAddress($place);
         }
+    }
+
+    public static function isValidPlaceUuid($uuid): bool
+    {
+        return is_string($uuid) && Str::isUuid($uuid) && Place::where('uuid', $uuid)->exists();
+    }
+
+    public static function isValidPlacePublicId($publicId): bool
+    {
+        return is_string($publicId) && Utils::isPublicId($publicId) && Place::where('public_id', $publicId)->exists();
     }
 
     /**

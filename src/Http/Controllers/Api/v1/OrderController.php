@@ -2,6 +2,7 @@
 
 namespace Fleetbase\FleetOps\Http\Controllers\Api\v1;
 
+use Fleetbase\FleetOps\Events\OrderReady;
 use Fleetbase\Http\Controllers\Controller;
 use Fleetbase\FleetOps\Events\OrderDispatchFailed;
 use Fleetbase\FleetOps\Events\OrderStarted;
@@ -182,6 +183,9 @@ class OrderController extends Controller
         // load required relations
         $order->load(['trackingNumber', 'driverAssigned', 'purchaseRate', 'customer', 'facilitator']);
 
+        // Trigger order created event
+        event(new OrderReady($order));
+
         // response the driver resource
         return new OrderResource($order);
     }
@@ -324,7 +328,7 @@ class OrderController extends Controller
      */
     public function query(Request $request)
     {
-        $results = Order::queryWithRequest($request, function (&$query, $request, &$filters) {
+        $results = Order::queryWithRequest($request, function (&$query, $request) {
             if ($request->has('payload')) {
                 $query->whereHas('payload', function ($q) use ($request) {
                     $q->where('public_id', $request->input('payload'));
@@ -386,37 +390,6 @@ class OrderController extends Controller
                 });
             }
 
-            if ($request->has('driver')) {
-                $query->where(function ($q) use ($request) {
-                    $q->whereHas('driverAssigned', function ($q) use ($request) {
-                        $q->where('public_id', $request->input('driver'));
-                        $q->orWhere('internal_id', $request->input('driver'));
-                    });
-                    // also check for driver assigned to payload entities
-                    $q->orWhereHas('payload.entities', function ($q) use ($request) {
-                        $q->whereNotNull('driver_assigned_uuid');
-                        $q->whereHas('driver', function ($q) use ($request) {
-                            $q->where('public_id', $request->input('driver'));
-                            $q->orWhere('internal_id', $request->input('driver'));
-                        });
-                    });
-                });
-            }
-
-            if ($request->has('status')) {
-                // handle `active` alias status
-                if ($request->input('status') === 'active') {
-                    $query->whereNotIn('status', ['completed', 'expired', 'canceled']);
-                    // for the special status `active` we will unset the status param here
-                    unset($filters['status']);
-                }
-
-                // if status is array
-                if ($request->inputIsArray('status')) {
-                    $query->whereIn('status', $request->input('status'));
-                }
-            }
-
             if ($request->has('on')) {
                 $on = Carbon::fromString($request->input('on'));
 
@@ -424,10 +397,6 @@ class OrderController extends Controller
                     $q->whereDate('created_at', $on);
                     $q->orWhereDate('scheduled_at', $on);
                 });
-            }
-
-            if ($request->boolean('adhoc')) {
-                $query->where('adhoc', 1);
             }
 
             if ($request->boolean('pod_required')) {
@@ -438,21 +407,36 @@ class OrderController extends Controller
                 $query->where('dispatched', 1);
             }
 
-            if ($request->boolean('unassigned')) {
-                $query->whereNull('driver_assigned_uuid');
-            }
-
             if ($request->has('nearby')) {
                 $nearby = $request->input('nearby');
                 $distance = 6000; // default in meters
                 $company = Company::currentSession();
+                $addedNearbyQuery = false;
 
                 if ($company) {
                     $distance = $company->getOption('fleetops.adhoc_distance', 6000);
                 }
 
+                // if wants to find nearby place or coordinates
+                if (Utils::isCoordinates($nearby)) {
+                    $location = Utils::getPointFromMixed($nearby);
+
+                    $query->whereHas('payload', function ($q) use ($location, $distance) {
+                        $q->whereHas('pickup', function ($q) use ($location, $distance) {
+                            $q->distanceSphere('location', $location, $distance);
+                            $q->distanceSphereValue('location', $location);
+                        })->orWhereHas('waypoints', function ($q) use ($location, $distance) {
+                            $q->distanceSphere('location', $location, $distance);
+                            $q->distanceSphereValue('location', $location);
+                        });
+                    });
+
+                    // Update so additional nearby queries are not added
+                    $addedNearbyQuery = true;
+                }
+
                 // request wants to find orders nearby a driver ?
-                if (is_string($nearby) && Str::startsWith($nearby, 'driver_')) {
+                if ($addedNearbyQuery === false && is_string($nearby) && Str::startsWith($nearby, 'driver_')) {
                     $driver = Driver::where('public_id', $nearby)->first();
 
                     if ($driver) {
@@ -465,26 +449,14 @@ class OrderController extends Controller
                                 $q->distanceSphereValue('location', $driver->location);
                             });
                         });
+
+                        // Update so additional nearby queries are not added
+                        $addedNearbyQuery = true;
                     }
                 }
 
-                // if wants to find nearby place or coordinates
-                if (Utils::isCoordinates($nearby)) {
-                    $location = Utils::getPointFromCoordinates($nearby);
-
-                    $query->whereHas('payload', function ($q) use ($location, $distance) {
-                        $q->whereHas('pickup', function ($q) use ($location, $distance) {
-                            $q->distanceSphere('location', $location, $distance);
-                            $q->distanceSphereValue('location', $location);
-                        })->orWhereHas('waypoints', function ($q) use ($location, $distance) {
-                            $q->distanceSphere('location', $location, $distance);
-                            $q->distanceSphereValue('location', $location);
-                        });
-                    });
-                }
-
                 // if is a string like address string
-                if (is_string($nearby)) {
+                if ($addedNearbyQuery === false && is_string($nearby)) {
                     $nearby = Place::createFromMixed($nearby, [], false);
 
                     if ($nearby instanceof Place) {
@@ -497,11 +469,12 @@ class OrderController extends Controller
                                 $q->distanceSphereValue('location', $nearby->location);
                             });
                         });
+
+                        // Update so additional nearby queries are not added
+                        $addedNearbyQuery = true;
                     }
                 }
             }
-
-            // Utils::sqlDump($query);
         });
 
         return OrderResource::collection($results);
@@ -636,9 +609,7 @@ class OrderController extends Controller
         $assignAdhocDriver = $request->input('assign');
 
         try {
-            $order = Order::findRecordOrFail($id, ['payload.waypoints'], [], function (&$query) {
-                $query->disableCache();
-            });
+            $order = Order::findRecordOrFail($id, ['payload.waypoints'], []);
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $exception) {
             return response()->json(
                 [
@@ -731,7 +702,6 @@ class OrderController extends Controller
             ->where('public_id', $order)
             ->whereNull('deleted_at')
             ->with(['driverAssigned', 'payload.entities', 'payload.currentWaypoint', 'payload.waypoints'])
-            ->disableCache()
             ->first();
 
         if (!$order) {
@@ -753,7 +723,6 @@ class OrderController extends Controller
 
         // handle pickup/dropoff order activity update as normal
         if (is_array($activity) && $activity['code'] === 'dispatched') {
-
             // make sure driver is assigned if not trigger failed dispatch
             if (!$order->hasDriverAssigned && !$order->adhoc) {
                 event(new OrderDispatchFailed($order, 'No driver assigned for order to dispatch to.'));
@@ -1075,6 +1044,8 @@ class OrderController extends Controller
      */
     public function captureSignature(string $id, ?string $subjectId = null, Request $request)
     {
+        $disk = $request->input('disk', config('filesystems.default'));
+        $bucket = $request->input('bucket', config('filesystems.disks.' . $disk . '.bucket', config('filesystems.disks.s3.bucket')));
         $signature = $request->input('signature');
         $data = $request->input('data', []);
         $type = $subjectId ? strtok($subjectId, '_') : null;
@@ -1134,7 +1105,7 @@ class OrderController extends Controller
         $path = 'uploads/' . session('company') . '/signatures/' . $proof->public_id . '.png';
 
         // upload signature
-        Storage::disk('s3')->put($path, base64_decode($signature), 'public');
+        Storage::disk($disk)->put($path, base64_decode($signature));
 
         // create file record for upload
         $file = File::create([
@@ -1145,7 +1116,7 @@ class OrderController extends Controller
             'extension' => 'png',
             'content_type' => 'image/png',
             'path' => $path,
-            'bucket' => config('filesystems.disks.s3.bucket'),
+            'bucket' => $bucket,
             'type' => 'signature',
             'size' => Utils::getBase64ImageSize($signature)
         ])->setKey($proof);
@@ -1154,6 +1125,6 @@ class OrderController extends Controller
         $proof->file_uuid = $file->uuid;
         $proof->save();
 
-        return new V1Proof($proof);
+        return new ProofResource($proof);
     }
 }

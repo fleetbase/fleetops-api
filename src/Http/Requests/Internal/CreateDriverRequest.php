@@ -24,11 +24,13 @@ class CreateDriverRequest extends CreateDriverApiRequest
      */
     public function rules()
     {
+        $isCreating = $this->isMethod('POST');
+
         return [
-            'name' => [Rule::requiredIf($this->isMethod('POST'))],
-            'email' => ['nullable', 'email', Rule::unique('users')->whereNull('deleted_at')],
+            'name' => [Rule::requiredIf($isCreating)],
+            'email' => [Rule::requiredIf($isCreating), Rule::when($this->filled('email'), ['email']), Rule::when($isCreating, [Rule::unique('users')->whereNull('deleted_at')])],
+            'phone' => [Rule::requiredIf($isCreating), Rule::when($isCreating, [Rule::unique('users')->whereNull('deleted_at')])],
             'password' => 'nullable|string',
-            'phone' => ['nullable', Rule::unique('users')->whereNull('deleted_at')],
             'country' => 'nullable|size:2',
             'city' => 'nullable|string',
             // 'vehicle' => 'nullable|exists:vehicles,uuid',

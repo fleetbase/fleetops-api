@@ -29,9 +29,9 @@ class CreateDriverRequest extends FleetbaseRequest
 
         return [
             'name' => [Rule::requiredIf($isCreating)],
-            'email' => ['nullable', 'email', $isCreating ? Rule::unique('users')->whereNull('deleted_at') : null],
+            'email' => [Rule::requiredIf($isCreating), Rule::when($this->filled('email'), ['email']), Rule::when($isCreating, [Rule::unique('users')->whereNull('deleted_at')])],
+            'phone' => [Rule::requiredIf($isCreating), Rule::when($isCreating, [Rule::unique('users')->whereNull('deleted_at')])],
             'password' => 'nullable|string',
-            'phone' => ['nullable', $isCreating ? Rule::unique('users')->whereNull('deleted_at') : null],
             'country' => 'nullable|size:2',
             'city' => 'nullable|string',
             'vehicle' => 'nullable|string|starts_with:vehicle_|exists:drivers,public_id',

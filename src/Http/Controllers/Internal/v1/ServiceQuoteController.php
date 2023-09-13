@@ -252,7 +252,7 @@ class ServiceQuoteController extends FleetOpsController
 
         // if no total distance recalculate totalDistance and totalTime based on waypoints collected
         if (!$totalDistance) {
-            $matrix = Utils::distanceMatrix([$waypoints->first()], $waypoints->skip(1));
+            $matrix = Utils::distanceMatrix([$waypoints->first()], $waypoints->skip(1)->values());
 
             // set totalDistance and totalTime
             $totalDistance = $matrix->distance ?? 0;

@@ -26,15 +26,14 @@ class DriverSimulationRequest extends FleetbaseRequest
     public function rules()
     {
         return [
-            'action' => 'sometimes|required|string',
             'start' => [Rule::requiredIf(
                 function () {
-                    return $this->input('action', 'drive') === 'drive';
+                    return $this->missing('order');
                 }
             ), new ResolvablePoint],
             'end' => [Rule::requiredIf(
                 function () {
-                    return $this->input('action', 'drive') === 'drive';
+                    return $this->missing('order');
                 }
             ), new ResolvablePoint],
             'order' => [Rule::requiredIf(

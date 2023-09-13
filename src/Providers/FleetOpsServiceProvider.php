@@ -36,6 +36,17 @@ class FleetOpsServiceProvider extends CoreServiceProvider
     ];
 
     /**
+     * The console commands registered with the service provider.
+     *
+     * @var array
+     */
+    public $commands = [
+        \Fleetbase\FleetOps\Console\Commands\DispatchAdhocOrders::class,
+        \Fleetbase\FleetOps\Console\Commands\DispatchOrders::class,
+        \Fleetbase\FleetOps\Console\Commands\TrackOrderDistanceAndTime::class,
+    ];
+
+    /**
      * Register any application services.
      *
      * Within the register method, you should only bind things into the 
@@ -63,6 +74,12 @@ class FleetOpsServiceProvider extends CoreServiceProvider
     public function boot()
     {
         $this->registerObservers();
+        $this->registerCommands();
+        $this->scheduleCommands(function ($schedule) {
+            $schedule->command('fleetops:dispatch-orders')->everyMinute();
+            $schedule->command('fleetops:dispatch-adhoc')->everyMinute();
+            $schedule->command('fleetops:update-estimations')->everyFifteenMinutes();
+        });
         $this->registerExpansionsFrom(__DIR__ . '/../Expansions');
         $this->loadRoutesFrom(__DIR__ . '/../routes.php');
         $this->loadMigrationsFrom(__DIR__ . '/../../migrations');
