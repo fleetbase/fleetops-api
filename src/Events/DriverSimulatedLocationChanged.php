@@ -100,12 +100,20 @@ class DriverSimulatedLocationChanged implements ShouldBroadcast
      */
     public $speed;
 
+
+    /**
+     * Optional, additional data.
+     *
+     * @var array
+     */
+    public $additionalData = [];
+
     /**
      * Create a new event instance.
      *
      * @return void
      */
-    public function __construct(Driver $driver, Point $location, ?int $speed = null, ?int $heading = null)
+    public function __construct(Driver $driver, Point $location, array $additionalData = [])
     {
         $this->eventId = uniqid('event_');
         $this->sentAt = Carbon::now()->toDateTimeString();
@@ -117,9 +125,10 @@ class DriverSimulatedLocationChanged implements ShouldBroadcast
         $this->altitude = $driver->altitude;
 
         // can be set in simulation
-        $this->heading = $heading ?? $driver->heading;
-        $this->speed = $speed ?? $driver->speed;
+        $this->heading = data_get($additionalData, 'heading', $driver->heading);
+        $this->speed = data_get($additionalData, 'speed', $driver->speed);
         $this->location = $location;
+        $this->additionalData = $additionalData;
     }
 
     /**
@@ -167,7 +176,8 @@ class DriverSimulatedLocationChanged implements ShouldBroadcast
                 'location' => $this->location,
                 'altitude' => $this->altitude,
                 'heading' => $this->heading,
-                'speed' => $this->speed
+                'speed' => $this->speed,
+                'additionalData' => $this->additionalData
             ],
         ];
     }

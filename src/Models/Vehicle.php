@@ -14,7 +14,6 @@ use Spatie\Sluggable\SlugOptions;
 use Spatie\Sluggable\HasSlug;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
-use Exception;
 use Fleetbase\Traits\HasApiModelBehavior;
 
 class Vehicle extends Model
@@ -98,43 +97,15 @@ class Vehicle extends Model
         'photo_uuid',
         'avatar_url',
         'make',
+        'location',
         'model',
         'year',
         'trim',
-        'model_0_to_100_kph',
-        'model_body',
-        'model_co2',
-        'model_doors',
-        'model_drive',
-        'model_engine_bore_mm',
-        'model_engine_cc',
-        'model_engine_compression',
-        'model_engine_cyl',
-        'model_engine_fuel',
-        'model_engine_position',
-        'model_engine_power_ps',
-        'model_engine_power_rpm',
-        'model_engine_stroke_mm',
-        'model_engine_torque_nm',
-        'model_engine_torque_rpm',
-        'model_engine_valves_per_cyl',
-        'model_fuel_cap_l',
-        'model_length_mm',
-        'model_lkm_city',
-        'model_lkm_hwy',
-        'model_lkm_mixed',
-        'model_make_display',
-        'model_seats',
-        'model_sold_in_us',
-        'model_top_speed_kph',
-        'model_transmission_type',
-        'model_weight_kg',
-        'model_wheelbase_mm',
-        'model_width_mm',
         'type',
         'plate_number',
         'vin',
         'vin_data',
+        'telematics',
         'status',
         'slug',
     ];
@@ -153,7 +124,7 @@ class Vehicle extends Model
      *
      * @var array
      */
-    protected $appends = ['display_name', 'photo_url', 'driver_name', 'driver_id', 'driver_uuid', 'vendor_name', 'vendor_id'];
+    protected $appends = ['display_name', 'photo_url', 'driver_name', 'vendor_name'];
 
     /**
      * The attributes excluded from the model's JSON form.
@@ -161,36 +132,6 @@ class Vehicle extends Model
      * @var array
      */
     protected $hidden = [
-        'model_0_to_100_kph',
-        'model_body',
-        'model_co2',
-        'model_doors',
-        'model_drive',
-        'model_engine_bore_mm',
-        'model_engine_cc',
-        'model_engine_compression',
-        'model_engine_cyl',
-        'model_engine_fuel',
-        'model_engine_position',
-        'model_engine_power_ps',
-        'model_engine_power_rpm',
-        'model_engine_stroke_mm',
-        'model_engine_torque_nm',
-        'model_engine_torque_rpm',
-        'model_engine_valves_per_cyl',
-        'model_fuel_cap_l',
-        'model_length_mm',
-        'model_lkm_city',
-        'model_lkm_hwy',
-        'model_lkm_mixed',
-        'model_make_display',
-        'model_seats',
-        'model_sold_in_us',
-        'model_top_speed_kph',
-        'model_transmission_type',
-        'model_weight_kg',
-        'model_wheelbase_mm',
-        'model_width_mm',
         'driver',
         'vendor'
     ];
@@ -202,8 +143,50 @@ class Vehicle extends Model
      */
     protected $casts = [
         'meta' => Json::class,
-        'vin_data' => 'object',
+        'telematics' => Json::class,
+        'model' => Json::class,
+        'vin_data' => Json::class,
     ];
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function photo()
+    {
+        return $this->belongsTo(\Fleetbase\Models\File::class);
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     */
+    public function driver()
+    {
+        return $this->hasOne(Driver::class)->without(['vehicle']);
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function vendor()
+    {
+        return $this->belongsTo(Vendor::class);
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function devices()
+    {
+        return $this->hasMany(VehicleDevices::class);
+    }
+
+    /**
+     * Get avatar URL attribute.
+     */
+    public function getPhotoUrlAttribute()
+    {
+        return data_get($this, 'photo.url', 'https://s3.ap-southeast-1.amazonaws.com/flb-assets/static/vehicle-placeholder.png');
+    }
 
     /**
      * The name generated from make model and year
@@ -212,39 +195,7 @@ class Vehicle extends Model
      */
     public function getDisplayNameAttribute()
     {
-        return sprintf('%s %s %s %s %s', $this->year, $this->model_make_display ?? $this->make, $this->model, $this->trim, $this->plate_number);
-    }
-
-    /**
-     * The image file assosciated with the vehicle.
-     */
-    public function photo()
-    {
-        return $this->belongsTo(\Fleetbase\Models\File::class);
-    }
-
-    /**
-     * Get avatar URL attribute.
-     */
-    public function getPhotoUrlAttribute()
-    {
-        return data_get($this, 'photo.s3url', 'https://s3.ap-southeast-1.amazonaws.com/flb-assets/static/vehicle-placeholder.png');
-    }
-
-    /**
-     * The driver/operator of vehicle
-     */
-    public function driver()
-    {
-        return $this->hasOne(Driver::class)->without(['vehicle']);
-    }
-
-    /**
-     * The vendor assigned to vehicle.
-     */
-    public function vendor()
-    {
-        return $this->belongsTo(Vendor::class);
+        return sprintf('%s %s %s %s %s', $this->year, $this->make, $this->model, $this->trim, $this->plate_number);
     }
 
     /**
@@ -312,125 +263,6 @@ class Vehicle extends Model
             }
         }
         return $modelAttributes;
-    }
-
-    /**
-     * Apply vin vindecoder data to this vehicle
-     * 
-     * @param \Errorname\VINDecoder\VIN $data
-     * 
-     * @return \Fleetbase\Models\Vehicle 
-     */
-    public function applyVinData($data, $andSave = true)
-    {
-        foreach ($data->available() as $key) {
-            $_key = Str::slug($key, '_');
-            if ($this->isFillable($_key)) {
-                $this->attributes[$_key] = static::attributeFromCache($data, $key);
-            }
-        }
-
-        // store all vin data
-        $this->attributes['vin_data'] = json_encode($data);
-
-        // auto fill the vehicle year with vin data
-        if (Utils::notEmpty($data['model_year'])) {
-            $this->attributes['year'] = $data['model_year'];
-        }
-
-        // auto fill the vehicle type with vin data
-        if (Utils::notEmpty($data['product_type'])) {
-            $this->attributes['type'] = Str::slug($data['product_type'], '_');
-        }
-
-        // auto fill the vehicle 'make', 'model', 'trim' vin data
-        foreach (['make', 'model', 'trim'] as $f) {
-            if (!empty($vinData[$f])) {
-                $this->attributes[$f] = static::attributeFromCache($data, $f);
-            }
-        }
-
-        return $andSave === true ? $this->save() : $this;
-    }
-
-    /**
-     * Apply vin vindecoder data to this vehicle
-     * 
-     * @param string $make
-     * 
-     * @return \Fleetbase\Models\Vehicle 
-     */
-    public function applyVehicleData($m = null, $andSave = true)
-    {
-        $m = $m ?? $this->model;
-        // see if were able to get the make
-        $makeRecord = DB::table('vehicles_data')
-            ->select('model_make_id')
-            ->where('model_make_display', $m)
-            ->first();
-        if ($makeRecord) {
-            $makeId = static::attributeFromCache($makeRecord, 'model_make_id');
-            $data = DB::table('vehicles_data')
-                ->select('*')
-                ->where(function ($q) use ($makeId, $m) {
-                    if ($makeId) {
-                        $q->where('model_make_id', $makeId);
-                    }
-                    $q->orWhere('model_make_display', $m);
-                })
-                ->where(function ($q) {
-                    if ($this->trim) {
-                        $q->where('model_trim', $this->trim);
-                    }
-                    $q->orWhere('model_trim', '');
-                })
-                ->where(function ($q) {
-                    if ($this->year) {
-                        $q->where('model_year', $this->year);
-                    }
-                    $q->orWhere('model_year', 'like', '%');
-                })
-                ->where('model_name', 'like', '%' . ($this->model ?? '') . '%')
-                ->first();
-
-            if (count($data)) {
-                foreach ($data as $property => $value) {
-                    // skip year if already set
-                    if ($property === 'model_year' && $value !== $this->year) {
-                        continue;
-                    }
-                    // if property is fillable
-                    if ($this->isFillable($property)) {
-                        $this->attributes[$property] = $value;
-                    }
-                }
-            }
-        }
-
-        return $andSave === true ? $this->save() : $this;
-    }
-
-    /**
-     * Applies all VIN and vehicle data in a single method
-     * 
-     * @param string $vin
-     * 
-     * @return \Fleetbase\Models\Vehicle 
-     */
-    public function applyAllDataFromVin($vin = null, $andSave = false)
-    {
-        $vinData = null;
-        try {
-            $vinData = Utils::decodeVin($vin ?? $this->vin);
-        } catch (Exception $e) {
-            // silently do nothing
-        }
-
-        if ($vinData) {
-            $this->applyVinData($vinData, false);
-        }
-
-        return $this->applyVehicleData(request()->input('model') ?? null, $andSave);
     }
 
     /**

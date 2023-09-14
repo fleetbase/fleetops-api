@@ -3,10 +3,10 @@
 namespace Fleetbase\FleetOps\Http\Controllers\Api\v1;
 
 use Fleetbase\Http\Controllers\Controller;
-use Fleetbase\Fleetops\Events\DriverLocationChanged;
+use Fleetbase\FleetOps\Events\DriverLocationChanged;
 use Fleetbase\FleetOps\Http\Requests\CreateDriverRequest;
 use Fleetbase\FleetOps\Http\Requests\UpdateDriverRequest;
-use Fleetbase\Fleetops\Http\Resources\v1\DeletedResource;
+use Fleetbase\FleetOps\Http\Resources\v1\DeletedResource;
 use Fleetbase\FleetOps\Http\Resources\v1\Driver as DriverResource;
 use Fleetbase\FleetOps\Support\Utils;
 use Fleetbase\FleetOps\Support\Flow;
@@ -358,7 +358,7 @@ class DriverController extends Controller
         }
 
         // get the current company session
-        $company = Flow::getCompanySession();
+        $company = Flow::getCompanySessionForUser($user);
 
         // get driver record
         $driver = Driver::firstOrCreate(
@@ -405,12 +405,16 @@ class DriverController extends Controller
         }
 
         // get the current company session
-        $company = Flow::getCompanySession();
+        $company = Flow::getCompanySessionForUser($user);
 
         // generate verification token
-        VerificationCode::generateSmsVerificationFor($user, 'driver_login', function ($verification) use ($company) {
-            return "Your {$company->name} verification code is {$verification->code}";
-        });
+        try {
+            VerificationCode::generateSmsVerificationFor($user, 'driver_login', function ($verification) use ($company) {
+                return "Your {$company->name} verification code is {$verification->code}";
+            });
+        } catch (\Throwable $e) {
+            return response()->error($e->getMessage());
+        }
 
         return response()->json(['status' => 'OK']);
     }
@@ -447,7 +451,7 @@ class DriverController extends Controller
         }
 
         // get the current company session
-        $company = Flow::getCompanySession();
+        $company = Flow::getCompanySessionForUser($user);
 
         // get driver record
         $driver = Driver::firstOrCreate(
@@ -579,7 +583,6 @@ class DriverController extends Controller
      */
     public function simulate(string $id, DriverSimulationRequest $request)
     {
-        $action = $request->input('action', 'drive');
         $start = $request->input('start');
         $end = $request->input('end');
         $order = $request->input('order');
@@ -596,10 +599,10 @@ class DriverController extends Controller
             );
         }
 
-        if ($action === 'order') {
+        if ($order) {
             try {
                 /** @var \Fleetbase\FleetOps\Models\Order $order */
-                $order = Order::findRecordOrFail($id, ['payload']);
+                $order = Order::findRecordOrFail($order, ['payload']);
             } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $exception) {
                 return response()->json(
                     [
@@ -678,6 +681,17 @@ class DriverController extends Controller
 
             // Decode the waypoints if needed
             $waypoints = OSRM::decodePolyline($routeGeometry);
+
+            // Loop through waypoints to calculate the heading for each point
+            for ($i = 0; $i < count($waypoints) - 1; $i++) {
+                $point1 = $waypoints[$i];
+                $point2 = $waypoints[$i + 1];
+
+                $heading = Utils::calculateHeading($point1, $point2);
+
+                // Directly add the 'heading' property to the Point object
+                $point1->heading = $heading;
+            }
 
             // Dispatch the job for each waypoint
             SimulateDrivingRoute::dispatchIf(Arr::first($waypoints) instanceof Point, $driver, $waypoints);

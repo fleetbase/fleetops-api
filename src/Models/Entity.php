@@ -371,7 +371,7 @@ class Entity extends Model
         $values['uuid'] = $uuid = static::generateUuid();
         $values['public_id'] = static::generatePublicId('entity');
         $values['internal_id'] = static::generateInternalId();
-        $values['_key'] = session('api_key') ?? 'console';
+        $values['_key'] = session('api_key', 'console');
         $values['created_at'] = Carbon::now()->toDateTimeString();
         $values['company_uuid'] = session('company');
 

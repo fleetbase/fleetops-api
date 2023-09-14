@@ -12,6 +12,7 @@ use Fleetbase\Casts\Json;
 use Fleetbase\Http\Resources\Internal\v1\Payload as PayloadResource;
 use Fleetbase\Traits\HasMetaAttributes;
 use Grimzy\LaravelMysqlSpatial\Types\Point;
+use Illuminate\Support\Str;
 
 class Payload extends Model
 {
@@ -550,16 +551,12 @@ class Payload extends Model
         $instance = Place::createFromMixed($place);
 
         if ($instance) {
-            if (Utils::isUuid($instance)) {
+            if (Str::isUuid($instance)) {
                 $this->setAttribute($attr, $instance);
             } else if ($instance instanceof Model) {
                 $this->setAttribute($attr, $instance->uuid);
             } else {
                 $this->setAttribute($attr, $instance);
-            }
-
-            if (method_exists($this, 'flushCache')) {
-                $this->flushCache();
             }
         }
 
@@ -678,14 +675,19 @@ class Payload extends Model
         return $this->load('currentWaypoint');
     }
 
-    public function flushOrderCache()
+    public function updateOrderDistanceAndTime(): ?Order
     {
-        $order = Order::where('payload_uuid', $this->uuid)->first();
+        // load the order
+        $this->load(['order']);
 
-        if ($order) {
-            return $order->flushCache();
+        // get the order
+        $order = $this->order;
+
+        // set google matrix based distance and time
+        if ($order instanceof \Fleetbase\FleetOps\Models\Order) {
+            return $order->setDistanceAndTime();
         }
 
-        return false;
+        return null;
     }
 }

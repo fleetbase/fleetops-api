@@ -26,6 +26,7 @@ use Illuminate\Support\Str;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Grimzy\LaravelMysqlSpatial\Types\Point;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Fleetbase\Models\Transaction;
 
 class Order extends Model
 {
@@ -709,7 +710,7 @@ class Order extends Model
 
         $attributes['uuid'] = $uuid = (string) Str::uuid();
         $attributes['public_id'] = static::generatePublicId('payload');
-        $attributes['_key'] = session('api_key') ?? 'console';
+        $attributes['_key'] = session('api_key', 'console');
         $attributes['created_at'] = Carbon::now()->toDateTimeString();
         $attributes['company_uuid'] = session('company');
 
@@ -721,6 +722,9 @@ class Order extends Model
 
         // get newly inserted payload
         $payload = Payload::find($uuid);
+
+        // manyally trigger payload created event
+        $payload->fireModelEvent('created', false);
 
         if ($setPayload) {
             $this->setPayload($payload);
@@ -828,7 +832,9 @@ class Order extends Model
     public function purchaseServiceQuote($serviceQuote, $meta = [])
     {
         if (!$serviceQuote) {
-            return false;
+            // create transaction for order
+            $this->createOrderTransactionWithoutServiceQuote();
+            return $this;
         }
 
         if (Str::isUuid($serviceQuote)) {
@@ -856,6 +862,34 @@ class Order extends Model
         }
 
         return false;
+    }
+
+    public function createOrderTransactionWithoutServiceQuote(): ?Transaction
+    {
+        $transaction = null;
+
+        try {
+            // create transaction and transaction items
+            $transaction = Transaction::create([
+                'company_uuid' => session('company', $this->company_uuid),
+                'customer_uuid' => $this->customer_uuid,
+                'customer_type' => $this->customer_type,
+                'gateway_transaction_id' => Transaction::generateNumber(),
+                'gateway' => 'internal',
+                'amount' => 0,
+                'currency' => data_get($this->company, 'country') ? Utils::getCurrenyFromCountryCode(data_get($this->company, 'country')) : 'SGD',
+                'description' => 'Dispatch order',
+                'type' => 'dispatch',
+                'status' => 'success',
+            ]);
+
+            // set transaction to order
+            $this->update(['transaction_uuid' => $transaction->uuid]);
+        } catch (\Throwable $e) {
+            // log error unable to create order transaction
+        }
+
+        return $transaction;
     }
 
     public function shouldDispatch($precision = 1)
@@ -1074,7 +1108,7 @@ class Order extends Model
         return $this;
     }
 
-    public function setDistanceAndTime()
+    public function setDistanceAndTime(): Order
     {
         $origin = $this->getCurrentOriginPosition();
         $destination = $this->getDestinationPosition();
@@ -1092,5 +1126,10 @@ class Order extends Model
     public function isIntegratedVendorOrder()
     {
         return $this->facilitator_is_integrated_vendor === true;
+    }
+
+    public function getAdhocPingDistance(): int
+    {
+        return (int) Utils::get($this, 'adhoc_distance', Utils::get($this, 'company.options.fleetops.adhoc_distance', 6000));
     }
 }

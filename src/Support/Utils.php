@@ -46,7 +46,11 @@ class Utils extends FleetbaseUtils
 
         for ($i = 0; $i < $numberOfParts; $i++) {
             $key = $parts[$i];
-            $value = strtoupper(data_get($place, $key)) ?? null;
+            $value = data_get($place, $key);
+
+            if (is_string($value)) {
+                $value = strtoupper($value);
+            }
 
             // if value empty skip or value equal to last value skip
             if (empty($value) || in_array($value, $addressValues) || (Str::contains(data_get($place, 'street1'), $value) && $key !== 'street1')) {
@@ -156,64 +160,13 @@ class Utils extends FleetbaseUtils
      */
     public static function isCoordinates($coordinates): bool
     {
-        $latitude = null;
-        $longitude = null;
-
-        if ($coordinates instanceof \Grimzy\LaravelMysqlSpatial\Eloquent\SpatialExpression) {
-            $coordinates = $coordinates->getSpatialValue();
+        try {
+            return static::getPointFromMixed($coordinates) instanceof \Grimzy\LaravelMysqlSpatial\Types\Point;
+        } catch (\Throwable $e) {
+            return false;
         }
 
-        if ($coordinates instanceof \Fleetbase\FleetOps\Models\Place) {
-            $coordinates = $coordinates->location;
-        }
-
-        if ($coordinates instanceof \Grimzy\LaravelMysqlSpatial\Types\Point) {
-            $latitude = $coordinates->getLat();
-            $longitude = $coordinates->getLng();
-        }
-
-        if (is_array($coordinates) || is_object($coordinates)) {
-            $latitude = static::or($coordinates, ['_lat', 'lat', '_latitude', 'latitude', 'x', '0']);
-            $longitude = static::or($coordinates, ['lon', '_lon', 'long', 'lng', '_lng', '_longitude', 'longitude', 'y', '1']);
-        }
-
-        if (is_string($coordinates)) {
-            $coords = [];
-
-            if (Str::startsWith($coordinates, 'POINT(')) {
-                $coordinates = Str::replaceFirst('POINT(', '', $coordinates);
-                $coordinates = Str::replace(')', '', $coordinates);
-                $coords = explode(' ', $coordinates);
-
-                if (count($coords) !== 2) {
-                    return false;
-                }
-
-                $coords = array_reverse($coords);
-                $coordinates = null;
-            }
-
-            if (Str::contains($coordinates, ',')) {
-                $coords = explode(',', $coordinates);
-            }
-
-            if (Str::contains($coordinates, '|')) {
-                $coords = explode('|', $coordinates);
-            }
-
-            if (Str::contains($coordinates, ' ')) {
-                $coords = explode(' ', $coordinates);
-            }
-
-            if (count($coords) !== 2) {
-                return false;
-            }
-
-            $latitude = static::cleanCoordinateString($coords[0]);
-            $longitude = static::cleanCoordinateString($coords[1]);
-        }
-
-        return static::isLatitude($latitude) && static::isLongitude($longitude);
+        return false;
     }
 
     /**
@@ -222,23 +175,50 @@ class Utils extends FleetbaseUtils
      * @param mixed $coordinates The coordinates input value to extract a coordinate from.
      * @return \Grimzy\LaravelMysqlSpatial\Types\Point The extracted Point object.
      */
-    public static function getPointFromMixed($coordinates): \Grimzy\LaravelMysqlSpatial\Types\Point
+    public static function getPointFromMixed($coordinates): ?\Grimzy\LaravelMysqlSpatial\Types\Point
     {
         $latitude = null;
         $longitude = null;
-
-        if ($coordinates instanceof \Grimzy\LaravelMysqlSpatial\Eloquent\SpatialExpression) {
-            $coordinates = $coordinates->getSpatialValue();
-        }
 
         if ($coordinates instanceof \Fleetbase\FleetOps\Models\Place) {
             $coordinates = $coordinates->location;
         }
 
+        if ($coordinates instanceof \Fleetbase\FleetOps\Models\Driver) {
+            $coordinates = $coordinates->location;
+        }
+
+        // any model with spatial location point
+        if ($coordinates instanceof \Illuminate\Database\Eloquent\Model && $coordinates->isFillable('location')) {
+            $coordinates = $coordinates->location;
+        }
+
+        if ($coordinates instanceof \Grimzy\LaravelMysqlSpatial\Eloquent\SpatialExpression) {
+            $coordinates = $coordinates->getSpatialValue();
+        }
+
         if ($coordinates instanceof \Grimzy\LaravelMysqlSpatial\Types\Point) {
             $latitude = $coordinates->getLat();
             $longitude = $coordinates->getLng();
-        } elseif (is_array($coordinates) || is_object($coordinates)) {
+        } else if (static::isGeoJson($coordinates)) {
+            $coordinatesJson = null;
+
+            if (is_array($coordinates) || is_object($coordinates)) {
+                $coordinatesJson = json_encode($coordinates);
+            }
+
+            if (static::isJson($coordinatesJson)) {
+                $coordinates = \Grimzy\LaravelMysqlSpatial\Types\Point::fromJson($coordinatesJson);
+            }
+        } else if (is_array($coordinates) || is_object($coordinates)) {
+            // if known location based record
+            if (static::exists($coordinates, 'public_id')) {
+                if (Str::startsWith(data_get($coordinates, 'public_id'), ['place', 'driver'])) {
+                    return static::getPointFromMixed(data_get($coordinates, 'public_id'));
+                }
+            }
+
+            // if is a object/array model with location property
             if (static::exists($coordinates, 'location')) {
                 return static::getPointFromMixed(data_get($coordinates, 'location'));
             }
@@ -255,6 +235,17 @@ class Utils extends FleetbaseUtils
                 if ($resolvedPlace instanceof \Fleetbase\FleetOps\Models\Place) {
                     return static::getPointFromMixed($resolvedPlace);
                 }
+
+                return null;
+            }
+
+            if (Str::startsWith($coordinates, 'driver_')) {
+                $resolvedDriver = \Fleetbase\FleetOps\Models\Driver::where('public_id', $coordinates)->first();
+                if ($resolvedDriver instanceof \Fleetbase\FleetOps\Models\Driver) {
+                    return static::getPointFromMixed($resolvedDriver);
+                }
+
+                return null;
             }
 
             if (Str::isUuid($coordinates)) {
@@ -262,6 +253,13 @@ class Utils extends FleetbaseUtils
                 if ($resolvedPlace instanceof \Fleetbase\FleetOps\Models\Place) {
                     return static::getPointFromMixed($resolvedPlace);
                 }
+
+                $resolvedDriver = \Fleetbase\FleetOps\Models\Driver::where('uuid', $coordinates)->first();
+                if ($resolvedDriver instanceof \Fleetbase\FleetOps\Models\Driver) {
+                    return static::getPointFromMixed($resolvedDriver);
+                }
+
+                return null;
             }
 
             if (Str::startsWith($coordinates, 'POINT(')) {
@@ -297,12 +295,113 @@ class Utils extends FleetbaseUtils
             $longitude = $coords[1];
         }
 
+        if ($coordinates instanceof \Grimzy\LaravelMysqlSpatial\Types\Point) {
+            return $coordinates;
+        }
+
         // if longitude and latitude is invalide throw exception
         if ($latitude === null && $longitude === null) {
             throw new \Exception('Attempted to resolve Point from invalid location.');
         }
 
         return new \Grimzy\LaravelMysqlSpatial\Types\Point((float) $latitude, (float) $longitude);
+    }
+
+    /**
+     * Determines if the given coordinates strictly represent a Point object. 
+     * These will explude resolvable coordinates from records.
+     *
+     * @param mixed $coordinates The coordinates, which can be an array, object, or string.
+     * @return bool Returns true if $coordinates represents a Point object, false otherwise.
+     */
+    public static function isCoordinatesStrict($coordinates)
+    {
+        return static::getPointFromCoordinatesStrict($coordinates) instanceof \Grimzy\LaravelMysqlSpatial\Types\Point;
+    }
+
+    /**
+     * Resolves a GeoJson/array/object or string representing a point to a Point object.
+     * These will explude resolvable coordinates from records.
+     *
+     * @param mixed $coordinates The coordinates, which can be an array, object, or string.
+     * @return \Grimzy\LaravelMysqlSpatial\Types\Point Returns the Point instance
+     */
+    public static function getPointFromCoordinatesStrict($coordinates): ?\Grimzy\LaravelMysqlSpatial\Types\Point
+    {
+        if ($coordinates instanceof \Grimzy\LaravelMysqlSpatial\Eloquent\SpatialExpression) {
+            $coordinates = $coordinates->getSpatialValue();
+        }
+
+        if ($coordinates instanceof \Grimzy\LaravelMysqlSpatial\Types\Point) {
+            return $coordinates;
+        }
+
+        if (static::isGeoJson($coordinates)) {
+            $coordinatesJson = null;
+
+            if (is_array($coordinates) || is_object($coordinates)) {
+                $coordinatesJson = json_encode($coordinates);
+            }
+
+            if (static::isJson($coordinatesJson)) {
+                $coordinates = \Grimzy\LaravelMysqlSpatial\Types\Point::fromJson($coordinatesJson);
+            }
+        }
+
+        if (is_array($coordinates) || is_object($coordinates)) {
+            $latitude = static::or($coordinates, ['_lat', 'lat', '_latitude', 'latitude', 'x', '0']);
+            $longitude = static::or($coordinates, ['lon', '_lon', 'long', 'lng', '_lng', '_longitude', 'longitude', 'y', '1']);
+
+            if (is_numeric($latitude) && is_numeric($longitude)) {
+                $coordinates = new \Grimzy\LaravelMysqlSpatial\Types\Point((float) $latitude, (float) $longitude);
+            }
+        }
+
+        if (is_string($coordinates)) {
+            $coords = [];
+
+            if (Str::startsWith($coordinates, 'POINT(')) {
+                $coordinates = Str::replaceFirst('POINT(', '', $coordinates);
+                $coordinates = Str::replace(')', '', $coordinates);
+                $coords = explode(' ', $coordinates);
+                $coords = array_reverse($coords);
+                $coordinates = null;
+            }
+
+            if (preg_match('/LatLng\(([^,]+),\s*([^)]+)\)/', $coordinates, $matches)) {
+                $coords = [
+                    floatval($matches[1]),
+                    floatval($matches[2]),
+                ];
+
+                $coordinates = null;
+            }
+
+            if (Str::contains($coordinates, ',')) {
+                $coords = explode(',', $coordinates);
+            }
+
+            if (Str::contains($coordinates, '|')) {
+                $coords = explode('|', $coordinates);
+            }
+
+            if (Str::contains($coordinates, ' ')) {
+                $coords = explode(' ', $coordinates);
+            }
+
+            $latitude = $coords[0];
+            $longitude = $coords[1];
+
+            if (is_numeric($latitude) && is_numeric($longitude)) {
+                $coordinates = new \Grimzy\LaravelMysqlSpatial\Types\Point((float) $latitude, (float) $longitude);
+            }
+        }
+
+        if ($coordinates instanceof \Grimzy\LaravelMysqlSpatial\Types\Point) {
+            return $coordinates;
+        }
+
+        return null;
     }
 
     /**
@@ -546,7 +645,9 @@ class Utils extends FleetbaseUtils
         if ($cachedResult) {
             $json = json_decode($cachedResult);
 
-            return $json;
+            if (!empty($json->distance) && !empty($json->time)) {
+                return new DistanceMatrix($json->distance, $json->time);
+            }
         }
 
         $response = Http::get(
@@ -575,17 +676,6 @@ class Utils extends FleetbaseUtils
         return new DistanceMatrix($distance, $time);
     }
 
-    public static function getPreliminaryDistanceMatrix($origin, $destination): DistanceMatrix
-    {
-        $origin = $origin instanceof \Fleetbase\FleetOps\Models\Place ? $origin->location : static::getPointFromMixed($origin);
-        $destination = $destination instanceof \Fleetbase\FleetOps\Models\Place ? $destination->location : static::getPointFromMixed($destination);
-
-        $distance = static::vincentyGreatCircleDistance($origin, $destination);
-        $time = round($distance / 100) * 7.2;
-
-        return new DistanceMatrix($distance, $time);
-    }
-
     /**
      * Calculates driving distance and time using Google distance matrix for multiple origins or destinations.
      * Returns distance in meters and time in seconds.
@@ -597,11 +687,11 @@ class Utils extends FleetbaseUtils
     public static function distanceMatrix($origins = [], $destinations = []): DistanceMatrix
     {
         if ($origins instanceof \Illuminate\Support\Collection) {
-            $origins = $origins->toArray();
+            $origins = $origins->all();
         }
 
         if ($destinations instanceof \Illuminate\Support\Collection) {
-            $destinations = $destinations->toArray();
+            $destinations = $destinations->all();
         }
 
         $origins = array_map(
@@ -700,13 +790,28 @@ class Utils extends FleetbaseUtils
      */
     public static function calculateDrivingDistanceAndTime($origin, $destination): DistanceMatrix
     {
-        $origin = $origin instanceof \Fleetbase\FleetOps\Models\Place ? $origin->location : static::getPointFromMixed($origin);
-        $destination = $destination instanceof \Fleetbase\FleetOps\Models\Place ? $destination->location : static::getPointFromMixed($destination);
+        $origin = static::getPointFromMixed($origin);
+        $destination = static::getPointFromMixed($destination);
 
         $distance = Utils::vincentyGreatCircleDistance($origin, $destination);
         $time = round($distance / 100) * self::DRIVING_TIME_MULTIPLIER;
 
         return new DistanceMatrix($distance, $time);
+    }
+
+    /**
+     * Alias for `calculateDrivingDistanceAndTime`
+     * Calculates driving distance and time between two points using Vincenty's formula.
+     * Returns distance in meters and time in seconds.
+     * 
+     * @param \Fleetbase\FleetOps\Models\Place|\Grimzy\LaravelMysqlSpatial\Types\Point|array $origin
+     * @param \Fleetbase\FleetOps\Models\Place|\Grimzy\LaravelMysqlSpatial\Types\Point|array $destination
+     * 
+     * @return DistanceMatrix
+     */
+    public static function getPreliminaryDistanceMatrix($origin, $destination): DistanceMatrix
+    {
+        return static::calculateDrivingDistanceAndTime($origin, $destination);
     }
 
     /**
@@ -991,5 +1096,41 @@ class Utils extends FleetbaseUtils
 
         // Return a new SpatialExpression object
         return new \Grimzy\LaravelMysqlSpatial\Eloquent\SpatialExpression($geo);
+    }
+
+    /**
+     * Calculate the heading between two geographical points.
+     *
+     * @param  Point  $point1  The starting point with latitude and longitude.
+     * @param  Point  $point2  The ending point with latitude and longitude.
+     * @return float           The heading in degrees from the starting point to the ending point.
+     */
+    public static function calculateHeading(\Grimzy\LaravelMysqlSpatial\Types\Point $point1, \Grimzy\LaravelMysqlSpatial\Types\Point $point2): float
+    {
+        // Extract latitude and longitude from Point objects
+        $lat1 = $point1->getLat();
+        $lon1 = $point1->getLng();
+        $lat2 = $point2->getLat();
+        $lon2 = $point2->getLng();
+
+        // Convert latitude and longitude from degrees to radians
+        $lat1 = deg2rad($lat1);
+        $lat2 = deg2rad($lat2);
+        $delta_lon = deg2rad($lon2 - $lon1);
+
+        // Calculate X and Y differences
+        $x = cos($lat2) * sin($delta_lon);
+        $y = cos($lat1) * sin($lat2) - sin($lat1) * cos($lat2) * cos($delta_lon);
+
+        // Calculate the angle
+        $theta_rad = atan2($x, $y);
+
+        // Convert the angle from radians to degrees
+        $theta_deg = rad2deg($theta_rad);
+
+        // Normalize the degree to be between 0 and 360
+        $theta_deg = fmod(($theta_deg + 360), 360);
+
+        return $theta_deg;
     }
 }

@@ -2,6 +2,7 @@
 
 namespace Fleetbase\FleetOps\Http\Resources\v1;
 
+use Fleetbase\FleetOps\Support\Utils;
 use Fleetbase\Http\Resources\FleetbaseResource;
 use Fleetbase\Support\Http;
 use Grimzy\LaravelMysqlSpatial\Types\Point;
@@ -36,16 +37,16 @@ class Driver extends FleetbaseResource
                 'jobs' => $this->whenLoaded('jobs', CurrentJob::collection($this->jobs()->without(['driverAssigned'])->get())),
                 'vendor' => $this->whenLoaded('vendor', new Vendor($this->vendor)),
                 'fleets' => $this->whenLoaded('fleets', Fleet::collection($this->fleets()->without('drivers')->get())),
-                'location' => $this->location ?? new Point(0, 0),
-                'heading' => $this->heading ?? null,
-                'altitude' => $this->altitude ?? null,
-                'speed' => $this->speed ?? null,
-                'country' => $this->country ?? null,
-                'currency' => $this->currency ?? null,
-                'city' => $this->city ?? null,
-                'online' => $this->online ?? false,
+                'location' => data_get($this, 'location', new Point(0, 0)),
+                'heading' => (int) data_get($this, 'heading', 0),
+                'altitude' => (int) data_get($this, 'altitude', 0),
+                'speed' => (int) data_get($this, 'speed', 0),
+                'country' => data_get($this, 'country'),
+                'currency' => data_get($this, 'currency', Utils::getCurrenyFromCountryCode($this->country)),
+                'city' => data_get($this, 'city', Utils::getCapitalCityFromCountryCode($this->country)),
+                'online' => data_get($this, 'online', false),
                 'status' => $this->status,
-                'token' => $this->token ?? null,
+                'token' => data_get($this, 'token'),
                 'meta' => $this->meta,
                 'updated_at' => $this->updated_at,
                 'created_at' => $this->created_at,

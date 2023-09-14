@@ -21,6 +21,7 @@ use Fleetbase\Http\Requests\Internal\BulkDeleteRequest;
 use Fleetbase\Models\File;
 use Fleetbase\Models\Type;
 use Fleetbase\Exceptions\FleetbaseRequestValidationException;
+use Fleetbase\FleetOps\Events\OrderReady;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
@@ -107,6 +108,9 @@ class OrderController extends FleetOpsController
                     $order->load(['trackingNumber']);
                 }
             );
+
+            // Trigger order created event
+            event(new OrderReady($record));
 
             return ['order' => new $this->resource($record)];
         } catch (\Exception $e) {

@@ -2,13 +2,14 @@
 
 namespace Fleetbase\FleetOps\Jobs;
 
+use Fleetbase\FleetOps\Events\DriverSimulatedLocationChanged;
 use Fleetbase\FleetOps\Models\Driver;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\Arr;
 
 /**
  * Class SimulateDrivingRoute
@@ -29,6 +30,20 @@ class SimulateDrivingRoute implements ShouldQueue
     public array $waypoints = [];
 
     /**
+     * The number of seconds the job can run before timing out.
+     *
+     * @var int
+     */
+    public $timeout = 60 * 15;
+
+    /**
+     * The number of times the job may be attempted.
+     *
+     * @var int
+     */
+    public $tries = 20;
+
+    /**
      * Create a new job instance.
      *
      * @param \Fleetbase\FleetOps\Models\Driver $driver The driver for whom the route is being simulated.
@@ -46,15 +61,19 @@ class SimulateDrivingRoute implements ShouldQueue
      */
     public function handle(): void
     {
-        $delayInSeconds = 0;
+        ini_set('memory_limit', '-1');
+        ini_set('max_execution_time', 0);
 
-        foreach ($this->waypoints as $waypoint) {
-            Queue::later(
-                now()->addSeconds($delayInSeconds),
-                new SimulateWaypointReached($this->driver, $waypoint)
-            );
+        $firstWaypoint = reset($this->waypoints);
+        $remainingWaypoints = array_slice($this->waypoints, 1, null, true);
 
-            $delayInSeconds += rand(5, 30); // Adjust this to control the pace
-        }
+        SimulateWaypointReached::withChain(
+            Arr::map(
+                $remainingWaypoints,
+                function ($waypoint, $index) {
+                    return new SimulateWaypointReached($this->driver, $waypoint, ['index' => $index]);
+                }
+            )
+        )->dispatch($this->driver, $firstWaypoint, ['index' => 0]);
     }
 }

@@ -7,6 +7,7 @@ use Fleetbase\FleetOps\Http\Resources\v1\Order as OrderResource;
 use Fleetbase\FleetOps\Support\Utils;
 use Fleetbase\Events\ResourceLifecycleEvent;
 use Illuminate\Bus\Queueable;
+use Illuminate\Broadcasting\Channel;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Messages\BroadcastMessage;
@@ -61,6 +62,22 @@ class OrderDispatched extends Notification implements ShouldQueue
     public function broadcastType()
     {
         return 'order.dispatched';
+    }
+
+    /**
+     * Get the channels the event should broadcast on.
+     *
+     * @return \Illuminate\Broadcasting\Channel|array
+     */
+    public function broadcastOn()
+    {
+        return [
+            new Channel('company.' . session('company', data_get($this->order, 'company.uuid'))),
+            new Channel('company.' . data_get($this->order, 'company.public_id')),
+            new Channel('api.' . session('api_credential')),
+            new Channel('order.' . $this->order->uuid),
+            new Channel('order.' . $this->order->public_id)
+        ];
     }
 
     /**

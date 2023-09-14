@@ -4,6 +4,7 @@ namespace Fleetbase\FleetOps\Http\Filter;
 
 use Fleetbase\Http\Filter\Filter;
 use Fleetbase\Support\Http;
+use Illuminate\Support\Str;
 
 class OrderFilter extends Filter
 {
@@ -41,7 +42,7 @@ class OrderFilter extends Filter
             $this->builder->where(
                 function ($q) {
                     $q->whereNull('driver_assigned_uuid');
-                    $q->whereNotIn('status', ['completed', 'canceled']);
+                    $q->whereNotIn('status', ['completed', 'canceled', 'expired']);
                 }
             );
         }
@@ -69,6 +70,24 @@ class OrderFilter extends Filter
         }
     }
 
+    public function status(string $status)
+    {
+        // handle `active` alias status
+        if ($status === 'active') {
+            // active status is anything that is not these values
+            $this->builder->whereNotIn('status', ['completed', 'expired', 'canceled']);
+            // remove the searchBuilder where clause
+            $this->builder->removeWhereFromQuery('status', 'active');
+        } else if (is_string($status)) {
+            $this->builder->where('status', $status);
+        }
+
+        // if status is array
+        if ($this->request->isArray('status')) {
+            $this->builder->whereIn('status', $status);
+        }
+    }
+
     public function customer(string $customer)
     {
         $this->builder->where('customer_uuid', $customer);
@@ -86,12 +105,16 @@ class OrderFilter extends Filter
 
     public function payload(string $payload)
     {
-        $this->builder->whereHas(
-            'payload',
-            function ($query) use ($payload) {
-                $query->where('public_id', $payload);
-            }
-        );
+        if (Str::isUuid($payload)) {
+            $this->builder->where('payload_uuid', $payload);
+        } else {
+            $this->builder->whereHas(
+                'payload',
+                function ($query) use ($payload) {
+                    $query->where('public_id', $payload);
+                }
+            );
+        }
     }
 
     public function pickup(string $pickup)
@@ -99,7 +122,17 @@ class OrderFilter extends Filter
         $this->builder->whereHas(
             'payload',
             function ($query) use ($pickup) {
-                $query->where('pickup_uuid', $pickup);
+                if (Str::isUuid($pickup)) {
+                    $query->where('pickup_uuid', $pickup);
+                } else {
+                    $query->whereHas(
+                        'dropoff',
+                        function ($query) use ($pickup) {
+                            $query->where('public_id', $pickup);
+                            $query->orWhere('internal_id', $pickup);
+                        }
+                    );
+                }
             }
         );
     }
@@ -109,7 +142,17 @@ class OrderFilter extends Filter
         $this->builder->whereHas(
             'payload',
             function ($query) use ($dropoff) {
-                $query->where('dropoff_uuid', $dropoff);
+                if (Str::isUuid($dropoff)) {
+                    $query->where('dropoff_uuid', $dropoff);
+                } else {
+                    $query->whereHas(
+                        'dropoff',
+                        function ($query) use ($dropoff) {
+                            $query->where('public_id', $dropoff);
+                            $query->orWhere('internal_id', $dropoff);
+                        }
+                    );
+                }
             }
         );
     }
@@ -119,14 +162,45 @@ class OrderFilter extends Filter
         $this->builder->whereHas(
             'payload',
             function ($query) use ($return) {
-                $query->where('return_uuid', $return);
+                if (Str::isUuid($return)) {
+                    $query->where('return_uuid', $return);
+                } else {
+                    $query->whereHas(
+                        'return',
+                        function ($query) use ($return) {
+                            $query->where('public_id', $return);
+                            $query->orWhere('internal_id', $return);
+                        }
+                    );
+                }
             }
         );
     }
 
     public function driver(string $driver)
     {
-        $this->builder->where('driver_assigned_uuid', $driver);
+        if (Str::isUuid($driver)) {
+            $this->builder->where('driver_assigned_uuid', $driver);
+        } else {
+            $this->builder->whereHas(
+                'driverAssigned',
+                function ($query) use ($driver) {
+                    $query->where('public_id', $driver);
+                    $query->orWhere('internal_id', $driver);
+                }
+            );
+            // include entities which can be assigned drivers
+            $this->builder->orWhereHas('payload.entities', function ($query) use ($driver) {
+                $query->whereNotNull('driver_assigned_uuid');
+                $query->whereHas(
+                    'driver',
+                    function ($query) use ($driver) {
+                        $query->where('public_id', $driver);
+                        $query->orWhere('internal_id', $driver);
+                    }
+                );
+            });
+        }
     }
 
     public function sort(string $sort)
