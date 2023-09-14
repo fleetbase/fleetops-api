@@ -30,11 +30,6 @@ class VehicleController extends Controller
         // create instance of vehicle model
         $vehicle = new Vehicle();
 
-        // if vin is applied try to decode vin and apply
-        if ($request->has('vin')) {
-            $vehicle->applyAllDataFromVin($request->input('vin'));
-        }
-
         // vendor assignment
         if ($request->has('vendor')) {
             $input['vendor_uuid'] = Utils::getUuid('vendors', [

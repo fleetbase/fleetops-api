@@ -10,13 +10,16 @@ class UpdateVehiclesTable extends Migration
   {
     Schema::table('vehicles', function (Blueprint $table) {
       if (!Schema::hasColumn('vehicles', 'location')) {
-        $table->point('location')->nullable();
+        $table->point('location')->nullable()->after('avatar_url');
       }
       if (!Schema::hasColumn('vehicles', 'model')) {
-        $table->json('model')->nullable();
+        $table->string('model')->nullable()->after('make');
+      }
+      if (!Schema::hasColumn('vehicles', 'model_data')) {
+        $table->json('model_data')->nullable()->after('meta');
       }
       if (!Schema::hasColumn('vehicles', 'telematics')) {
-        $table->json('telematics')->nullable();
+        $table->json('telematics')->nullable()->after('meta');
       }
 
       $table->dropColumn([
@@ -59,6 +62,7 @@ class UpdateVehiclesTable extends Migration
     Schema::table('vehicles', function (Blueprint $table) {
       $table->dropColumn('location');
       $table->dropColumn('model');
+      $table->dropColumn('model_data');
       $table->dropColumn('telematics');
 
       $table->string('model_0_to_100_kph')->nullable();
