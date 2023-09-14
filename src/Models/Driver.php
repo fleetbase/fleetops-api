@@ -179,7 +179,7 @@ class Driver extends Model
     }
 
     /**
-     * The image file assosciated with the category.
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function user()
     {
@@ -187,7 +187,7 @@ class Driver extends Model
     }
 
     /**
-     * The image file assosciated with the category.
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function company()
     {
@@ -195,7 +195,7 @@ class Driver extends Model
     }
 
     /**
-     * The vehicle assigned to driver.
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function vehicle()
     {
@@ -203,12 +203,15 @@ class Driver extends Model
             'uuid',
             'public_id',
             'year',
+            'make',
             'model',
-            'model_make_display',
-            'model',
+            'model_data',
+            'vin_data',
+            'telematics',
+            'meta',
             'trim',
             'plate_number',
-            DB::raw("CONCAT(vehicles.year, ' ', vehicles.model_make_display, ' ', vehicles.model, ' ', vehicles.trim, ' ', vehicles.plate_number) AS display_name")
+            DB::raw("CONCAT(vehicles.year, ' ', vehicles.make, ' ', vehicles.model, ' ', vehicles.trim, ' ', vehicles.plate_number) AS display_name")
         ]);
     }
 
