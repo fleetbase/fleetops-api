@@ -20,6 +20,11 @@ class EventServiceProvider extends ServiceProvider
         \Fleetbase\FleetOps\Events\OrderDispatchFailed::class => [\Fleetbase\FleetOps\Listeners\HandleOrderDispatchFailed::class, \Fleetbase\Listeners\SendResourceLifecycleWebhook::class],
         \Fleetbase\FleetOps\Events\OrderDriverAssigned::class => [\Fleetbase\FleetOps\Listeners\HandleOrderDriverAssigned::class, \Fleetbase\Listeners\SendResourceLifecycleWebhook::class],
         \Fleetbase\FleetOps\Events\OrderCompleted::class => [\Fleetbase\Listeners\SendResourceLifecycleWebhook::class],
-        \Fleetbase\FleetOps\Events\OrderReady::class => [\Fleetbase\FleetOps\Listeners\HandleOrderReady::class]
+        \Fleetbase\FleetOps\Events\OrderReady::class => [\Fleetbase\FleetOps\Listeners\HandleOrderReady::class],
+
+        /**
+         * Core Events
+         */
+        \Fleetbase\Events\UserRemovedFromCompany::class => [\Fleetbase\FleetOps\Listeners\HandleUserRemovedFromCompany::class]
     ];
 }
