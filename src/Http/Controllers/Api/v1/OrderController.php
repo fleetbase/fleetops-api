@@ -59,7 +59,7 @@ class OrderController extends Controller
         }
 
         // create payload
-        if ($request->has('payload') && $request->inputIsArray('payload')) {
+        if ($request->has('payload') && $request->isArray('payload')) {
             $payloadInput = $request->input('payload');
             $payload = new Payload();
 
@@ -382,7 +382,7 @@ class OrderController extends Controller
 
             if ($request->has('entity_status')) {
                 $query->whereHas('payload.entities.trackingNumber.status', function ($q) use ($request) {
-                    if ($request->inputIsArray('entity_status')) {
+                    if ($request->isArray('entity_status')) {
                         $q->whereIn('code', $request->input('entity_status'));
                     } else {
                         $q->where('code', $request->input('entity_status'));
