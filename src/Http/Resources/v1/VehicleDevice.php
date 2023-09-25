@@ -17,7 +17,26 @@ class VehicleDevice extends FleetbaseResource
     {
         return array_merge(
             $this->getInternalIds(),
-            []
+            [
+                'id' => $this->id,
+                'uuid' => $this->uuid,
+                'vehicle_uuid' => $this->vehicle_uuid,
+                'device_id' => $this->device_id,
+                'device_provider' => $this->device_provider,
+                'device_type' => $this->device_type,
+                'device_name' => $this->device_name,
+                'device_model' => $this->device_model,
+                'manufacturer' => $this->manufacturer,
+                'serial_number' => $this->serial_number,
+                'installation_date' => $this->installation_date,
+                'last_maintenance_date' => $this->last_maintenance_date,
+                'meta' => $this->meta ?? [],
+                'status' => $this->status,
+                'data_frequency' => $this->data_frequency,
+                'notes' => $this->notes,
+                'updated_at' => $this->updated_at,
+                'created_at' => $this->created_at,
+            ]
         );
     }
 }

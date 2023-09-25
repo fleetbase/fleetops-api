@@ -9,7 +9,8 @@ class CreateVehicleDevicesTable extends Migration
   public function up()
   {
     Schema::create('vehicle_devices', function (Blueprint $table) {
-      $table->uuid('uuid')->primary();
+      $table->increments('id');
+      $table->uuid('uuid')->nullable();
       $table->uuid('vehicle_uuid');
       $table->foreign('vehicle_uuid')->references('uuid')->on('vehicles');
       $table->string('device_id');
@@ -25,6 +26,7 @@ class CreateVehicleDevicesTable extends Migration
       $table->string('status')->nullable();
       $table->string('data_frequency')->nullable();
       $table->text('notes')->nullable();
+      $table->timestamp('deleted_at')->nullable();
       $table->timestamps();
     });
   }
