@@ -12,6 +12,8 @@ class CreateVehicleDevicesTable extends Migration
       $table->uuid('uuid')->primary();
       $table->uuid('vehicle_uuid');
       $table->foreign('vehicle_uuid')->references('uuid')->on('vehicles');
+      $table->string('device_id');
+      $table->string('device_provider');
       $table->string('device_type');
       $table->string('device_name');
       $table->string('device_model')->nullable();

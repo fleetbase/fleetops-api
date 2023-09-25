@@ -11,7 +11,7 @@ use Fleetbase\Traits\TracksApiCredential;
 use Fleetbase\FleetOps\Casts\Polygon;
 use Grimzy\LaravelMysqlSpatial\Eloquent\SpatialTrait;
 
-class VehicleDevices extends Model
+class VehicleDevice extends Model
 {
     use HasUuid,
         HasPublicId,
@@ -42,6 +42,8 @@ class VehicleDevices extends Model
     protected $fillable = [
         'uuid',
         'vehicle_uuid',
+        'device_id',
+        'device_provider',
         'device_type',
         'device_name',
         'device_model',
@@ -75,19 +77,4 @@ class VehicleDevices extends Model
      * @var array
      */
     protected $hidden = [];
-
-    /**
-     * Service area for rate.
-     *
-     * @var Model
-     */
-    public function serviceArea()
-    {
-        return $this->belongsTo(ServiceArea::class);
-    }
-
-    public function getTypeAttribute()
-    {
-        return 'zone';
-    }
 }
