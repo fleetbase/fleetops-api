@@ -135,7 +135,7 @@ class FleetController extends FleetOpsController
         ])->exists();
 
         if (!$exists) {
-            $added = FleetDriver::create([
+            $added = FleetVehicle::create([
                 'fleet_uuid' => $fleet->uuid,
                 'vehicle_uuid' => $vehicle->uuid,
             ]);

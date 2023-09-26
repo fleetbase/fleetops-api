@@ -78,4 +78,14 @@ class VehicleFilter extends Filter
             $this->builder->whereDate('updated_at', $updatedAt);
         }
     }
+    
+    public function fleet(string $fleet)
+    {
+        $this->builder->whereHas(
+            'fleets',
+            function ($q) use ($fleet) {
+                $q->where('fleet_uuid', $fleet);
+            }
+        );
+    }
 }

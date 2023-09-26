@@ -208,6 +208,10 @@ Route::prefix(config('fleetops.api.routing.prefix', null))->namespace('Fleetbase
                         $router->fleetbaseRoutes(
                             'fleets',
                             function ($router, $controller) {
+                                $router->post('add', $controller('addDriver'));
+                                $router->post('remove', $controller('removeDriver'));
+                                $router->post('addVehicle', $controller('addVehicle'));
+                                $router->post('removeVehicle', $controller('removeVehicle'));
                                 $router->get('export', $controller('export'));
                                 $router->delete('bulk-delete', $controller('bulkDelete'));
                             }
