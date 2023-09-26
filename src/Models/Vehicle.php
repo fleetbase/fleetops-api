@@ -173,6 +173,14 @@ class Vehicle extends Model
     }
 
     /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasManyThrough
+     */
+    public function fleets()
+    {
+        return $this->hasManyThrough(Fleet::class, FleetVehicle::class, 'vehicle_uuid', 'uuid', 'uuid', 'fleet_uuid');
+    }
+
+    /**
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
     public function devices()
