@@ -196,7 +196,7 @@ class Vehicle extends Model
      */
     public function getDisplayNameAttribute()
     {
-        return sprintf('%s %s %s %s %s', $this->year, $this->make, $this->model, $this->trim, $this->plate_number);
+        return trim(sprintf('%s %s %s %s %s', $this->year, $this->make, $this->model, $this->trim, $this->plate_number));
     }
 
     /**
