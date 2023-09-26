@@ -107,6 +107,7 @@ class Vehicle extends Model
         'vin_data',
         'telematics',
         'status',
+        'online',
         'slug',
     ];
 

@@ -63,8 +63,7 @@ class VehicleController extends Controller
         }
 
         // response the driver resource
-        return [];
-        // return new VehicleResource($vehicle);
+        return new VehicleResource($vehicle);
     }
 
     /**
@@ -133,8 +132,7 @@ class VehicleController extends Controller
             }
         });
 
-        // return VehicleResource::collection($results);
-        return [];
+        return VehicleResource::collection($results);
     }
 
     /**
@@ -158,8 +156,7 @@ class VehicleController extends Controller
         }
 
         // response the vehicle resource
-        // return new VehicleResource($vehicle);
-        return [];
+        return new VehicleResource($vehicle);
     }
 
     /**
