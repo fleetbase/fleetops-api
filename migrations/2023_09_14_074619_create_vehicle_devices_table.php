@@ -17,6 +17,7 @@ class CreateVehicleDevicesTable extends Migration
       $table->string('device_provider');
       $table->string('device_type');
       $table->string('device_name');
+      $table->string('device_location');
       $table->string('device_model')->nullable();
       $table->string('manufacturer')->nullable();
       $table->string('serial_number')->nullable();

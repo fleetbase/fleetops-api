@@ -26,6 +26,7 @@ class VehicleDevice extends FleetbaseResource
                 'device_type' => $this->device_type,
                 'device_name' => $this->device_name,
                 'device_model' => $this->device_model,
+                'device_location' => $this->device_location,
                 'manufacturer' => $this->manufacturer,
                 'serial_number' => $this->serial_number,
                 'installation_date' => $this->installation_date,

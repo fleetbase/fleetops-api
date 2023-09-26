@@ -36,6 +36,7 @@ class VehicleDevice extends Model
         'device_provider',
         'device_name',
         'device_model',
+        'device_location',
         'manufacturer',
         'serial_number',
         'installation_date',
