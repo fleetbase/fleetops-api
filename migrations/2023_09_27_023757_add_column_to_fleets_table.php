@@ -16,6 +16,16 @@ class AddColumnToFleetsTable extends Migration
         Schema::table('fleets', function (Blueprint $table) {
             $table->uuid('vendor_uuid')->after('zone_uuid')->nullable();
             $table->uuid('parent_fleet_uuid')->after('vendor_uuid')->nullable();
+            $table->foreign('vendor_uuid')
+                ->references('uuid')
+                ->on('vendors')
+                ->onDelete('CASCADE')
+                ->onUpdate('CASCADE');
+            $table->foreign('parent_fleet_uuid')
+            ->references('uuid')
+            ->on('fleets')
+            ->onDelete('CASCADE')
+            ->onUpdate('CASCADE');
         });
     }
 
@@ -27,6 +37,8 @@ class AddColumnToFleetsTable extends Migration
     public function down()
     {
         Schema::table('fleets', function (Blueprint $table) {
+            $table->dropForeign(['vendor_uuid']);
+            $table->dropForeign(['parent_fleet_uuid']);
             $table->dropColumn('vendor_uuid');
             $table->dropColumn('parent_fleet_uuid');
         });

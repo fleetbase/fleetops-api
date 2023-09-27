@@ -36,8 +36,8 @@ class CreateFleetVehiclesTable extends Migration
     public function down()
     {
         Schema::table('fleet_vehicles', function (Blueprint $table) {
-            $table->dropForeign('fleet_vehicles_fleet_uuid_foreign');
-            $table->dropForeign('fleet_vehicles_vehicle_uuid_foreign');
+            $table->dropForeign(['fleet_uuid']);
+            $table->dropForeign(['vehicle_uuid']);
         });
 
         Schema::dropIfExists('fleet_vehicles');

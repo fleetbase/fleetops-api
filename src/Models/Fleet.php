@@ -134,6 +134,22 @@ class Fleet extends Model
     {
         return $this->belongsTo(Zone::class)->select(['uuid', 'public_id', 'name', 'border']);
     }
+    
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function vendor()
+    {
+        return $this->belongsTo(Vendor::class)->select(['uuid', 'public_id', 'name']);
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function parent_fleet()
+    {
+        return $this->belongsTo(Fleet::class)->select(['uuid', 'public_id', 'name']);
+    }
 
     /**
      * @return \Illuminate\Database\Eloquent\Relations\HasManyThrough
