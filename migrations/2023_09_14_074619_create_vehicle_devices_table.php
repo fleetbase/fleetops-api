@@ -29,6 +29,9 @@ class CreateVehicleDevicesTable extends Migration
 
   public function down()
   {
+    Schema::table('vehicle_devices', function (Blueprint $table) {
+      $table->dropForeign('vehicle_devices_vehicle_uuid_foreign');
+    });
     Schema::dropIfExists('vehicle_devices');
   }
 }

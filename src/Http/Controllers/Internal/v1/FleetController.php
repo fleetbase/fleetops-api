@@ -43,7 +43,7 @@ class FleetController extends FleetOpsController
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public static function removeDriver(FleetActionRequest $request)
+    public static function removeDevice(FleetActionRequest $request)
     {
         $fleet = Fleet::where('uuid', $request->input('fleet'))->first();
         $driver = Driver::where('uuid', $request->input('driver'))->first();
@@ -66,7 +66,7 @@ class FleetController extends FleetOpsController
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public static function addDriver(FleetActionRequest $request)
+    public static function assignDevice(FleetActionRequest $request)
     {
         $fleet = Fleet::where('uuid', $request->input('fleet'))->first();
         $driver = Driver::where('uuid', $request->input('driver'))->first();
@@ -122,7 +122,7 @@ class FleetController extends FleetOpsController
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public static function addVehicle(FleetActionRequest $request)
+    public static function assignVehicle(FleetActionRequest $request)
     {
         $fleet = Fleet::where('uuid', $request->input('fleet'))->first();
         $vehicle = Vehicle::where('uuid', $request->input('vehicle'))->first();

@@ -81,7 +81,21 @@ class Fleet extends Model
      *
      * @var array
      */
-    protected $fillable = ['_key', 'public_id', 'company_uuid', 'service_area_uuid', 'zone_uuid', 'image_uuid', 'name', 'color', 'task', 'status', 'slug'];
+    protected $fillable = [
+        '_key',
+        'public_id',
+        'company_uuid',
+        'service_area_uuid',
+        'zone_uuid',
+        'vendor_uuid',
+        'parent_fleet_uuid',
+        'image_uuid',
+        'name',
+        'color',
+        'task',
+        'status',
+        'slug'
+    ];
 
     /**
      * Dynamic attributes that are appended to object

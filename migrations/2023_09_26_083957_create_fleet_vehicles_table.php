@@ -6,34 +6,40 @@ use Illuminate\Support\Facades\Schema;
 
 class CreateFleetVehiclesTable extends Migration
 {
-    /**
-     * Run the migrations.
-     *
-     * @return void
-     */
     public function up()
     {
         Schema::create('fleet_vehicles', function (Blueprint $table) {
             $table->increments('id');
             $table->string('_key')->nullable();
-            $table->string('uuid', 191)->nullable()->index();
-            $table->string('fleet_uuid', 191)->nullable()->index();
-            $table->string('vehicle_uuid', 191)->nullable()->index();
+            $table->uuid('uuid')->nullable()->index();
+            $table->uuid('fleet_uuid')->nullable()->index();
+            $table->uuid('vehicle_uuid')->nullable()->index();
             $table->softDeletes();
-            $table->timestamp('created_at')->nullable()->index();
-            $table->timestamp('updated_at')->nullable();
+            $table->timestamps();
 
             $table->unique(['uuid']);
+
+            $table->foreign('fleet_uuid')
+                ->references('uuid')
+                ->on('fleets')
+                ->onDelete('CASCADE')
+                ->onUpdate('CASCADE');
+
+            $table->foreign('vehicle_uuid')
+                ->references('uuid')
+                ->on('vehicles')
+                ->onDelete('CASCADE')
+                ->onUpdate('CASCADE');
         });
     }
 
-    /**
-     * Reverse the migrations.
-     *
-     * @return void
-     */
     public function down()
     {
+        Schema::table('fleet_vehicles', function (Blueprint $table) {
+            $table->dropForeign('fleet_vehicles_fleet_uuid_foreign');
+            $table->dropForeign('fleet_vehicles_vehicle_uuid_foreign');
+        });
+
         Schema::dropIfExists('fleet_vehicles');
     }
 }
