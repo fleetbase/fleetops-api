@@ -8,6 +8,10 @@ use Grimzy\LaravelMysqlSpatial\Types\GeometryInterface;
 use Grimzy\LaravelMysqlSpatial\Eloquent\SpatialExpression;
 use Illuminate\Database\Query\Expression;
 
+/**
+ * Class Point
+ * Custom Eloquent cast for handling Point spatial data.
+ */
 class Point implements CastsAttributes
 {
     /**
@@ -62,6 +66,12 @@ class Point implements CastsAttributes
         return new SpatialExpression(new Point(0, 0));
     }
 
+    /**
+     * Convert coordinates and bounding box values to float.
+     *
+     * @param array $geometry
+     * @return array
+     */
     public static function coordinatesBboxToFloat(array $geometry)
     {
         foreach ($geometry as $key => $value) {
@@ -75,11 +85,23 @@ class Point implements CastsAttributes
         return $geometry;
     }
 
+    /**
+     * Check if the given data is a raw Point object.
+     *
+     * @param mixed $data
+     * @return bool
+     */
     public static function isRawPoint($data)
     {
         return preg_match('/[\x00-\x1f]/', $data, $matches) === 1;
     }
 
+    /**
+     * Convert a hexadecimal string to a regular string.
+     *
+     * @param string $hex
+     * @return string
+     */
     public static function hex2str($hex)
     {
         $str = '';
