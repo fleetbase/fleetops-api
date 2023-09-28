@@ -208,6 +208,10 @@ Route::prefix(config('fleetops.api.routing.prefix', null))->namespace('Fleetbase
                         $router->fleetbaseRoutes(
                             'fleets',
                             function ($router, $controller) {
+                                $router->post('assign-device', $controller('assignDevice'));
+                                $router->post('remove-device', $controller('removeDevice'));
+                                $router->post('assign-vehicle', $controller('assignVehicle'));
+                                $router->post('remove-vehicle', $controller('removeVehicle'));
                                 $router->get('export', $controller('export'));
                                 $router->delete('bulk-delete', $controller('bulkDelete'));
                             }
@@ -294,6 +298,7 @@ Route::prefix(config('fleetops.api.routing.prefix', null))->namespace('Fleetbase
                                 $router->delete('bulk-delete', $controller('bulkDelete'));
                             }
                         );
+                        $router->fleetbaseRoutes('vehicle-devices');
                         $router->fleetbaseRoutes(
                             'vendors',
                             function ($router, $controller) {

@@ -81,7 +81,21 @@ class Fleet extends Model
      *
      * @var array
      */
-    protected $fillable = ['_key', 'public_id', 'company_uuid', 'service_area_uuid', 'zone_uuid', 'image_uuid', 'name', 'color', 'task', 'status', 'slug'];
+    protected $fillable = [
+        '_key',
+        'public_id',
+        'company_uuid',
+        'service_area_uuid',
+        'zone_uuid',
+        'vendor_uuid',
+        'parent_fleet_uuid',
+        'image_uuid',
+        'name',
+        'color',
+        'task',
+        'status',
+        'slug'
+    ];
 
     /**
      * Dynamic attributes that are appended to object
@@ -119,6 +133,22 @@ class Fleet extends Model
     public function zone()
     {
         return $this->belongsTo(Zone::class)->select(['uuid', 'public_id', 'name', 'border']);
+    }
+    
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function vendor()
+    {
+        return $this->belongsTo(Vendor::class)->select(['uuid', 'public_id', 'name']);
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function parentFleet()
+    {
+        return $this->belongsTo(Fleet::class)->select(['uuid', 'public_id', 'name']);
     }
 
     /**

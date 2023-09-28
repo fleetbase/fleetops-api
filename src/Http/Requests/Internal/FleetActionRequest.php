@@ -26,6 +26,7 @@ class FleetActionRequest extends FleetbaseRequest
         return [
             'fleet' => 'string|exists:fleets,uuid',
             'driver' => 'nullable|string|exists:drivers,uuid',
+            'vehicle' => 'nullable|string|exists:vehicles,uuid',
         ];
     }
 }

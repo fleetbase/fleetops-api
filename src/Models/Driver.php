@@ -447,7 +447,7 @@ class Driver extends Model
     /**
      * Assign a vehicle to driver.
      *
-     * @param Vehicle $vehicle
+     * @param \Fleetbase\FleetOps\Models\Vehicle $vehicle
      * @return void
      */
     public function assignVehicle(Vehicle $vehicle)
