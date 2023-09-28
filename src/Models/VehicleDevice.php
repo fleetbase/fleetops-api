@@ -9,6 +9,7 @@ use Fleetbase\Traits\SendsWebhooks;
 use Fleetbase\Traits\TracksApiCredential;
 use Fleetbase\FleetOps\Casts\Polygon;
 use Grimzy\LaravelMysqlSpatial\Eloquent\SpatialTrait;
+use Fleetbase\Casts\Json;
 
 class VehicleDevice extends Model
 {
@@ -45,6 +46,15 @@ class VehicleDevice extends Model
         'status',
         'data_frequency',
         'notes',
+    ];
+    /**
+     * The attributes that should be cast to native types.
+     *
+     * @var array
+     */
+    protected $casts = [
+        'meta' => Json::class,
+        'data' => Json::class,
     ];
 
     /**

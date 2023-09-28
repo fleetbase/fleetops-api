@@ -32,6 +32,7 @@ class VehicleDevice extends FleetbaseResource
                 'installation_date' => $this->installation_date,
                 'last_maintenance_date' => $this->last_maintenance_date,
                 'meta' => $this->meta ?? [],
+                'data' => $this->data ?? [],
                 'status' => $this->status,
                 'data_frequency' => $this->data_frequency,
                 'notes' => $this->notes,
