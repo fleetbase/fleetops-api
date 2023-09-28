@@ -44,6 +44,26 @@ class FleetFilter extends Filter
         );
     }
 
+    public function parentFleet(?string $fleet)
+    {
+        $this->builder->whereHas(
+            'parent_fleet',
+            function ($query) use ($fleet) {
+                $query->where('uuid', $fleet);
+            }
+        );
+    }
+
+    public function vendor(?string $vendor)
+    {
+        $this->builder->whereHas(
+            'vendor',
+            function ($query) use ($vendor) {
+                $query->where('uuid', $vendor);
+            }
+        );
+    }
+
     public function internalId(?string $internalId)
     {
         $this->builder->searchWhere('internal_id', $internalId);
