@@ -299,6 +299,15 @@ Route::prefix(config('fleetops.api.routing.prefix', null))->namespace('Fleetbase
                             }
                         );
                         $router->fleetbaseRoutes(
+                            'vehicle-devices',
+                            // function ($router, $controller) {
+                            //     $router->get('statuses', $controller('statuses'));
+                            //     $router->get('avatars', $controller('avatars'));
+                            //     $router->get('export', $controller('export'));
+                            //     $router->delete('bulk-delete', $controller('bulkDelete'));
+                            // }
+                        );
+                        $router->fleetbaseRoutes(
                             'vendors',
                             function ($router, $controller) {
                                 $router->get('statuses', $controller('statuses'));

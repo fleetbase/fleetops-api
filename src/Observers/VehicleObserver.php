@@ -54,4 +54,16 @@ class VehicleObserver
             }
         }
     }
+
+    /**
+     * Handle the Vehicle "deleted" event.
+     *
+     * @param  \Fleetbase\FleetOps\Models\Vehicle  $vehicle
+     * @return void
+     */
+    public function deleted(Vehicle $vehicle)
+    {
+        // Unassign the deleted vehicle from matching driver/(s)
+        Driver::where(['vehicle_uuid' => $vehicle->uuid])->delete();
+    }
 }
