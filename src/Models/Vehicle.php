@@ -101,6 +101,8 @@ class Vehicle extends Model
         'avatar_url',
         'make',
         'location',
+        'speed',
+        'heading',
         'model',
         'year',
         'trim',
@@ -141,7 +143,7 @@ class Vehicle extends Model
         'vendor'
     ];
 
-     /**
+    /**
      * The attributes that are spatial columns.
      *
      * @var array

@@ -24,7 +24,7 @@ class Position extends Model
      *
      * @var array
      */
-    protected $fillable = ['uuid', 'company_uuid', 'order_uuid', 'destination_uuid', 'subject_uuid', 'subject_type', 'coordinates', 'heading', 'bearing', 'speed', 'altitude'];
+    protected $fillable = ['uuid', 'company_uuid', 'order_uuid', 'destination_uuid', 'subject_uuid', 'vehicle_uuid', 'subject_type', 'coordinates', 'heading', 'bearing', 'speed', 'altitude'];
 
     /**
      * The attributes that are spatial fields.
