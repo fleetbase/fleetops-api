@@ -10,6 +10,7 @@ use Fleetbase\Traits\TracksApiCredential;
 use Fleetbase\FleetOps\Casts\Polygon;
 use Grimzy\LaravelMysqlSpatial\Eloquent\SpatialTrait;
 use Fleetbase\Casts\Json;
+use Fleetbase\Flespi\Support\FlespiIntegration;
 
 class VehicleDevice extends Model
 {
@@ -77,4 +78,16 @@ class VehicleDevice extends Model
      * @var array
      */
     protected $hidden = [];
+
+    public function createStream($data)
+    {
+        $dataRequest = [
+            "configuration" => [
+                "uri" => "https://8dd5-118-70-146-74.ngrok-free.app/flespi/int/v1/devices/update-data"
+            ],
+            "protocol_id" => 7,
+            "name" => 'test'
+        ];
+        FlespiIntegration::createStream([$dataRequest], $data);
+    }
 }
