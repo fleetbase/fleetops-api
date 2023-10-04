@@ -3,6 +3,7 @@
 namespace Fleetbase\FleetOps\Observers;
 
 use Fleetbase\FleetOps\Models\VehicleDevice;
+use Fleetbase\Flespi\Support\FlespiIntegration;
 
 class VehicleDeviceObserver
 {
@@ -14,9 +15,8 @@ class VehicleDeviceObserver
    */
   public function created(VehicleDevice $vehicleDevice)
   {
-    $data = [
-      "device_id" => $vehicleDevice->device_id,
-    ];
-    $vehicleDevice->createStream($data);
+    if ($vehicleDevice->device_provider === 'flespi') {
+      FlespiIntegration::createOrAssignDeviceToStream($vehicleDevice->device_id);
+    }
   }
 }
