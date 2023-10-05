@@ -20,6 +20,9 @@ class UpdateVehicle extends Migration
             if (!Schema::hasColumn('vehicles', 'heading')) {
                 $table->string('heading')->nullable()->after('speed');
             }
+            if (!Schema::hasColumn('vehicles', 'altitude')) {
+                $table->string('altitude')->nullable()->after('heading');
+            }
         });
     }
 
@@ -33,6 +36,7 @@ class UpdateVehicle extends Migration
         Schema::table('vehicles', function (Blueprint $table) {
             $table->dropColumn('speed');
             $table->dropColumn('heading');
+            $table->dropColumn('altitude');
         });
     }
 }

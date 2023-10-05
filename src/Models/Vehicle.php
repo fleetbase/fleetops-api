@@ -103,6 +103,7 @@ class Vehicle extends Model
         'location',
         'speed',
         'heading',
+        'altitude',
         'model',
         'year',
         'trim',
