@@ -21,6 +21,12 @@ class UpdateVehiclesTable extends Migration
       if (!Schema::hasColumn('vehicles', 'telematics')) {
         $table->json('telematics')->nullable()->after('meta');
       }
+      if (!Schema::hasColumn('vehicles', 'speed')) {
+        $table->string('speed')->nullable()->after('location');
+      }
+      if (!Schema::hasColumn('vehicles', 'heading')) {
+        $table->string('heading')->nullable()->after('speed');
+      }
 
       $table->dropColumn([
         'model_0_to_100_kph',
@@ -64,6 +70,8 @@ class UpdateVehiclesTable extends Migration
       $table->dropColumn('model');
       $table->dropColumn('model_data');
       $table->dropColumn('telematics');
+      $table->dropColumn('speed');
+      $table->dropColumn('heading');
 
       $table->string('model_0_to_100_kph')->nullable();
       $table->string('model_body')->nullable();
