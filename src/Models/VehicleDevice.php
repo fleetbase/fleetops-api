@@ -10,7 +10,6 @@ use Fleetbase\Traits\TracksApiCredential;
 use Fleetbase\FleetOps\Casts\Polygon;
 use Grimzy\LaravelMysqlSpatial\Eloquent\SpatialTrait;
 use Fleetbase\Casts\Json;
-use Fleetbase\Flespi\Support\FlespiIntegration;
 
 class VehicleDevice extends Model
 {
