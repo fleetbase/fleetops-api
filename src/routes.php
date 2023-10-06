@@ -354,7 +354,15 @@ Route::prefix(config('fleetops.api.routing.prefix', null))->namespace('Fleetbase
                                         $router->get('routes', 'LiveController@routes');
                                         $router->get('orders', 'LiveController@orders');
                                         $router->get('drivers', 'LiveController@drivers');
+                                        $router->get('vehicles', 'LiveController@vehicles');
                                         $router->get('places', 'LiveController@places');
+                                    }
+                                );
+                                $router->group(
+                                    ['prefix' => 'settings'],
+                                    function ($router) {
+                                        $router->get('visibility', 'SettingController@getVisibilitySettings');
+                                        $router->post('visibility', 'SettingController@saveVisibilitySettings');
                                     }
                                 );
                                 $router->group(

@@ -160,6 +160,14 @@ class Fleet extends Model
     }
 
     /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasManyThrough
+     */
+    public function vehicles()
+    {
+        return $this->hasManyThrough(Vehicle::class, FleetVehicle::class, 'fleet_uuid', 'uuid', 'uuid', 'vehicle_uuid');
+    }
+
+    /**
      * Get avatar URL attribute.
      * 
      * @return string
