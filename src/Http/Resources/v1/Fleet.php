@@ -31,7 +31,6 @@ class Fleet extends FleetbaseResource
                 'vendor' => $this->whenLoaded('vendor', new Vendor($this->vendor)),
                 'parent_fleet' => $this->whenLoaded('parent_fleet', new self($this->parent_fleet)),
                 'drivers' => $this->whenLoaded('drivers', Driver::collection($this->drivers()->without(['driverAssigned'])->with(Http::isInternalRequest() ? ['jobs'] : [])->get())),
-                'vehicles' => $this->whenLoaded('vehicles', Vehicle::collection($this->vehicles)),
                 'updated_at' => $this->updated_at,
                 'created_at' => $this->created_at,
             ]
