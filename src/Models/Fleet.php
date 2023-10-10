@@ -134,7 +134,7 @@ class Fleet extends Model
     {
         return $this->belongsTo(Zone::class)->select(['uuid', 'public_id', 'name', 'border']);
     }
-    
+
     /**
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
@@ -146,7 +146,7 @@ class Fleet extends Model
     /**
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
-    public function parentFleet()
+    public function parent_fleet()
     {
         return $this->belongsTo(Fleet::class)->select(['uuid', 'public_id', 'name']);
     }
