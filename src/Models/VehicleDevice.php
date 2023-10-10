@@ -43,6 +43,8 @@ class VehicleDevice extends Model
         'installation_date',
         'last_maintenance_date',
         'meta',
+        'data',
+        'online',
         'status',
         'data_frequency',
         'notes',
